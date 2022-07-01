@@ -1,0 +1,8 @@
+{
+  "name": "@inventor/cli",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": "sunkeysun",
+  "license": "MIT",
+  "private": false
+}
