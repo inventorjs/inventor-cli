@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@inventor/cli-core": ["./src/core/index.ts"]
+    },
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
+}
