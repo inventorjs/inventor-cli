@@ -7,10 +7,14 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "dev": "ts-node-esm --experimental-specifier-resolution=node src/index.ts"
+    "dev": "ts-node-esm --experimental-specifier-resolution=node src/index.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "commander": "^9.4.0",
+    "ejs": "^3.1.8",
+    "execa": "^6.1.0",
+    "globby": "^13.1.2",
     "prompts": "^2.4.2"
   },
   "devDependencies": {

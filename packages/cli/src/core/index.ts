@@ -1,1 +1,5 @@
-export { default as prompts } from './prompts'
+export * as prompts from './prompts.js'
+export * as plugin from './plugin.js'
+export * as fs from './fs.js'
+export * as env from './env.js'
+export * as util from './util.js'

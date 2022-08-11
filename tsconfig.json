@@ -3,12 +3,13 @@
     "target": "esnext",
     "module": "esnext",
     "lib": ["esnext"],
+    "outDir": "dist",
     "declaration": true,
     "esModuleInterop": true,
     "strict": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node"
+    "moduleResolution": "nodenext"
   }  
 }

@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "baseUrl": ".",
+    "outDir": "dist",
     "paths": {
       "@inventor/cli-core": ["./src/core/index.ts"]
     },
