@@ -1,10 +1,4 @@
-import { createRequire } from 'module'
+import toml from '@iarna/toml'
+import { readFile } from 'fs/promises'
 
-const require = createRequire(import.meta.url)
-
-try {
-   console.log(await require.resolve('commander'))
-} catch (err) {
-   console.log(err, '----')
-}
-
+console.log(toml.stringify(JSON.parse(await readFile('./.inventorrc', 'utf8'))))
