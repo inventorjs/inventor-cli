@@ -1,8 +1,9 @@
-//const path = '/data/developer/.config/yarn/global/node_modules/qs/lib/index.js'
+import { createRequire } from 'module'
+
+const require = createRequire(import.meta.url)
 
 try {
-   const qs = await import('qs')
-   console.log(Object.keys(qs))
+   console.log(await require.resolve('commander'))
 } catch (err) {
    console.log(err, '----')
 }

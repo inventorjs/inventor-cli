@@ -2,76 +2,67 @@
  * 插件基础类
  * @author: sunkeysun
  */
+import { createRequire } from 'node:module'
+import path from 'node:path'
+import { readdir } from 'node:fs/promises'
 import { Command } from 'commander'
-import * as util from './util.js'
+
+type PluginType = new () => Plugin
+
+const require = createRequire(import.meta.url)
 
 const internalPlugins = [
   'plugin',
 ]
 
-interface PluginDefination {
-  name: string
-  description: string
-  actions: {
-    name: string
-    description: string
-    options?: {
-      option: string
-      description: string
-      default?: unknown
-    }[]
-  }[]
-}
-
-type ActionFun = (options: Record<string, unknown>) => Promise<void>
-
-export abstract class Plugin {
-  abstract define(): Promise<PluginDefination>
-
-  async checkIsExists(name: string) {
-    const vendorPlugins = ['eslint']
-    if (vendorPlugins.concat(internalPlugins).includes(name)) {
-      return true
-    }
-    return false
-  }
-
-  async checkIsValid(name: string) {
-    if (!/^\w+$/.test(name)) {
-      return false
-    }
-    return true
-  }
-}
-
-async function registerCmd(cli: Command, Plugin: new () => Plugin) {
+async function registerPlugin(cli: Command, packageName: string) {
+  const { default: Plugin } = await import(packageName) as { default: PluginType }
   const plugin = new Plugin()
-  const pluginDefination = await plugin.define()
-  const pluginName = pluginDefination.name
+  const actions = await plugin.loadActions(require.resolve(packageName))
 
-  const cmd = cli.command(pluginName)
-  cmd.description(pluginDefination.description)
+  const cmd = cli.command(plugin.name)
+  cmd.description(plugin.description)
 
-  for (const actionConfig of pluginDefination.actions) {
-    const action = cmd.command(actionConfig.name)
-                      .description(actionConfig.description)
-    if (actionConfig.options) {
-      actionConfig.options.forEach((option) => action.option(option.option, option.description))
+  for (const action of actions) {
+    const actionCmd = cmd.command(action.name)
+                      .description(action.description)
+    if (action.options) {
+      action.options.forEach((option) => actionCmd.option(option.option, option.description))
     }
-    const actionName = await util.capitalize(actionConfig.name)
-    const actionFunName = `action${actionName}` as keyof Plugin
-    if (!plugin[actionFunName]) {
-      throw new Error(`actionFun "${actionFunName}" not exists!`)
-    }
-    action.action(
-      async (options) => await (plugin[actionFunName] as unknown as ActionFun)(options)
-    )
+    actionCmd.action(action.action)
   }
+}
+export abstract class Plugin {
+  abstract name: string
+  abstract description: string
+
+  async loadActions(entry: string) {
+    const actionDir = path.resolve(path.dirname(entry), 'actions')
+    const actionFiles = await readdir(actionDir)
+    const actions: Action[] = []
+    for (const actionFile of actionFiles) {
+      const actionPath = path.resolve(actionDir, actionFile)
+      const { default: Action } = await import(actionPath)
+      actions.push(new Action())
+    }
+    return actions
+  }
+}
+
+export abstract class Action {
+  abstract name: string
+  abstract description: string
+  abstract options?: {
+    option: string
+    description: string
+    default?: unknown
+  }[]
+  abstract action(options: Record<string, unknown>): Promise<void>
 }
 
 export async function init(cli: Command) {
   for (const pluginName of internalPlugins) {
-    const { default: Plugin } = await import(`../plugins/${pluginName}`)
-    await registerCmd(cli, Plugin)
+    const packageName = `../plugins/${pluginName}`
+    await registerPlugin(cli, packageName)
   }
 }
