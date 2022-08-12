@@ -29,7 +29,7 @@ const internalPlugins = [
 ]
 
 function getInternalPluginPackageName(pluginName: string) {
-  return `../plugins/${pluginName}`
+  return `../plugins/${pluginName}/index.ts`
 }
 
 async function loadActions(packageName: string) {

@@ -4,7 +4,9 @@
  */
 import { Command } from 'commander'
 import { plugin } from './core/index.js'
-import packageJson from '../package.json' assert { type: 'json' }
+import { createRequire } from 'node:module'
+
+const packageJson = createRequire(import.meta.url)('../package.json')
 
 const cli = new Command('inventor').version(packageJson.version)
 
