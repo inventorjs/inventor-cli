@@ -1,12 +1,14 @@
 /**
- * 插件基础类
+ * 插件模块
  * @author: sunkeysun
  */
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { readdir } from 'node:fs/promises'
 import { Command } from 'commander'
-import * as rc from './rc.js'
+import * as rc from '../rc.js'
+import Plugin from './Plugin.js'
+import Action, { type ActionOption } from './Action.js'
 
 type PluginType = new () => Plugin
 
@@ -14,37 +16,31 @@ type PluginConfig = {
   pluginName: string
   packageName: string
   options?: Record<string, unknown>
-}[]
-
-type ActionOption = {
-  option: string
-  description: string
-  default?: unknown 
 }
 
 const require = createRequire(import.meta.url)
 
-const internalPlugins = [
-  'plugin',
-]
+const internalPlugins = [ 'plugin' ]
 
 function getInternalPluginPackageName(pluginName: string) {
-  return `../plugins/${pluginName}/index.ts`
+  return `../../plugins/${pluginName}/index.ts`
 }
 
 async function loadActions(packageName: string) {
   const entry = require.resolve(packageName)
+  const root = path.dirname(entry)
   const actionDir = path.resolve(path.dirname(entry), 'actions')
   const actionFiles = await readdir(actionDir)
   const actions: Action[] = []
+
   for (const actionFile of actionFiles) {
     const actionPath = path.resolve(actionDir, actionFile)
     const { default: Action } = await import(actionPath)
-    const action = new Action()
+    const action = new Action({ root })
     if (!(action instanceof Action)) {
       throw new Error('action must extends from Action base class!')
     }
-    actions.push(new Action())
+    actions.push(action)
   }
   return actions
 }
@@ -64,33 +60,24 @@ async function registerPlugin(cli: Command, pluginName: string, packageName: str
     const actionCmd = cmd.command(action.name)
                       .description(action.description)
     if (action.options) {
-      action.options.forEach((option) => actionCmd.option(option.option, option.description))
+      action.options.forEach((option: ActionOption) => actionCmd.option(option.option, option.description))
     }
-    actionCmd.action(action.action)
+    actionCmd.action(async (options) => await action.action(options))
   }
 }
 
-export abstract class Plugin {
-  abstract description: string
-}
-
-export abstract class Action {
-  abstract name: string
-  abstract description: string
-  abstract options?: ActionOption[]
-  abstract action(options: Record<string, unknown>): Promise<void>
-}
-
-export async function init(cli: Command) {
+async function init(cli: Command) {
   for (const pluginName of internalPlugins) {
     const packageName = getInternalPluginPackageName(pluginName)
     await registerPlugin(cli, pluginName, packageName)
   }
 
-  const globalVendorPlugins  = (await rc.getGlobal('plugins') ?? []) as PluginConfig
-  const localVendorPlugins = (await rc.getLocal('plugins') ?? []) as PluginConfig
+  const globalVendorPlugins  = (await rc.getGlobal('plugins') ?? []) as PluginConfig[]
+  const localVendorPlugins = (await rc.getLocal('plugins') ?? []) as PluginConfig[]
 
   for (const plugin of localVendorPlugins.concat(globalVendorPlugins)) {
     await registerPlugin(cli, plugin.pluginName, plugin.packageName)
   }
 }
+
+export { Plugin, Action, init }

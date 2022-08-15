@@ -1,6 +1,7 @@
 export * as prompts from './prompts.js'
-export * as plugin from './plugin.js'
+export * as plugin from './plugin/index.js'
 export * as fs from './fs.js'
 export * as env from './env.js'
 export * as util from './util.js'
 export * as rc from './rc.js'
+export * as log from './log.js'

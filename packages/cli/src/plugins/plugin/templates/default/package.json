@@ -1,13 +1,14 @@
 {
-  "name": "inventor-cli",
+  "name": "<%- packageName %>",
   "version": "0.0.1",
+  "description": "<%- description %>",
   "main": "index.js",
   "repository": "git@github.com:inventorjs/inventor-cli.git",
-  "author": "sunkeysun",
+  "author": "<%- author %>",
   "license": "MIT",
   "private": true,
   "type": "module",
-  "devDependencies": {
-    "wsrun": "^5.2.4"
+  "dependencies": {
+    "antd": "^4.22.5"
   }
 }
