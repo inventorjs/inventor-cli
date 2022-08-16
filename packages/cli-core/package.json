@@ -1,0 +1,41 @@
+{
+  "name": "@inventorjs/cli-core",
+  "version": "0.0.3",
+  "description": "inventor-cli core",
+  "main": "lib/index.js",
+  "author": "sunkeysun",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "lib/"
+  ],
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.5",
+    "chalk": "^5.0.1",
+    "commander": "^9.4.0",
+    "ejs": "^3.1.8",
+    "execa": "^6.1.0",
+    "figlet": "^1.5.2",
+    "fs-extra": "^10.1.0",
+    "globby": "^13.1.2",
+    "ora": "^6.1.2",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/figlet": "^1.5.4",
+    "@types/node": "^18.6.5",
+    "@types/prompts": "^2.0.14",
+    "@typescript-eslint/eslint-plugin": "^5.33.0",
+    "@typescript-eslint/parser": "^5.33.0",
+    "@types/ejs": "^3.1.1",
+    "@types/fs-extra": "^9.0.13",
+    "eslint": "^8.21.0",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.1.0",
+    "typescript": "^4.7.4"
+  }
+}
