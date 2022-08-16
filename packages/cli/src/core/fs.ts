@@ -2,34 +2,37 @@
  * 文件操作
  * @author: sunkeysun
  */
-import { mkdirp, copy } from 'fs-extra'
-import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import fse from 'fs-extra'
 import { globby } from 'globby'
 import ejs from 'ejs'
-
-async function sleep() {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      reject(0)
-    }, 10000)
-  })
-}
 
 export async function getAllFiles(dirPath: string) {
   const allFiles = await globby(`${dirPath}/**/*`)
   return allFiles
 }
 
-export async function renderTemplate(templateDir: string, destinationDir: string, templateData: Record<string, unknown>) {
+export async function renderTemplates(
+  templateDir: string,
+  destinationDir: string,
+  templateData: Record<string, unknown>
+) {
   const templateFiles = await getAllFiles(templateDir)
   const tmpDestinationDir = path.resolve('/tmp', `inventor-template`)
 
   for (const templateFile of templateFiles) {
-    const renderContent = await ejs.renderFile(templateFile, templateData, { async: true })
     const destinationFile = path.resolve(tmpDestinationDir, templateFile.replace(templateDir, '').slice(1))
-    mkdirp(path.dirname(destinationFile))
-    await writeFile(destinationFile, renderContent)
+    await renderTemplate(templateFile, destinationFile, templateData)
+    fse.mkdirp(path.dirname(destinationFile))
   }
-  await copy(tmpDestinationDir, destinationDir)
+  await fse.copy(tmpDestinationDir, destinationDir)
+}
+
+export async function renderTemplate(
+  templateFile: string,
+  destinationFile: string,
+  templateData: Record<string, unknown>,
+) {
+  const renderContent = await ejs.renderFile(templateFile, templateData, { async: true })
+  await fse.writeFile(destinationFile, renderContent)
 }

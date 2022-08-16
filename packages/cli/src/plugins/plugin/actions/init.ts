@@ -75,7 +75,7 @@ export default class Action extends plugin.Action {
     const packageName = this.#getPackageName(name as string)
     const templateName = 'default'
     await this.loading(
-      this.renderTemplate(templateName, packageName, { packageName, description, author }),
+      this.renderTemplates(templateName, packageName, { packageName, description, author }),
       '正在初始化项目目录...',
     )
     log.info('开始安装依赖...')
