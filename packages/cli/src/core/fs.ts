@@ -12,7 +12,7 @@ export async function getAllFiles(dirPath: string) {
   return allFiles
 }
 
-export async function renderTemplates(
+export async function renderTemplate(
   templateDir: string,
   destinationDir: string,
   templateData: Record<string, unknown>
@@ -22,13 +22,13 @@ export async function renderTemplates(
 
   for (const templateFile of templateFiles) {
     const destinationFile = path.resolve(tmpDestinationDir, templateFile.replace(templateDir, '').slice(1))
-    await renderTemplate(templateFile, destinationFile, templateData)
+    await renderFile(templateFile, destinationFile, templateData)
     fse.mkdirp(path.dirname(destinationFile))
   }
   await fse.copy(tmpDestinationDir, destinationDir)
 }
 
-export async function renderTemplate(
+export async function renderFile(
   templateFile: string,
   destinationFile: string,
   templateData: Record<string, unknown>,
