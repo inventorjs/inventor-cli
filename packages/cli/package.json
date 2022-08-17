@@ -3,7 +3,7 @@
   "version": "0.0.6",
   "type": "module",
   "bin": {
-    "inventor": "./bin/index.js"
+    "inventor": "./lib/index.js"
   },
   "author": "sunkeysun",
   "license": "MIT",
@@ -21,7 +21,9 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@inventorjs/cli-core": "^0.0.3"
+    "@inventorjs/cli": "workspace:^0.0.6",
+    "@inventorjs/cli-core": "^0.0.3",
+    "commander": "^9.4.0"
   },
   "devDependencies": {
     "typescript": "^4.7.4"

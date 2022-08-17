@@ -5,7 +5,7 @@
 import path from 'node:path'
 import { oraPromise } from 'ora'
 import { prompts } from '../prompts.js'
-import { renderTemplate, renderFile } from '../fs.js'
+import { renderTemplate, renderTemplateFile } from '../fs.js'
 import { pwd, homedir, filename, dirname, username } from '../env.js'
 import { install } from '../pm.js'
 
@@ -57,13 +57,21 @@ export default abstract class Action {
   get templatePath() {
     return path.resolve(this.#root, '../templates')
   }
-  async renderTemplate(templateName: string, destinationPath: string, templateData: Record<string, unknown>) {
+  async renderTemplate(
+    templateName: string,
+    destinationName: string,
+    templateData: Record<string, unknown> = {},
+  ) {
     const templateDir = path.resolve(this.templatePath, templateName)
-    const destinationDir = path.resolve(pwd(), destinationPath)
+    const destinationDir = path.resolve(pwd(), destinationName)
     await renderTemplate(templateDir, destinationDir, templateData)
   }
-  async renderFile(templateFile: string, destinationFile: string, templateData: Record<string, unknown>) {
-    await renderFile(templateFile, destinationFile, templateData)
+  async renderTemplateFile(
+    templateFile: string,
+    destinationFile: string,
+    templateData: Record<string, unknown> = {},
+  ) {
+    await renderTemplateFile(templateFile, destinationFile, templateData)
   }
 
   pwd() { return pwd() }

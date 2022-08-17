@@ -18,17 +18,18 @@ export async function renderTemplate(
   templateData: Record<string, unknown>
 ) {
   const templateFiles = await getAllFiles(templateDir)
-  const tmpDestinationDir = path.resolve('/tmp', `inventor-template`)
+  const tmpDestinationDir = path.resolve('/tmp', `inventor-template-${Date.now()}`)
 
   for (const templateFile of templateFiles) {
     const destinationFile = path.resolve(tmpDestinationDir, templateFile.replace(templateDir, '').slice(1))
-    await renderFile(templateFile, destinationFile, templateData)
+    await renderTemplateFile(templateFile, destinationFile, templateData)
     fse.mkdirp(path.dirname(destinationFile))
   }
   await fse.copy(tmpDestinationDir, destinationDir)
+  await fse.remove(tmpDestinationDir)
 }
 
-export async function renderFile(
+export async function renderTemplateFile(
   templateFile: string,
   destinationFile: string,
   templateData: Record<string, unknown>,

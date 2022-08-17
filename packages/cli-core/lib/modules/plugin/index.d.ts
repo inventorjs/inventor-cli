@@ -1,5 +1,6 @@
-import { Command } from 'commander';
-import Plugin from './Plugin.js';
-import Action from './Action.js';
-declare function init(cli: Command): Promise<void>;
-export { Plugin, Action, init };
+/**
+ * 插件模块
+ * @author: sunkeysun
+ */
+export { default as Plugin } from './Plugin.js';
+export { default as Action, type ActionOption } from './Action.js';

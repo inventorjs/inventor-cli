@@ -5,12 +5,7 @@
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { readdir } from 'node:fs/promises'
-import { Command } from 'commander'
-import { rc, plugin } from '@inventorjs/cli-core'
-
-const { Plugin, Action } = plugin
-
-type PluginType = new () => Plugin
+import { rc, type plugin } from '@inventorjs/cli-core'
 
 type PluginConfig = {
   pluginName: string
@@ -31,7 +26,7 @@ async function loadActions(packageName: string) {
   const root = path.dirname(entry)
   const actionDir = path.resolve(path.dirname(entry), 'actions')
   const actionFiles = (await readdir(actionDir)).filter((file) => file.endsWith('.js'))
-  const actions: Action[] = []
+  const actions: plugin.Action[] = []
 
   for (const actionFile of actionFiles) {
     const actionPath = path.resolve(actionDir, actionFile)
@@ -45,8 +40,8 @@ async function loadActions(packageName: string) {
   return actions
 }
 
-async function registerPlugin(cli: Command, pluginName: string, packageName: string) {
-  const { default: Plugin } = await import(packageName) as { default: PluginType }
+async function registerPlugin(cli: any, pluginName: string, packageName: string) {
+  const { default: Plugin } = await import(packageName) as { default: new () => plugin.Plugin }
   const plugin = new Plugin()
   if (!(plugin instanceof Plugin)) {
     throw new Error('plugin must extends from Plugin base class!')
@@ -60,13 +55,13 @@ async function registerPlugin(cli: Command, pluginName: string, packageName: str
     const actionCmd = cmd.command(action.name)
                       .description(action.description)
     if (action.options) {
-      action.options.forEach((option: ActionOption) => actionCmd.option(option.option, option.description))
+      action.options.forEach((option: plugin.ActionOption) => actionCmd.option(option.option, option.description))
     }
-    actionCmd.action(async (options) => await action.action(options))
+    actionCmd.action(async (options: Record<string, unknown>) => await action.action(options))
   }
 }
 
-export async function init(cli: Command) {
+export async function init(cli: any) {
   for (const pluginName of internalPlugins) {
     const packageName = getInternalPluginPackageName(pluginName)
     await registerPlugin(cli, pluginName, packageName)

@@ -33,8 +33,8 @@ export default abstract class Action {
     removeDependencies(packageNames: string[], options: InstallPackageOptions): Promise<void>;
     removeDevDependencies(packageNames: string[], options: InstallPackageOptions): Promise<void>;
     get templatePath(): string;
-    renderTemplate(templateName: string, destinationPath: string, templateData: Record<string, unknown>): Promise<void>;
-    renderFile(templateFile: string, destinationFile: string, templateData: Record<string, unknown>): Promise<void>;
+    renderTemplate(templateName: string, destinationName: string, templateData?: Record<string, unknown>): Promise<void>;
+    renderTemplateFile(templateFile: string, destinationFile: string, templateData?: Record<string, unknown>): Promise<void>;
     pwd(): string;
     homedir(): string;
     filename(metaUrl: string): string;

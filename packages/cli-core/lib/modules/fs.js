@@ -12,15 +12,16 @@ export async function getAllFiles(dirPath) {
 }
 export async function renderTemplate(templateDir, destinationDir, templateData) {
     const templateFiles = await getAllFiles(templateDir);
-    const tmpDestinationDir = path.resolve('/tmp', `inventor-template`);
+    const tmpDestinationDir = path.resolve('/tmp', `inventor-template-${Date.now()}`);
     for (const templateFile of templateFiles) {
         const destinationFile = path.resolve(tmpDestinationDir, templateFile.replace(templateDir, '').slice(1));
-        await renderFile(templateFile, destinationFile, templateData);
+        await renderTemplateFile(templateFile, destinationFile, templateData);
         fse.mkdirp(path.dirname(destinationFile));
     }
     await fse.copy(tmpDestinationDir, destinationDir);
+    await fse.remove(tmpDestinationDir);
 }
-export async function renderFile(templateFile, destinationFile, templateData) {
+export async function renderTemplateFile(templateFile, destinationFile, templateData) {
     const renderContent = await ejs.renderFile(templateFile, templateData, { async: true });
     await fse.writeFile(destinationFile, renderContent);
 }
