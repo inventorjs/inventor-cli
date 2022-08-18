@@ -10,12 +10,10 @@ importers:
 
   packages/cli:
     specifiers:
-      '@inventorjs/cli': workspace:^0.0.6
-      '@inventorjs/cli-core': ^0.0.3
+      '@inventorjs/cli-core': workspace:*
       commander: ^9.4.0
       typescript: ^4.7.4
     dependencies:
-      '@inventorjs/cli': 'link:'
       '@inventorjs/cli-core': link:../cli-core
       commander: 9.4.0
     devDependencies:
@@ -24,7 +22,6 @@ importers:
   packages/cli-core:
     specifiers:
       '@iarna/toml': ^2.2.5
-      '@inventorjs/cli': workspace:^0.0.6
       '@types/ejs': ^3.1.1
       '@types/figlet': ^1.5.4
       '@types/fs-extra': ^9.0.13
@@ -45,7 +42,6 @@ importers:
       typescript: ^4.7.4
     dependencies:
       '@iarna/toml': 2.2.5
-      '@inventorjs/cli': link:../cli
       chalk: 5.0.1
       commander: 9.4.0
       ejs: 3.1.8
@@ -68,16 +64,12 @@ importers:
 
   packages/cli-plugin-plugin:
     specifiers:
-      '@inventorjs/cli': workspace:^0.0.6
-      '@inventorjs/cli-core': ^0.0.1
+      '@inventorjs/cli-core': workspace:*
       chalk: ^5.0.1
-      commander: ^9.4.0
       typescript: ^4.7.4
     dependencies:
-      '@inventorjs/cli': link:../cli
-      '@inventorjs/cli-core': 0.0.1
+      '@inventorjs/cli-core': link:../cli-core
       chalk: 5.0.1
-      commander: 9.4.0
     devDependencies:
       typescript: 4.7.4
 
@@ -121,21 +113,6 @@ packages:
 
   /@iarna/toml/2.2.5:
     resolution: {integrity: sha512-trnsAYxU3xnS1gPHPyU961coFyLkh4gAD/0zQ5mymY4yOZ+CYvsPqUbOFSw0aDM4y0tV7tiFxL/1XfXPNC6IPg==}
-    dev: false
-
-  /@inventorjs/cli-core/0.0.1:
-    resolution: {integrity: sha512-i4W1pBUvlW/oiRgwc9fd4L3YXITG2oEUUZr+pRRRILTikR3SQYq5U+/q9JT4zuT0m9tPT9cEg7s9//2X7TbhAw==}
-    dependencies:
-      '@iarna/toml': 2.2.5
-      chalk: 5.0.1
-      commander: 9.4.0
-      ejs: 3.1.8
-      execa: 6.1.0
-      figlet: 1.5.2
-      fs-extra: 10.1.0
-      globby: 13.1.2
-      ora: 6.1.2
-      prompts: 2.4.2
     dev: false
 
   /@jest/types/24.9.0:

@@ -1,13 +1,13 @@
 {
   "name": "@inventorjs/cli",
-  "version": "0.0.6",
+  "version": "0.0.12",
   "type": "module",
   "bin": {
     "inventor": "./lib/index.js"
   },
   "author": "sunkeysun",
   "license": "MIT",
-  "private": false,
+  "private": true,
   "files": [
     "bin/"
   ],
@@ -21,8 +21,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@inventorjs/cli": "workspace:^0.0.6",
-    "@inventorjs/cli-core": "^0.0.3",
+    "@inventorjs/cli-core": "workspace:*",
     "commander": "^9.4.0"
   },
   "devDependencies": {
