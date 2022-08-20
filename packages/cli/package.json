@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/cli",
-  "version": "0.0.12",
+  "version": "1.0.0",
   "type": "module",
   "bin": {
     "inventor": "./lib/index.js"
