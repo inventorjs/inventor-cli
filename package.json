@@ -8,9 +8,12 @@
   "private": true,
   "type": "module",
   "workspaces": {
-    "packages": ["packages/*"]
+    "packages": [
+      "packages/*"
+    ]
   },
   "devDependencies": {
+    "@changesets/cli": "^2.24.3",
     "wsrun": "^5.2.4"
   }
 }
