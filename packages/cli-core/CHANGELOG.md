@@ -1,5 +1,15 @@
 # @inventorjs/cli-core
 
+## 2.1.0
+
+### Minor Changes
+
+- ooooo
+
+### Patch Changes
+
+- dd33107: ooooo
+
 ## 2.0.5
 
 ### Patch Changes
