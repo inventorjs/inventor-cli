@@ -1,7 +1,7 @@
 {
   "name": "@inventorjs/cli-core",
-  "version": "2.0.0",
-  "description": "inventor-cli core.",
+  "version": "2.0.1",
+  "description": "inventor-cli core",
   "main": "lib/index.js",
   "author": "sunkeysun",
   "license": "MIT",
