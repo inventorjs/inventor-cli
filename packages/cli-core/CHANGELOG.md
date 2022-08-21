@@ -1,5 +1,12 @@
 # @inventorjs/cli-core
 
+## 3.4.0
+
+### Minor Changes
+
+- 9ea7978: patch test -----------
+- dd0fbde: cli core
+
 ## 2.3.0
 
 ### Minor Changes

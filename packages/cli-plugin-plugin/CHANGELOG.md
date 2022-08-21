@@ -1,5 +1,15 @@
 # @inventorjs/cli-plugin-plugin
 
+## 1.0.9
+
+### Patch Changes
+
+- 9ea7978: patch test -----------
+- dd0fbde: cli core
+- Updated dependencies [9ea7978]
+- Updated dependencies [dd0fbde]
+  - @inventorjs/cli-core@3.4.0
+
 ## 1.0.8
 
 ### Patch Changes
