@@ -1,5 +1,12 @@
 # @inventorjs/cli
 
+## 1.1.3
+
+### Patch Changes
+
+- Updated dependencies [e2b12d0]
+  - @inventorjs/cli-core@3.5.1
+
 ## 1.1.2
 
 ### Patch Changes

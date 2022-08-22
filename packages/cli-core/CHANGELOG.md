@@ -1,5 +1,11 @@
 # @inventorjs/cli-core
 
+## 3.5.1
+
+### Patch Changes
+
+- e2b12d0: eee
+
 ## 3.5.0
 
 ### Minor Changes
