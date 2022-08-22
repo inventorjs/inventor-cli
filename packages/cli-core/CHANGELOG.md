@@ -1,5 +1,11 @@
 # @inventorjs/cli-core
 
+## 3.4.3
+
+### Patch Changes
+
+- ea96851: oooo
+
 ## 3.4.2
 
 ### Patch Changes
