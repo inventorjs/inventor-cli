@@ -14,7 +14,7 @@ const { Plugin: PluginBase, Action: ActionBase } = plugin
 
 const require = createRequire(import.meta.url)
 
-const internalPlugins = ['@inventorjs/cli-plugin-plugin']
+const corePlugins = ['@inventorjs/cli-plugin-plugin']
 
 async function loadActions(packageName: string) {
   const entry = require.resolve(packageName)
@@ -76,7 +76,7 @@ async function run() {
 
   log.welcome({ cliName: 'inventor', version: packageJson.version })
 
-  for (const packageName of internalPlugins) {
+  for (const packageName of corePlugins) {
     await registerPlugin(cli, packageName, packageName)
   }
 
