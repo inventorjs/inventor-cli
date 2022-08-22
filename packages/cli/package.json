@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/cli",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "type": "module",
   "bin": {
     "inventor": "./lib/index.js"
@@ -21,7 +21,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@inventorjs/cli-core": "3.4.2",
+    "@inventorjs/cli-core": "~3.5.0",
     "commander": "^9.4.0"
   },
   "devDependencies": {
