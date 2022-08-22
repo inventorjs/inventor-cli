@@ -1,5 +1,11 @@
 # @inventorjs/cli-core
 
+## 3.4.2
+
+### Patch Changes
+
+- 5c70701: oooooo
+
 ## 3.4.1
 
 ### Patch Changes
