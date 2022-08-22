@@ -4,7 +4,10 @@
  */
 import { execa } from 'execa';
 import ora from 'ora';
-export const bin = 'yarn';
+export const bin = 'pnpm';
+export async function init({ root }) {
+    await execCmd(bin, ['init'], root);
+}
 export async function install({ root }) {
     await execCmd(bin, ['install'], root);
 }

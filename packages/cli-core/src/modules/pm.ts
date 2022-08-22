@@ -5,7 +5,11 @@
 import { execa } from 'execa'
 import ora from 'ora'
 
-export const bin = 'yarn'
+export const bin = 'pnpm'
+
+export async function init({ root }: { root: string }) {
+  await execCmd(bin, ['init'], root)
+}
 
 export async function install({ root }: { root: string }) {
   await execCmd(bin, ['install'], root)

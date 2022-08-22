@@ -18,7 +18,6 @@ export interface InstallPackageOptions extends InstallOptions {
 }
 export default abstract class Action {
     #private;
-    abstract name: string;
     abstract description: string;
     abstract options?: ActionOption[];
     abstract action(options: Record<string, unknown>): Promise<void>;

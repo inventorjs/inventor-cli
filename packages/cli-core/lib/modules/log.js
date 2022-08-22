@@ -12,11 +12,11 @@ export function welcome({ cliName, version }) {
     log(chalk.yellow(`welecome ${cliName} v${version} !`));
 }
 export function info(msg) {
-    log(chalk.cyan(msg));
+    log(`🪙 ${chalk.cyan(msg)}`);
 }
 export function success(msg) {
-    log(chalk.green(msg));
+    log(`✅ ${chalk.green(msg)}`);
 }
 export function error(msg) {
-    log(chalk.red(msg));
+    log(`❌ ${chalk.red(msg)}`);
 }

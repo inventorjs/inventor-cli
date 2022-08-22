@@ -10,7 +10,6 @@ interface Options {
   name?: string
 }
 export default class Action extends plugin.Action {
-  name = 'init'
   description = '初始化创建一个插件项目，可快速开发插件'
   options = []
 

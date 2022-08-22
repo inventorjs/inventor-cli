@@ -1,4 +1,7 @@
-export declare const bin = "yarn";
+export declare const bin = "pnpm";
+export declare function init({ root }: {
+    root: string;
+}): Promise<void>;
 export declare function install({ root }: {
     root: string;
 }): Promise<void>;

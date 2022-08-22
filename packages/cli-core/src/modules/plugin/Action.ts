@@ -24,7 +24,6 @@ export interface InstallOptions { root: string }
 export interface InstallPackageOptions extends InstallOptions { global?: boolean }
 
 export default abstract class Action {
-  abstract name: string
   abstract description: string
   abstract options?: ActionOption[]
   abstract action(options: Record<string, unknown>): Promise<void>

@@ -15,15 +15,15 @@ export function welcome({ cliName, version }: Record<string, string>) {
 }
 
 export function info(msg: string) {
-  log(chalk.cyan(msg))
+  log(`🪙 ${chalk.cyan(msg)}`)
 }
 
 export function success(msg: string) {
-  log(chalk.green(msg))
+  log(`✅ ${chalk.green(msg)}`)
 }
 
 export function error(msg: string) {
-  log(chalk.red(msg))
+  log(`❌ ${chalk.red(msg)}`)
 }
 
 
