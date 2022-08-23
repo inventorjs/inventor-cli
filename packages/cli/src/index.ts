@@ -14,35 +14,42 @@ const { Plugin: PluginBase, Action: ActionBase } = plugin
 
 const require = createRequire(import.meta.url)
 
-const corePlugins = ['@inventorjs/cli-plugin-plugin']
+const corePlugins = [
+  { pluginName: 'plugin', packageName: '@inventorjs/cli-plugin-plugin' },
+]
 
 async function loadActions(packageName: string) {
   const entry = require.resolve(packageName)
   const pluginRoot = path.dirname(entry)
   const actionDir = path.resolve(path.dirname(entry), 'actions')
   const actionFiles = (await readdir(actionDir)).filter((file) =>
-    file.endsWith('.js')
+    file.endsWith('.js'),
   )
   const actions: { name: string; action: pluginType.Action }[] = []
 
   for (const actionFile of actionFiles) {
-    const actionPath = path.resolve(actionDir, actionFile)
-    const { default: Action } = await import(actionPath)
-    const action = new Action({ pluginRoot })
-    if (!(action instanceof ActionBase)) {
-      throw new Error('action must extends from Action base class!')
-    }
-    const name = path.basename(actionFile, path.extname(actionFile))
+    try {
+      const actionPath = path.resolve(actionDir, actionFile)
+      const { default: Action } = await import(actionPath)
+      const action = new Action({ pluginRoot })
+      if (!(action instanceof ActionBase)) {
+        throw new Error('action must extends from Action base class!')
+      }
+      const name = path.basename(actionFile, path.extname(actionFile))
 
-    actions.push({ name, action })
+      actions.push({ name, action })
+    } catch (err) {
+      console.log(`${path.basename(actionFile)} load error[skipped]: ${(err as Error).message}`)
+    }
   }
+
   return actions
 }
 
 async function registerPlugin(
   cli: Command,
   pluginName: string,
-  packageName: string
+  packageName: string,
 ) {
   const { default: Plugin } = (await import(packageName)) as {
     default: new () => pluginType.Plugin
@@ -61,11 +68,11 @@ async function registerPlugin(
     const actionCmd = cmd.command(name).description(action.description)
     if (action.options) {
       action.options.forEach((option: plugin.ActionOption) =>
-        actionCmd.option(option.option, option.description)
+        actionCmd.option(option.option, option.description),
       )
     }
     actionCmd.action(
-      async (options: Record<string, unknown>) => await action.action(options)
+      async (options: Record<string, unknown>) => await action.action(options),
     )
   }
 }
@@ -76,8 +83,8 @@ async function run() {
 
   log.welcome({ cliName: 'inventor', version: packageJson.version })
 
-  for (const packageName of corePlugins) {
-    await registerPlugin(cli, packageName, packageName)
+  for (const { pluginName, packageName } of corePlugins) {
+    await registerPlugin(cli, pluginName, packageName)
   }
 
   cli.parse(process.argv)

@@ -3,40 +3,42 @@
  * @author: sunkeysun
  */
 import { execa } from 'execa';
-import ora from 'ora';
+import { error } from './log.js';
 export const bin = 'pnpm';
-export async function init({ root }) {
-    await execCmd(bin, ['init'], root);
+export async function init({ cwd }) {
+    return execCmd(bin, ['init'], cwd);
 }
-export async function install({ root }) {
-    await execCmd(bin, ['install'], root);
+export async function install({ cwd }) {
+    return execCmd(bin, ['install'], cwd);
 }
-export async function addDependencies() {
+export async function addDependencies(packageNames, { cwd }) {
+    return execCmd(bin, ['add', ...packageNames], cwd);
 }
-export async function addDevDependencies() {
+export async function addDevDependencies(packageNames, { cwd }) {
+    return execCmd(bin, ['add', ...packageNames, '-D'], cwd);
 }
-export async function removeDependencies() {
+export async function removeDependencies(packageNames, { cwd }) {
+    return execCmd(bin, ['remove', ...packageNames], cwd);
 }
-export async function removeDevDependencies() {
+export async function removeDevDependencies(packageNames, { cwd }) {
+    return execCmd(bin, ['remove', ...packageNames, '-D'], cwd);
 }
 function execCmd(cmd, args, cwd) {
-    const child = execa(cmd, args, { cwd, stdio: ['inherit', 'inherit', 'pipe'] });
-    return new Promise((resolve) => {
-        const spinner = ora();
-        child.stderr?.on('data', (buf) => {
+    const child = execa(cmd, args, { cwd, stdio: 'pipe' });
+    let isError = false;
+    return new Promise((resolve, reject) => {
+        child.stdout?.on('data', (buf) => {
             const str = buf.toString();
-            if (/warning/.test(str)) {
+            if (/ERR_PNPM/.test(str)) {
+                isError = true;
+                error(str);
+                reject();
                 return;
             }
-            if (/\]\s(\d+)\/(\d+)/.test(str)) {
-                !spinner.isSpinning && spinner.start('Installing ...');
-                return;
-            }
-            spinner.isSpinning && spinner.stop();
-            process.stderr.write(buf);
+            !isError && process.stdout.write(buf);
         });
-        child.stderr?.on('end', () => {
-            process.nextTick(resolve);
+        child.stdout?.on('end', () => {
+            resolve(null);
         });
     });
 }

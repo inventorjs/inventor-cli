@@ -8,7 +8,7 @@ import { globby } from 'globby'
 import ejs from 'ejs'
 
 export async function getAllFiles(dirPath: string) {
-  const allFiles = await globby(`${dirPath}/**/*`)
+  const allFiles = await globby(`${dirPath}/**/(.)?*`, { gitignore: false })
   return allFiles
 }
 
@@ -18,12 +18,14 @@ export async function renderTemplate(
   templateData: Record<string, unknown>
 ) {
   const templateFiles = await getAllFiles(templateDir)
-  const tmpDestinationDir = path.resolve('/tmp', `inventor-template-${Date.now()}`)
+  const tmpDestinationDir = path.resolve('/tmp/inventor-templates/', `template-${Date.now()}`)
+
+  await fse.ensureDir(tmpDestinationDir)
 
   for (const templateFile of templateFiles) {
     const destinationFile = path.resolve(tmpDestinationDir, templateFile.replace(templateDir, '').slice(1))
+    await fse.ensureDir(path.dirname(destinationFile))
     await renderTemplateFile(templateFile, destinationFile, templateData)
-    fse.mkdirp(path.dirname(destinationFile))
   }
   await fse.copy(tmpDestinationDir, destinationDir)
   await fse.remove(tmpDestinationDir)

@@ -4,45 +4,77 @@
  */
 import path from 'node:path';
 import { oraPromise } from 'ora';
-import { prompts } from '../prompts.js';
-import { renderTemplate, renderTemplateFile } from '../fs.js';
-import { pwd, homedir, filename, dirname, username } from '../env.js';
-import { install } from '../pm.js';
+import prompts from 'prompts';
+import * as fs from '../fs.js';
+import * as env from '../env.js';
+import * as log from '../log.js';
+import * as git from '../git.js';
+import * as pm from '../pm.js';
 export default class Action {
-    #root;
-    constructor({ root }) {
-        this.#root = root;
+    #pluginRoot;
+    constructor({ pluginRoot }) {
+        this.#pluginRoot = pluginRoot;
     }
-    async prompts(questions) {
+    async prompts(questions, options = { onCancel: () => process.exit(1) }) {
         if (!questions || (Array.isArray(questions) && !questions.length)) {
             return {};
         }
-        return prompts(questions);
+        return prompts(questions, options);
     }
     async loading(...args) {
-        return oraPromise.apply(null, args);
+        return oraPromise(...args);
     }
-    async install({ root }) {
-        await install({ root });
+    async install(...args) {
+        return pm.install(...args);
     }
-    async addDependencies(packageNames, options) { }
-    async addDevDependencies(packageNames, options) { }
-    async removeDependencies(packageNames, options) { }
-    async removeDevDependencies(packageNames, options) { }
+    async addDependencies(...args) {
+        return pm.addDependencies(...args);
+    }
+    async addDevDependencies(...args) {
+        return pm.addDevDependencies(...args);
+    }
+    async removeDependencies(...args) {
+        return pm.removeDependencies(...args);
+    }
+    async removeDevDependencies(...args) {
+        return pm.removeDevDependencies(...args);
+    }
     get templatePath() {
-        return path.resolve(this.#root, '../templates');
+        return path.resolve(this.#pluginRoot, '../templates');
     }
     async renderTemplate(templateName, destinationName, templateData = {}) {
         const templateDir = path.resolve(this.templatePath, templateName);
-        const destinationDir = path.resolve(pwd(), destinationName);
-        await renderTemplate(templateDir, destinationDir, templateData);
+        const destinationDir = path.resolve(this.pwd, destinationName);
+        return fs.renderTemplate(templateDir, destinationDir, templateData);
     }
     async renderTemplateFile(templateFile, destinationFile, templateData = {}) {
-        await renderTemplateFile(templateFile, destinationFile, templateData);
+        return fs.renderTemplateFile(templateFile, destinationFile, templateData);
     }
-    pwd() { return pwd(); }
-    homedir() { return homedir(); }
-    filename(metaUrl) { return filename(metaUrl); }
-    dirname(metaUrl) { return dirname(metaUrl); }
-    username() { return username(); }
+    filename(...args) {
+        return env.filename(...args);
+    }
+    dirname(...args) {
+        return env.dirname(...args);
+    }
+    get pwd() {
+        return env.pwd();
+    }
+    get homedir() {
+        return env.homedir();
+    }
+    get username() {
+        return env.username();
+    }
+    get log() {
+        return log;
+    }
+    get git() {
+        return git;
+    }
+    get pm() {
+        return pm;
+    }
+    get fs() {
+        return fs;
+    }
 }

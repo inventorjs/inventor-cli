@@ -3,7 +3,9 @@
     "target": "esnext",
     "module": "esnext",
     "lib": ["esnext"],
-    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "outDir": "lib",
     "declaration": true,
     "esModuleInterop": true,
     "strict": true,
@@ -11,5 +13,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "moduleResolution": "nodenext"
-  }  
+  },
+  "include": ["src/**/*"]
 }

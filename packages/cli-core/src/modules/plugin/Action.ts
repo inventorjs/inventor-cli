@@ -4,57 +4,71 @@
  */
 import path from 'node:path'
 import { oraPromise } from 'ora'
-import { prompts } from '../prompts.js'
-import { renderTemplate, renderTemplateFile } from '../fs.js'
-import { pwd, homedir, filename, dirname, username } from '../env.js'
-import { install } from '../pm.js'
+import prompts from 'prompts'
+import * as fs from '../fs.js'
+import * as env from '../env.js'
+import * as log from '../log.js'
+import * as git from '../git.js'
+import * as pm from '../pm.js'
 
 export interface ActionOption {
   option: string
   description: string
-  default?: unknown 
+  default?: unknown
 }
 
 export interface ActionConstructParams {
-  root: string
+  pluginRoot: string
 }
 
 export type PromptsParameter = Parameters<typeof prompts>[0]
-export interface InstallOptions { root: string }
-export interface InstallPackageOptions extends InstallOptions { global?: boolean }
+export type PromptsOptions = Parameters<typeof prompts>[1]
 
 export default abstract class Action {
   abstract description: string
   abstract options?: ActionOption[]
   abstract action(options: Record<string, unknown>): Promise<void>
 
-  #root: string
+  #pluginRoot: string
 
-  constructor({ root }: ActionConstructParams) {
-    this.#root = root
+  constructor({ pluginRoot }: ActionConstructParams) {
+    this.#pluginRoot = pluginRoot
   }
 
-  async prompts(questions: PromptsParameter) {
+  async prompts(
+    questions: PromptsParameter,
+    options: PromptsOptions = { onCancel: () => process.exit(1) },
+  ) {
     if (!questions || (Array.isArray(questions) && !questions.length)) {
       return {}
     }
-    return prompts(questions)
+    return prompts(questions, options)
   }
 
   async loading(...args: Parameters<typeof oraPromise>) {
-    return oraPromise.apply(null, args)
+    return oraPromise(...args)
   }
 
-  async install({ root }: { root: string }) {
-    await install({ root })
+  async install(...args: Parameters<typeof pm.install>) {
+    return pm.install(...args)
   }
-  async addDependencies(packageNames: string[], options: InstallPackageOptions) {}
-  async addDevDependencies(packageNames: string[], options: InstallPackageOptions) {}
-  async removeDependencies(packageNames: string[], options: InstallPackageOptions) {}
-  async removeDevDependencies(packageNames: string[], options: InstallPackageOptions) {}
+  async addDependencies(...args: Parameters<typeof pm.addDependencies>) {
+    return pm.addDependencies(...args)
+  }
+  async addDevDependencies(...args: Parameters<typeof pm.addDevDependencies>) {
+    return pm.addDevDependencies(...args)
+  }
+  async removeDependencies(...args: Parameters<typeof pm.removeDependencies>) {
+    return pm.removeDependencies(...args)
+  }
+  async removeDevDependencies(
+    ...args: Parameters<typeof pm.removeDevDependencies>
+  ) {
+    return pm.removeDevDependencies(...args)
+  }
 
   get templatePath() {
-    return path.resolve(this.#root, '../templates')
+    return path.resolve(this.#pluginRoot, '../templates')
   }
   async renderTemplate(
     templateName: string,
@@ -62,20 +76,42 @@ export default abstract class Action {
     templateData: Record<string, unknown> = {},
   ) {
     const templateDir = path.resolve(this.templatePath, templateName)
-    const destinationDir = path.resolve(pwd(), destinationName)
-    await renderTemplate(templateDir, destinationDir, templateData)
+    const destinationDir = path.resolve(this.pwd, destinationName)
+    return fs.renderTemplate(templateDir, destinationDir, templateData)
   }
   async renderTemplateFile(
     templateFile: string,
     destinationFile: string,
     templateData: Record<string, unknown> = {},
   ) {
-    await renderTemplateFile(templateFile, destinationFile, templateData)
+    return fs.renderTemplateFile(templateFile, destinationFile, templateData)
   }
 
-  pwd() { return pwd() }
-  homedir() { return homedir() }
-  filename(metaUrl: string) { return filename(metaUrl) }
-  dirname(metaUrl: string) { return dirname(metaUrl) }
-  username() { return username() }
+  filename(...args: Parameters<typeof env.filename>) {
+    return env.filename(...args)
+  }
+  dirname(...args: Parameters<typeof env.dirname>) {
+    return env.dirname(...args)
+  }
+  get pwd() {
+    return env.pwd()
+  }
+  get homedir() {
+    return env.homedir()
+  }
+  get username() {
+    return env.username()
+  }
+  get log() {
+    return log
+  }
+  get git() {
+    return git
+  }
+  get pm() {
+    return pm
+  }
+  get fs() {
+    return fs
+  }
 }

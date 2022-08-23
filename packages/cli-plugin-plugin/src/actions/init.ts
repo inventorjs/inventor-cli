@@ -59,13 +59,13 @@ export default class Action extends plugin.Action {
         type: 'text',
         name: 'author',
         message: '请输入插件作者名称',
-        initial: this.username(),
+        initial: this.username,
         validate: (author) => !author ? '作者名称不能为空' : true
       },
       {
         type: 'confirm',
         name: 'isConfirm',
-        message: (prev) => `即将创建插件项目"${this.#getPackageName(prev)}"是否继续`,
+        message: (_, values) => `即将创建插件项目"${this.#getPackageName(values.name)}"是否继续`,
         initial: true,
       },
     ])
@@ -73,16 +73,20 @@ export default class Action extends plugin.Action {
     const { name, description, author } = answers
     const packageName = this.#getPackageName(name as string)
     const templateName = 'default'
+
     await this.loading(
       this.renderTemplate(templateName, packageName, { packageName, description, author }),
       '正在初始化项目目录...',
     )
+
+    log.info('开始初始化Git...')
+    await this.git.init({ cwd: path.resolve(this.pwd, packageName) })
+
     log.info('开始安装依赖...')
-    await this.install({ root: path.resolve(this.pwd(), packageName) })
+    await this.install({ cwd: path.resolve(this.pwd, packageName) })
 
     log.success(
-`
-  ${chalk.cyan('Done. Now run:')}
+`${chalk.cyan('Done. Now run:')}
 
     cd ${packageName}
     yarn dev

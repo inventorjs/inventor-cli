@@ -9,7 +9,8 @@
   "type": "module",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "clean": "rimraf node_modules **/*/node_modules"
+    "clean": "rimraf node_modules **/*/node_modules",
+    "dev": "pnpm -r --parallel dev"
   },
   "devDependencies": {
     "@changesets/cli": "^2.24.3",

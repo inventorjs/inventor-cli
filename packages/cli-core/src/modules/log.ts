@@ -15,7 +15,7 @@ export function welcome({ cliName, version }: Record<string, string>) {
 }
 
 export function info(msg: string) {
-  log(`🪙 ${chalk.cyan(msg)}`)
+  log(`🌎 ${chalk.cyan(msg)}`)
 }
 
 export function success(msg: string) {
