@@ -90,7 +90,7 @@ async function run() {
   const cli = new Command(bin).version(packageJson.version)
 
   log.welcome({ cliName: bin, version: packageJson.version })
-
+  
   for (const { pluginName, packageName } of corePlugins) {
     await registerPlugin(cli, pluginName, packageName)
   }
