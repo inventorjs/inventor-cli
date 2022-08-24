@@ -4,26 +4,36 @@
  */
 import figlet from 'figlet'
 import chalk from 'chalk'
+import { oraPromise } from 'ora'
 
 function log(msg: string) {
   console.log(msg)
 }
 
+export const color = chalk
+
 export function welcome({ cliName, version }: Record<string, string>) {
-  log(chalk.green(figlet.textSync(cliName, { font: 'Kban' })))
-  log(chalk.yellow(`welecome ${cliName} v${version} !`))
+  log(color.green(figlet.textSync(cliName, { font: 'Kban' })))
+  log(color.yellow(`welecome ${cliName} v${version} !`))
 }
 
 export function info(msg: string) {
-  log(`🌎 ${chalk.cyan(msg)}`)
+  log(`🌎 ${color.cyan(msg)}`)
 }
 
 export function success(msg: string) {
-  log(`✅ ${chalk.green(msg)}`)
+  log(`✅ ${color.green(msg)}`)
 }
 
 export function error(msg: string) {
-  log(`❌ ${chalk.red(msg)}`)
+  log(`❌ ${color.red(msg)}`)
 }
 
+export function raw(msg: string) {
+  log(msg)
+}
+
+export function loadingTask(task: Promise<unknown>, description: string) {
+  return oraPromise(task, `${description}: `)
+}
 

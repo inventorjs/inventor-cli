@@ -2,15 +2,12 @@
  * 添加 action
  * @author: sunkeysun
  */
-import { plugin } from '@inventorjs/cli-core'
+import { Action, ActionOptions } from '@inventorjs/cli-core'
 
-interface Options {
-  name?: string
-}
-export default class Action extends plugin.Action {
+export default class ActionAction extends Action {
   description = '初始化创建一个插件项目，可快速开发插件'
   options = []
-  async action(options: Options) {
+  async action(options: ActionOptions) {
     console.log(options)
   }
 }

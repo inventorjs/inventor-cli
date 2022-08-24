@@ -13,7 +13,6 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "postinstall": "husky install && husky add .husky/commit-msg 'pnpm commitlint --edit $1'",
     "clean": "rimraf node_modules",
     "dev": "tsc --watch",
     "build": "tsc"

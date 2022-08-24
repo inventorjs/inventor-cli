@@ -5,6 +5,8 @@
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 
+let currentCwd = process.cwd()
+
 export function pwd() {
   return process.cwd()
 }
@@ -28,4 +30,16 @@ export function dirname(metaUrl: string) {
 
 export function filename(metaUrl: string) {
   return fileURLToPath(metaUrl)
+}
+
+export function cwd() {
+  return currentCwd
+}
+
+export function enterCwd(cwd: string) {
+  currentCwd = cwd
+}
+
+export function exitCwd() {
+  currentCwd = process.cwd()
 }

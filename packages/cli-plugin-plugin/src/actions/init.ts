@@ -3,36 +3,17 @@
  * @author: sunkeysun
  */
 import path from 'node:path'
-import chalk from 'chalk'
-import { plugin, log } from '@inventorjs/cli-core'
+import { Action, log } from '@inventorjs/cli-core'
 
-interface Options {
-  name?: string
-}
-export default class Action extends plugin.Action {
+export default class InitAction extends Action {
   description = '初始化创建一个插件项目，可快速开发插件'
   options = []
-
-  #validateName(name: string) {
-    if (!name) {
-      return '插件名称不能为空'
-    }
-
-    if (!/^\w+$/.test(name)) {
-      return '插件名称不合法【只允许字母数字下划线】'
-    }
-    return true
-  }
 
   #getPackageName(name: string) {
     return `inventor-plugin-${name}`
   }
 
-  async action(options: Options) {
-    if (options.name && !this.#validateName(options.name)) {
-      return
-    }
-
+  async action() {
     const answers = await this.prompts([
       {
         type: 'text',
@@ -53,7 +34,12 @@ export default class Action extends plugin.Action {
         type: 'text',
         name: 'description',
         message: '请输入插件描述，用于说明插件功能',
-        validate: (description) => !description ? '插件描述不能为空' : true
+        validate: (description) => {
+          if (!/^\w{5,}$/.test(description)) {
+            return '插件描述至少包含5个字符'
+          }
+          return true
+        }
       },
       {
         type: 'text',
@@ -74,24 +60,36 @@ export default class Action extends plugin.Action {
     const packageName = this.#getPackageName(name as string)
     const templateName = 'default'
 
-    await this.loading(
+    await this.loadingTask(
       this.renderTemplate(templateName, packageName, { packageName, description, author }),
-      '正在初始化项目目录...',
+      '初始化目录',
     )
 
-    log.info('开始初始化Git...')
-    await this.git.init({ cwd: path.resolve(this.pwd, packageName) })
+    await this.loadingTask(
+      this.git.init({ cwd: path.resolve(this.pwd, packageName) }),
+      '初始化Git',
+    )
 
-    log.info('开始安装依赖...')
-    await this.install({ cwd: path.resolve(this.pwd, packageName) })
+    await this.loadingTask(
+      this.install({ cwd: path.resolve(this.pwd, packageName) }),
+      '安装依赖',
+    )
+
+    await this.loadingTask(
+      this.task.series([
+        this.husky.install({ cwd: path.resolve(this.pwd, packageName) }),
+        this.husky.add('commit-msg', 'pnpm commitlint --edit $1', { cwd: path.resolve(this.pwd, packageName) }),
+      ]),
+      '安装Husky',
+    )
 
     log.success(
-`${chalk.cyan('Done. Now run:')}
+`${this.log.color.cyan('Done. Now run:')}
 
     cd ${packageName}
-    yarn dev
+    ${this.pm.bin} dev
 
-  ${chalk.cyan('To finish init.')}
+  ${this.log.color.cyan('To finish init.')}
 `   )
   }
 }

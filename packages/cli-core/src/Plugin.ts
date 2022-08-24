@@ -1,15 +1,16 @@
 /**
- * Action 抽象类
+ * Plugin 抽象类
  * @author: sunkeysun
  */
 import path from 'node:path'
-import { oraPromise } from 'ora'
 import prompts from 'prompts'
-import * as fs from '../fs.js'
-import * as env from '../env.js'
-import * as log from '../log.js'
-import * as git from '../git.js'
-import * as pm from '../pm.js'
+import * as fs from './modules/fs.js'
+import * as env from './modules/env.js'
+import * as log from './modules/log.js'
+import * as git from './modules/git.js'
+import * as pm from './modules/pm.js'
+import * as husky from './modules/husky.js'
+import * as task from './modules/task.js'
 
 export interface ActionOption {
   option: string
@@ -17,22 +18,19 @@ export interface ActionOption {
   default?: unknown
 }
 
-export interface ActionConstructParams {
-  pluginRoot: string
+export interface ActionOptions {
+  [k: string]: unknown
 }
 
 export type PromptsParameter = Parameters<typeof prompts>[0]
 export type PromptsOptions = Parameters<typeof prompts>[1]
 
-export default abstract class Action {
+export abstract class Plugin {
   abstract description: string
-  abstract options?: ActionOption[]
-  abstract action(options: Record<string, unknown>): Promise<void>
+  #rootPath: string
 
-  #pluginRoot: string
-
-  constructor({ pluginRoot }: ActionConstructParams) {
-    this.#pluginRoot = pluginRoot
+  constructor({ rootPath }: { rootPath: string }) {
+    this.#rootPath = rootPath
   }
 
   async prompts(
@@ -43,10 +41,6 @@ export default abstract class Action {
       return {}
     }
     return prompts(questions, options)
-  }
-
-  async loading(...args: Parameters<typeof oraPromise>) {
-    return oraPromise(...args)
   }
 
   async install(...args: Parameters<typeof pm.install>) {
@@ -68,7 +62,7 @@ export default abstract class Action {
   }
 
   get templatePath() {
-    return path.resolve(this.#pluginRoot, '../templates')
+    return path.resolve(this.#rootPath, '../templates')
   }
   async renderTemplate(
     templateName: string,
@@ -85,6 +79,14 @@ export default abstract class Action {
     templateData: Record<string, unknown> = {},
   ) {
     return fs.renderTemplateFile(templateFile, destinationFile, templateData)
+  }
+
+  color() {
+    return this.log.color
+  }
+
+  loadingTask(...args: Parameters<typeof log.loadingTask>) {
+    return this.log.loadingTask(...args)
   }
 
   filename(...args: Parameters<typeof env.filename>) {
@@ -114,4 +116,15 @@ export default abstract class Action {
   get fs() {
     return fs
   }
+  get husky() {
+    return husky
+  }
+  get task() {
+    return task
+  }
+}
+
+export abstract class Action extends Plugin {
+  abstract options?: ActionOption[]
+  abstract action(options: Record<string, unknown>): Promise<void>
 }

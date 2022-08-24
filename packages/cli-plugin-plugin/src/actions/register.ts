@@ -2,9 +2,9 @@
  * 插件注册 action (局部注册 | 全局注册)
  * @author: sunkeysun
  */
-import { plugin } from '@inventorjs/cli-core'
+import { Action } from '@inventorjs/cli-core'
 
-export default class Action extends plugin.Action {
+export default class RegisterAction extends Action {
   description = '注册插件使其可通过 inventor 调用，支持全局插件和局部插件'
   options = [
     { option: '-n --plugin-name [pluginName]', description: '注册插件名称，作为插件调用指令' },

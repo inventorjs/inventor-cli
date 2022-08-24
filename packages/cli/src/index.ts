@@ -3,14 +3,11 @@
  * inventor 命令行入口
  * @author: sunkeysun
  */
-import type { plugin as pluginType } from '@inventorjs/cli-core'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { readdir } from 'node:fs/promises'
 import { Command } from 'commander'
-import { plugin, log } from '@inventorjs/cli-core'
-
-const { Plugin: PluginBase, Action: ActionBase } = plugin
+import { Plugin, Action, log, type ActionOption } from '@inventorjs/cli-core'
 
 const require = createRequire(import.meta.url)
 
@@ -18,22 +15,20 @@ const corePlugins = [
   { pluginName: 'plugin', packageName: '@inventorjs/cli-plugin-plugin' },
 ]
 
-async function loadActions(packageName: string) {
-  const entry = require.resolve(packageName)
-  const pluginRoot = path.dirname(entry)
-  const actionDir = path.resolve(path.dirname(entry), 'actions')
+async function loadActions(rootPath: string) {
+  const actionDir = path.resolve(rootPath, 'actions')
   const actionFiles = (await readdir(actionDir)).filter((file) =>
     file.endsWith('.js'),
   )
-  const actions: { name: string; action: pluginType.Action }[] = []
+  const actions: { name: string; action: Action }[] = []
 
   for (const actionFile of actionFiles) {
     try {
       const actionPath = path.resolve(actionDir, actionFile)
-      const { default: Action } = await import(actionPath)
-      const action = new Action({ pluginRoot })
-      if (!(action instanceof ActionBase)) {
-        throw new Error('action must extends from Action base class!')
+      const { default: SubAction } = await import(actionPath)
+      const action = new SubAction({ rootPath })
+      if (!(action instanceof Action)) {
+        throw new Error('SubAction must extends from Action base class!')
       }
       const name = path.basename(actionFile, path.extname(actionFile))
 
@@ -51,15 +46,14 @@ async function registerPlugin(
   pluginName: string,
   packageName: string,
 ) {
-  const { default: Plugin } = (await import(packageName)) as {
-    default: new () => pluginType.Plugin
-  }
-  const plugin = new Plugin()
-  if (!(plugin instanceof PluginBase)) {
-    throw new Error('plugin must extends from Plugin base class!')
+  const { default: SubPlugin } = (await import(packageName))
+  const rootPath = path.dirname(require.resolve(packageName))
+  const plugin = new SubPlugin({ rootPath })
+  if (!(plugin instanceof Plugin)) {
+    throw new Error('SubPlugin must extends from Plugin base class!')
   }
 
-  const actions = await loadActions(packageName)
+  const actions = await loadActions(rootPath)
 
   const cmd = cli.command(pluginName)
   cmd.description(plugin.description)
@@ -67,7 +61,7 @@ async function registerPlugin(
   for (const { name, action } of actions) {
     const actionCmd = cmd.command(name).description(action.description)
     if (action.options) {
-      action.options.forEach((option: plugin.ActionOption) =>
+      action.options.forEach((option: ActionOption) =>
         actionCmd.option(option.option, option.description),
       )
     }
