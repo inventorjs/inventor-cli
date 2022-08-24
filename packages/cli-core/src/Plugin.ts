@@ -12,35 +12,33 @@ import * as pm from './modules/pm.js'
 import * as husky from './modules/husky.js'
 import * as task from './modules/task.js'
 
-export interface ActionOption {
-  option: string
-  description: string
-  default?: unknown
-}
-
-export interface ActionOptions {
-  [k: string]: unknown
-}
-
-export type PromptsParameter = Parameters<typeof prompts>[0]
-export type PromptsOptions = Parameters<typeof prompts>[1]
-
 export abstract class Plugin {
   abstract description: string
-  #rootPath: string
+  #entryPath: string
+  #templatePath: string
+  #actionPath: string
 
-  constructor({ rootPath }: { rootPath: string }) {
-    this.#rootPath = rootPath
+  constructor({ entryPath }: { entryPath: string }) {
+    this.#entryPath = entryPath
+    this.#templatePath = path.resolve(entryPath, '../../templates')
+    this.#actionPath = path.resolve(entryPath, '../actions')
   }
 
-  async prompts(
-    questions: PromptsParameter,
-    options: PromptsOptions = { onCancel: () => process.exit(1) },
-  ) {
-    if (!questions || (Array.isArray(questions) && !questions.length)) {
-      return {}
-    }
-    return prompts(questions, options)
+  get entryPath() {
+    return this.#entryPath
+  }
+  get templatePath() {
+    return this.#templatePath
+  }
+  get actionPath() {
+    return this.#actionPath
+  }
+
+  async prompts(...args: Parameters<typeof prompts>) {
+    const options = args[1] ?? {}
+    const onCancel = options?.onCancel ?? (() => process.exit(1))
+    const realOptions = {...options, onCancel }
+    return prompts(args[0], realOptions)
   }
 
   async install(...args: Parameters<typeof pm.install>) {
@@ -61,34 +59,32 @@ export abstract class Plugin {
     return pm.removeDevDependencies(...args)
   }
 
-  get templatePath() {
-    return path.resolve(this.#rootPath, '../templates')
-  }
   async renderTemplate(
     templateName: string,
     destinationName: string,
     templateData: Record<string, unknown> = {},
   ) {
-    const templateDir = path.resolve(this.templatePath, templateName)
+    const templateDir = path.resolve(this.#templatePath, templateName)
     const destinationDir = path.resolve(this.pwd, destinationName)
     return fs.renderTemplate(templateDir, destinationDir, templateData)
   }
-  async renderTemplateFile(
-    templateFile: string,
-    destinationFile: string,
-    templateData: Record<string, unknown> = {},
-  ) {
-    return fs.renderTemplateFile(templateFile, destinationFile, templateData)
+  async renderTemplateFile(...args: Parameters<typeof fs.renderTemplateFile>) {
+    return fs.renderTemplateFile(...args)
+  }
+
+  async runTask(task: () => Promise<unknown>, cwd?: string) {
+    const oldCwd = env.cwd
+    env.changeCwd(cwd ?? env.cwd) 
+    await task()
+    env.changeCwd(oldCwd)
   }
 
   color() {
     return this.log.color
   }
-
   loadingTask(...args: Parameters<typeof log.loadingTask>) {
     return this.log.loadingTask(...args)
   }
-
   filename(...args: Parameters<typeof env.filename>) {
     return env.filename(...args)
   }
@@ -124,7 +120,19 @@ export abstract class Plugin {
   }
 }
 
+export interface ActionOption {
+  option: string
+  description: string
+  default?: unknown
+}
+
+export interface ActionOptions {
+  [k: string]: unknown
+}
 export abstract class Action extends Plugin {
-  abstract options?: ActionOption[]
+  abstract options: ActionOption[]
   abstract action(options: Record<string, unknown>): Promise<void>
 }
+
+export type PluginType = new () => Plugin
+export type ActionType = new () => Action

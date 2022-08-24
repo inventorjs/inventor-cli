@@ -5,7 +5,7 @@
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 
-let currentCwd = process.cwd()
+let cwd  = process.cwd()
 
 export function pwd() {
   return process.cwd()
@@ -32,14 +32,8 @@ export function filename(metaUrl: string) {
   return fileURLToPath(metaUrl)
 }
 
-export function cwd() {
-  return currentCwd
+export function changeCwd(enterCwd: string) {
+  cwd = enterCwd
 }
 
-export function enterCwd(cwd: string) {
-  currentCwd = cwd
-}
-
-export function exitCwd() {
-  currentCwd = process.cwd()
-}
+export { cwd }

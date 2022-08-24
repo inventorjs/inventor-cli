@@ -18,17 +18,18 @@ export default class InitAction extends Action {
       {
         type: 'text',
         name: 'name',
-        message: '请输入插件名称，项目目录将自动初始化为"inventor-plugin-[name]"',
+        message:
+          '请输入插件名称，项目目录将自动初始化为"inventor-plugin-[name]"',
         validate: (name) => {
           if (!name) {
             return '插件名称不能为空'
           }
-        
+
           if (!/^\w+$/.test(name)) {
             return '插件名称不合法【只允许字母数字下划线】'
           }
           return true
-        }
+        },
       },
       {
         type: 'text',
@@ -39,57 +40,58 @@ export default class InitAction extends Action {
             return '插件描述至少包含5个字符'
           }
           return true
-        }
+        },
       },
       {
         type: 'text',
         name: 'author',
         message: '请输入插件作者名称',
         initial: this.username,
-        validate: (author) => !author ? '作者名称不能为空' : true
+        validate: (author) => (!author ? '作者名称不能为空' : true),
       },
       {
         type: 'confirm',
         name: 'isConfirm',
-        message: (_, values) => `即将创建插件项目"${this.#getPackageName(values.name)}"是否继续`,
+        message: (_, values) =>
+          `即将创建插件项目"${this.#getPackageName(values.name)}"是否继续`,
         initial: true,
       },
     ])
 
     const { name, description, author } = answers
     const packageName = this.#getPackageName(name as string)
+    const packagePath = path.resolve(this.pwd, packageName)
     const templateName = 'default'
 
     await this.loadingTask(
-      this.renderTemplate(templateName, packageName, { packageName, description, author }),
+      this.renderTemplate(templateName, packageName, {
+        packageName,
+        description,
+        author,
+      }),
       '初始化目录',
     )
 
-    await this.loadingTask(
-      this.git.init({ cwd: path.resolve(this.pwd, packageName) }),
-      '初始化Git',
-    )
-
-    await this.loadingTask(
-      this.install({ cwd: path.resolve(this.pwd, packageName) }),
-      '安装依赖',
-    )
-
-    await this.loadingTask(
-      this.task.series([
-        this.husky.install({ cwd: path.resolve(this.pwd, packageName) }),
-        this.husky.add('commit-msg', 'pnpm commitlint --edit $1', { cwd: path.resolve(this.pwd, packageName) }),
-      ]),
-      '安装Husky',
-    )
+    await this.runTask(async () => {
+      await this.loadingTask(this.git.init(), '初始化Git')
+      await this.loadingTask(this.install(), '安装依赖')
+      await this.loadingTask(
+        this.task.series([
+          this.husky.install(),
+          this.husky.add('commit-msg', 'pnpm commitlint --edit $1'),
+        ]),
+        '安装Husky',
+      )
+    }, packagePath)
 
     log.success(
-`${this.log.color.cyan('Done. Now run:')}
+  `${this.color.cyan('Done. Now run:')}
 
     cd ${packageName}
     ${this.pm.bin} dev
 
-  ${this.log.color.cyan('To finish init.')}
-`   )
+  ${this.color.cyan('To finish init.')}
+  `,
+    )
   }
 }

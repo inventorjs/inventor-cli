@@ -3,20 +3,18 @@
  * @author: sunkeysun
  */
 import { execa } from 'execa'
+import { cwd } from './env.js'
 
-interface InstallOptions {
-  cwd: string
-}
 
-export async function install({ cwd }: InstallOptions) {
+export async function install() {
   return execCmd(['install'], cwd)
 }
 
-export async function uninstall({ cwd }: InstallOptions) {
+export async function uninstall() {
   return execCmd(['install'], cwd)
 }
 
-export async function add(hookName: string, hookAction: string, { cwd }: InstallOptions) {
+export async function add(hookName: string, hookAction: string) {
   return execCmd(['add', `.husky/${hookName}`, hookAction], cwd)
 }
 

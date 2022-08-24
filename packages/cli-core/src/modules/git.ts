@@ -3,12 +3,9 @@
  * @author: sunkeysun
  */
 import { execa } from 'execa'
+import { cwd } from './env.js'
 
-interface InitOptions {
-  cwd: string
-}
-
-export async function init({ cwd }: InitOptions) {
+export async function init() {
   return await execCmd(['init'], cwd)
 }
 
