@@ -15,7 +15,7 @@ export async function getAllFiles(dirPath: string) {
 export async function renderTemplate(
   templateDir: string,
   destinationDir: string,
-  templateData: Record<string, unknown>
+  templateData: Record<string, unknown> = {}
 ) {
   const templateFiles = await getAllFiles(templateDir)
   const tmpDestinationDir = path.resolve('/tmp/inventor-templates/', `template-${Date.now()}`)
@@ -34,8 +34,10 @@ export async function renderTemplate(
 export async function renderTemplateFile(
   templateFile: string,
   destinationFile: string,
-  templateData: Record<string, unknown>,
+  templateData: Record<string, unknown> = {},
 ) {
+  console.log(templateFile, '---')
   const renderContent = await ejs.renderFile(templateFile, templateData, { async: true })
+  await fse.ensureDir(path.dirname(destinationFile))
   await fse.writeFile(destinationFile, renderContent)
 }

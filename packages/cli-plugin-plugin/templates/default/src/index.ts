@@ -2,10 +2,10 @@
  * Demo 插件
  * @author: <%- author %>
  */
- import { plugin } from '@inventorjs/cli-core'
+ import { Plugin } from '@inventorjs/cli-core'
 
- class Plugin extends plugin.Plugin {
+ class DemoPlugin extends Plugin {
    description = '<%- description %>'
  }
  
- export default Plugin
+ export default DemoPlugin
