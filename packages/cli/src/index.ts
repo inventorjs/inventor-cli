@@ -11,8 +11,6 @@ import {
   Plugin,
   Action,
   log,
-  type PluginType,
-  type ActionType,
   type ActionOption,
 } from '@inventorjs/cli-core'
 
@@ -24,7 +22,7 @@ const corePlugins = [
   { pluginName: 'plugin', packageName: '@inventorjs/cli-plugin-plugin' },
 ]
 
-async function loadActions(plugin: PluginType) {
+async function loadActions(plugin: Plugin) {
   const actionFiles = (await readdir(plugin.actionPath)).filter((file) =>
     file.endsWith('.js'),
   )
@@ -36,7 +34,7 @@ async function loadActions(plugin: PluginType) {
       const { default: SubAction } = await import(actionPath)
       const action = new SubAction({
         entryPath: plugin.entryPath,
-      }) as ActionType
+      }) as Action
       if (!(action instanceof Action)) {
         throw new Error('SubAction must extends from Action base class!')
       }
@@ -62,7 +60,7 @@ async function registerPlugin(
 ) {
   const { default: SubPlugin } = await import(packageName)
   const entryPath = require.resolve(packageName)
-  const plugin = new SubPlugin({ entryPath }) as PluginType
+  const plugin = new SubPlugin({ entryPath }) as Plugin
   if (!(plugin instanceof Plugin)) {
     throw new Error('SubPlugin must extends from Plugin base class!')
   }

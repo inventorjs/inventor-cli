@@ -133,6 +133,3 @@ export abstract class Action extends Plugin {
   abstract options: ActionOption[]
   abstract action(options: Record<string, unknown>): Promise<void>
 }
-
-export type PluginType = new () => Plugin
-export type ActionType = new () => Action
