@@ -33,7 +33,3 @@ export function raw(msg: string) {
   log(msg)
 }
 
-export function loadingTask(task: Promise<unknown>, description: string) {
-  return oraPromise(task, `${description}: `)
-}
-

@@ -4,6 +4,7 @@
  */
 import path from 'node:path'
 import prompts from 'prompts'
+import { oraPromise } from 'ora'
 import * as fs from './modules/fs.js'
 import * as env from './modules/env.js'
 import * as log from './modules/log.js'
@@ -96,8 +97,8 @@ export abstract class Plugin {
       throw err
     }
   }
-  async loadingTask(...args: Parameters<typeof log.loadingTask>) {
-    return this.log.loadingTask(...args)
+  async loadingTask(...args: Parameters<typeof oraPromise>) {
+    return oraPromise(...args)
   }
   async seriesTask(tasks: Promise<unknown>[]) {
     const results = []

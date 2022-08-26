@@ -7,14 +7,10 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { readdir } from 'node:fs/promises'
 import { Command } from 'commander'
-import {
-  Plugin,
-  Action,
-  log,
-  type ActionOption,
-} from '@inventorjs/cli-core'
+import { Plugin, Action, log, type ActionOption } from '@inventorjs/cli-core'
 
-const bin = 'inventor'
+const BIN = 'inventor'
+const DEFAULT_ACTION = 'index'
 
 const require = createRequire(import.meta.url)
 
@@ -71,7 +67,9 @@ async function registerPlugin(
   cmd.description(plugin.description)
 
   for (const { name, action } of actions) {
-    const actionCmd = cmd.command(name).description(action.description)
+    const actionCmd = cmd
+      .command(name, { isDefault: name === DEFAULT_ACTION })
+      .description(action.description)
     if (action.options) {
       action.options.forEach((option: ActionOption) =>
         actionCmd.option(option.option, option.description),
@@ -85,10 +83,10 @@ async function registerPlugin(
 
 async function run() {
   const packageJson = require('../package.json')
-  const cli = new Command(bin).version(packageJson.version)
+  const cli = new Command(BIN).version(packageJson.version)
 
-  log.welcome({ cliName: bin, version: packageJson.version })
-  
+  log.welcome({ cliName: BIN, version: packageJson.version })
+
   for (const { pluginName, packageName } of corePlugins) {
     await registerPlugin(cli, pluginName, packageName)
   }
