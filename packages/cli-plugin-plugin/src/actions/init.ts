@@ -3,7 +3,7 @@
  * @author: sunkeysun
  */
 import path from 'node:path'
-import { Action, log } from '@inventorjs/cli-core'
+import { Action, log, env } from '@inventorjs/cli-core'
 
 export default class InitAction extends Action {
   description = '初始化创建一个插件项目，可快速开发插件'
@@ -73,12 +73,12 @@ export default class InitAction extends Action {
     )
 
     await this.runTask(async () => {
-      await this.loadingTask(this.git.init(), '初始化Git')
+      await this.loadingTask(this.git.init({ cwd: env.cwd }), '初始化Git')
       await this.loadingTask(this.install(), '安装依赖')
       await this.loadingTask(
-        this.task.series([
-          this.husky.install(),
-          this.husky.add('commit-msg', 'pnpm commitlint --edit $1'),
+        this.seriesTask([
+          this.husky.install({ cwd: env.cwd }),
+          this.husky.add('commit-msg', 'pnpm commitlint --edit $1', { cwd: env.cwd }),
         ]),
         '安装Husky',
       )
@@ -90,7 +90,7 @@ export default class InitAction extends Action {
     cd ${packageName}
     ${this.pm.bin} dev
 
-  ${this.color.cyan('To finish init.')}
+  ${this.color.cyan('To develop inventor plugin.')}
   `,
     )
   }

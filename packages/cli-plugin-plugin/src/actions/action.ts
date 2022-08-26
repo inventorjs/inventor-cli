@@ -23,8 +23,10 @@ export default class ActionAction extends Action {
 
     await this.runTask(async () => {
       await this.renderTemplateFile(
-        `${this.templatePath}/default/src/actions/init.ts`,
-        `${this.pwd}/src/actions/${actionName}.ts`,
+        'default',
+        'src/actions/init.ts',
+        `src/actions/${actionName}.ts`,
+        {},
       )
     })
   }

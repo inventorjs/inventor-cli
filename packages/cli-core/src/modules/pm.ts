@@ -8,54 +8,64 @@ import { execa } from 'execa'
 import { error } from './log.js'
 import { cwd } from './env.js'
 
+interface Options {
+  cwd?: string
+  stdio?: 'pipe' | 'ignore' | 'inherit' | undefined
+}
+
 export const bin = 'pnpm'
 
 async function checkPackageJson() {
-  const packageJsonPath = path.resolve(cwd, 'package.json');
-  if (!await fse.pathExists(packageJsonPath)) {
+  const packageJsonPath = path.resolve(cwd, 'package.json')
+  if (!(await fse.pathExists(packageJsonPath))) {
     throw new Error(`${packageJsonPath} not exist! please check cwd correct!`)
   }
 }
 
-export async function init() {
-  return execCmd(['init'])
+export async function init(options?: Options) {
+  return exec(bin, ['init'], options)
 }
 
-export async function install() {
+export async function install(options?: Options) {
   await checkPackageJson()
-  return execCmd(['install'])
+  return exec(bin, ['install'], options)
 }
 
 export async function addDependencies(
   packageNames: string[],
+  options?: Options,
 ) {
   await checkPackageJson()
-  return execCmd(['add', ...packageNames])
+  return exec(bin, ['add', ...packageNames], options)
 }
 
 export async function addDevDependencies(
   packageNames: string[],
+  options?: Options,
 ) {
   await checkPackageJson()
-  return execCmd(['add', ...packageNames, '-D'])
+  return exec(bin, ['add', ...packageNames, '-D'], options)
 }
 
 export async function removeDependencies(
   packageNames: string[],
+  options?: Options,
 ) {
   await checkPackageJson()
-  return execCmd(['remove', ...packageNames])
+  return exec(bin, ['remove', ...packageNames], options)
 }
 
 export async function removeDevDependencies(
   packageNames: string[],
+  options?: Options,
 ) {
   await checkPackageJson()
-  return execCmd(['remove', ...packageNames, '-D'])
+  return exec(bin, ['remove', ...packageNames, '-D'], options)
 }
 
-async function execCmd(args: string[]) {
-  const child = execa(bin, args, { cwd, stdio: 'pipe' })
+async function exec(bin: string, args: string[], options: Options = {}) {
+  const { cwd, stdio = 'pipe' } = options
+  const child = execa(bin, args, { cwd, stdio })
   let isError = false
   return new Promise((resolve, reject) => {
     child.stdout?.on('data', (buf) => {
@@ -64,7 +74,10 @@ async function execCmd(args: string[]) {
         isError = true
         error(str)
         reject()
-        return ;
+        return
+      }
+      if (/(Progress: resolved|\+{3,}|Virtual store is at)/.test(str)) {
+        return
       }
       !isError && process.stdout.write(buf)
     })

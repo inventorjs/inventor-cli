@@ -15,15 +15,21 @@ export async function getAllFiles(dirPath: string) {
 export async function renderTemplate(
   templateDir: string,
   destinationDir: string,
-  templateData: Record<string, unknown> = {}
+  templateData: Record<string, unknown>,
 ) {
   const templateFiles = await getAllFiles(templateDir)
-  const tmpDestinationDir = path.resolve('/tmp/inventor-templates/', `template-${Date.now()}`)
+  const tmpDestinationDir = path.resolve(
+    '/tmp/inventor-templates/',
+    `template-${Date.now()}`,
+  )
 
   await fse.ensureDir(tmpDestinationDir)
 
   for (const templateFile of templateFiles) {
-    const destinationFile = path.resolve(tmpDestinationDir, templateFile.replace(templateDir, '').slice(1))
+    const destinationFile = path.resolve(
+      tmpDestinationDir,
+      templateFile.replace(templateDir, '').slice(1),
+    )
     await fse.ensureDir(path.dirname(destinationFile))
     await renderTemplateFile(templateFile, destinationFile, templateData)
   }
@@ -36,8 +42,9 @@ export async function renderTemplateFile(
   destinationFile: string,
   templateData: Record<string, unknown> = {},
 ) {
-  console.log(templateFile, '---')
-  const renderContent = await ejs.renderFile(templateFile, templateData, { async: true })
+  const renderContent = await ejs.renderFile(templateFile, templateData, {
+    async: true,
+  })
   await fse.ensureDir(path.dirname(destinationFile))
   await fse.writeFile(destinationFile, renderContent)
 }
