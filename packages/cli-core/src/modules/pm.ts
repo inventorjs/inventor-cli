@@ -6,7 +6,7 @@ import path from 'node:path'
 import fse from 'fs-extra'
 import { execa } from 'execa'
 import { error } from './log.js'
-import { cwd } from './env.js'
+import { cwd as envCwd } from './env.js'
 
 interface Options {
   cwd?: string
@@ -15,7 +15,7 @@ interface Options {
 
 export const bin = 'pnpm'
 
-async function checkPackageJson() {
+async function checkPackageJson({ cwd = envCwd }: Pick<Options, 'cwd'> = {}) {
   const packageJsonPath = path.resolve(cwd, 'package.json')
   if (!(await fse.pathExists(packageJsonPath))) {
     throw new Error(`${packageJsonPath} not exist! please check cwd correct!`)
@@ -23,11 +23,11 @@ async function checkPackageJson() {
 }
 
 export async function init(options?: Options) {
-  return exec(bin, ['init'], options)
+  return exec(bin, ['init'], options, false)
 }
 
 export async function install(options?: Options) {
-  await checkPackageJson()
+  await checkPackageJson(options)
   return exec(bin, ['install'], options)
 }
 
@@ -35,7 +35,6 @@ export async function addDependencies(
   packageNames: string[],
   options?: Options,
 ) {
-  await checkPackageJson()
   return exec(bin, ['add', ...packageNames], options)
 }
 
@@ -43,7 +42,6 @@ export async function addDevDependencies(
   packageNames: string[],
   options?: Options,
 ) {
-  await checkPackageJson()
   return exec(bin, ['add', ...packageNames, '-D'], options)
 }
 
@@ -51,7 +49,6 @@ export async function removeDependencies(
   packageNames: string[],
   options?: Options,
 ) {
-  await checkPackageJson()
   return exec(bin, ['remove', ...packageNames], options)
 }
 
@@ -59,12 +56,16 @@ export async function removeDevDependencies(
   packageNames: string[],
   options?: Options,
 ) {
-  await checkPackageJson()
   return exec(bin, ['remove', ...packageNames, '-D'], options)
 }
 
-async function exec(bin: string, args: string[], options: Options = {}) {
-  const { cwd, stdio = 'pipe' } = options
+async function exec(bin: string, args: string[], options: Options = {}, needPackageJson = true) {
+  const { cwd = envCwd, stdio = 'pipe' } = options
+
+  if (needPackageJson) {
+    await checkPackageJson({ cwd })
+  }
+
   const child = execa(bin, args, { cwd, stdio })
   let isError = false
   return new Promise((resolve, reject) => {

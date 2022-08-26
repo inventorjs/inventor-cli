@@ -3,6 +3,7 @@
  * @author: sunkeysun
  */
 import { execa } from 'execa'
+import { cwd as envCwd } from './env.js'
 
 interface Options {
   cwd?: string
@@ -11,12 +12,12 @@ interface Options {
 
 export const bin = 'git'
 
-export async function init(options: Options) {
+export async function init(options?: Options) {
   return await exec(bin, ['init'], options)
 }
 
 function exec(bin: string, args: string[], options: Options = {}) {
-  const { cwd, stdio = 'pipe' } = options
+  const { cwd = envCwd, stdio = 'pipe' } = options
   const child = execa(bin, args, { cwd, stdio })
   return new Promise((resolve, reject) => {
     child.stdout?.on('data', (buf) => {

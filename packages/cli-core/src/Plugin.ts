@@ -39,42 +39,21 @@ export abstract class Plugin {
     return prompts(args[0], { ...options, onCancel })
   }
 
-  async initPackageJson(...args: Parameters<typeof pm.init>) {
-    const options = args[0] ?? {}
-    const cwd = options?.cwd ?? env.cwd
-    args.splice(0, 1, { ...options, cwd })
-    return pm.init(...args)
-  }
   async install(...args: Parameters<typeof pm.install>) {
-    const options = args[0] ?? {}
-    const cwd = options?.cwd ?? env.cwd
-    args.splice(0, 1, { ...options, cwd })
     return pm.install(...args)
   }
   async addDependencies(...args: Parameters<typeof pm.addDependencies>) {
-    const options = args[1] ?? {}
-    const cwd = options?.cwd ?? env.cwd
-    args.splice(1, 1, { ...options, cwd })
     return pm.addDependencies(...args)
   }
   async addDevDependencies(...args: Parameters<typeof pm.addDevDependencies>) {
-    const options = args[1] ?? {}
-    const cwd = options?.cwd ?? env.cwd
-    args.splice(1, 1, { ...options, cwd })
     return pm.addDevDependencies(...args)
   }
   async removeDependencies(...args: Parameters<typeof pm.removeDependencies>) {
-    const options = args[1] ?? {}
-    const cwd = options?.cwd ?? env.cwd
-    args.splice(1, 1, { ...options, cwd })
     return pm.removeDependencies(...args)
   }
   async removeDevDependencies(
     ...args: Parameters<typeof pm.removeDevDependencies>
   ) {
-    const options = args[1] ?? {}
-    const cwd = options?.cwd ?? env.cwd
-    args.splice(1, 1, { ...options, cwd })
     return pm.removeDevDependencies(...args)
   }
 

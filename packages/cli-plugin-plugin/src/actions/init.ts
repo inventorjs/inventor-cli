@@ -73,12 +73,12 @@ export default class InitAction extends Action {
     )
 
     await this.runTask(async () => {
-      await this.loadingTask(this.git.init({ cwd: env.cwd }), '初始化Git')
+      await this.loadingTask(this.git.init(), '初始化Git')
       await this.loadingTask(this.install(), '安装依赖')
       await this.loadingTask(
         this.seriesTask([
-          this.husky.install({ cwd: env.cwd }),
-          this.husky.add('commit-msg', 'pnpm commitlint --edit $1', { cwd: env.cwd }),
+          this.husky.install(),
+          this.husky.add('commit-msg', 'pnpm commitlint --edit $1'),
         ]),
         '安装Husky',
       )
