@@ -14,7 +14,7 @@ export default class InitAction extends Action {
   }
 
   async action() {
-    const answers = await this.prompts([
+    const answers = await this.prompt([
       {
         type: 'text',
         name: 'name',
@@ -46,15 +46,15 @@ export default class InitAction extends Action {
         type: 'text',
         name: 'author',
         message: '请输入插件作者名称',
-        initial: this.username,
+        default: this.username,
         validate: (author) => (!author ? '作者名称不能为空' : true),
       },
       {
         type: 'confirm',
         name: 'isConfirm',
-        message: (_, values) =>
+        message: (values) =>
           `即将创建插件项目"${this.#getPackageName(values.name)}"是否继续`,
-        initial: true,
+        default: true,
       },
     ])
 

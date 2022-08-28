@@ -8,7 +8,7 @@ export default class ActionAction extends Action {
   description = '初始化创建一个插件 action，可快速开发插件 action'
   options = []
   async action() {
-    const anwsers = await this.prompts([
+    const anwsers = await this.prompt([
       {
         name: 'actionName',
         type: 'text',

@@ -3,7 +3,7 @@
  * @author: sunkeysun
  */
 import path from 'node:path'
-import prompts from 'prompts'
+import inquirer from 'inquirer'
 import { oraPromise } from 'ora'
 import * as fs from './modules/fs.js'
 import * as env from './modules/env.js'
@@ -34,10 +34,8 @@ export abstract class Plugin {
     return this.#actionPath
   }
 
-  async prompts(...args: Parameters<typeof prompts>) {
-    const options = args[1] ?? {}
-    const onCancel = options?.onCancel ?? (() => process.exit(1))
-    return prompts(args[0], { ...options, onCancel })
+  async prompt(...args: Parameters<typeof inquirer.prompt>) {
+    return inquirer.prompt(args[0])
   }
 
   async install(...args: Parameters<typeof pm.install>) {
