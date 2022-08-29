@@ -94,4 +94,12 @@ async function run() {
   cli.parse(process.argv)
 }
 
+process.on('uncaughtException', () => {
+  log.error('uncaughtException')
+})
+
+process.on('unhandledRejection', (reason) => {
+  log.error(reason as string)
+})
+
 await run()

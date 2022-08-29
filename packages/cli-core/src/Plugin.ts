@@ -63,7 +63,7 @@ export abstract class Plugin {
       {
         type: 'confirm',
         name: 'isConfirm',
-        message: () => `以下文件已经存在:\n${paths.join('\n')}\n是否进行覆盖`,
+        message: () => `以下文件已经存在:\n${paths.map((path) => this.color.red(`  ${path}`)).join('\n')}\n是否进行覆盖`,
         default: true,
       },
     ])
@@ -88,7 +88,7 @@ export abstract class Plugin {
       if (existsPath.length > 0) {
         const isOverwrites = await this.confirmOverwrites(existsPath)
         if (!isOverwrites) {
-          return false
+          throw new Error('Overwrites canceled!')
         }
       }
     }
@@ -106,12 +106,12 @@ export abstract class Plugin {
       templateName,
       templateFile,
     )
-    const destinationFilePath = path.resolve(env.cwd, destinationFile)
+    const destinationFilePath = path.resolve(this.pwd, destinationFile)
     if (!overwrites) {
       if (await fs.exists(destinationFile)) {
         const isOverwrites = await this.confirmOverwrites([destinationFile])
         if (!isOverwrites) {
-          return false
+          throw new Error('Overwrites canceled!')
         }
       }
     }

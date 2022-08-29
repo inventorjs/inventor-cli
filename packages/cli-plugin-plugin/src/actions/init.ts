@@ -63,14 +63,13 @@ export default class InitAction extends Action {
     const packagePath = path.resolve(this.pwd, packageName)
     const templateName = 'default'
 
-    await this.loadingTask(
-      this.renderTemplate(templateName, packageName, { data: {
+    await this.renderTemplate(templateName, packageName, {
+      data: {
         packageName,
         description,
         author,
-      }}),
-      '初始化目录',
-    )
+      },
+    })
 
     await this.runTask(async () => {
       await this.loadingTask(this.git.init(), '初始化Git')

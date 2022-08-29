@@ -4,7 +4,6 @@
  */
 import figlet from 'figlet'
 import chalk from 'chalk'
-import { oraPromise } from 'ora'
 
 function log(msg: string) {
   console.log(msg)
@@ -15,6 +14,11 @@ export const color = chalk
 export function welcome({ cliName, version }: Record<string, string>) {
   log(color.green(figlet.textSync(cliName, { font: 'Kban' })))
   log(color.yellow(`welecome ${cliName} v${version} !`))
+}
+
+export function bye(msg: string) {
+  log(`👋 ${color.green(msg)}`)
+  process.exit()
 }
 
 export function info(msg: string) {
