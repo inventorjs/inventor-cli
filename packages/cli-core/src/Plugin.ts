@@ -3,15 +3,16 @@
  * @author: sunkeysun
  */
 import type { RenderOptions } from './modules/fs.js'
-
 import path from 'node:path'
 import inquirer from 'inquirer'
+import { execa } from 'execa'
 import { oraPromise } from 'ora'
 import * as fs from './modules/fs.js'
 import * as env from './modules/env.js'
 import * as log from './modules/log.js'
 import * as git from './modules/git.js'
 import * as pm from './modules/pm.js'
+import * as cmd from './modules/cmd.js'
 import * as husky from './modules/husky.js'
 
 export abstract class Plugin {
@@ -52,9 +53,7 @@ export abstract class Plugin {
   async removeDependencies(...args: Parameters<typeof pm.removeDependencies>) {
     return pm.removeDependencies(...args)
   }
-  async removeDevDependencies(
-    ...args: Parameters<typeof pm.removeDevDependencies>
-  ) {
+  async removeDevDependencies(...args: Parameters<typeof pm.removeDevDependencies>) {
     return pm.removeDevDependencies(...args)
   }
 
@@ -63,7 +62,10 @@ export abstract class Plugin {
       {
         type: 'confirm',
         name: 'isConfirm',
-        message: () => `以下文件已经存在:\n${paths.map((path) => this.color.red(`  ${path}`)).join('\n')}\n是否进行覆盖`,
+        message: () =>
+          `以下文件已经存在:\n${paths
+            .map((path) => this.color.red(`  ${path}`))
+            .join('\n')}\n是否进行覆盖`,
         default: true,
       },
     ])
@@ -81,12 +83,9 @@ export abstract class Plugin {
     const templateDir = path.resolve(this.#templatePath, templateName)
     const destinationDir = path.resolve(this.pwd, destinationName)
     if (!overwrites) {
-      const existsPath = await fs.getExistsTemplatePaths(
-        templateDir,
-        destinationDir,
-      )
-      if (existsPath.length > 0) {
-        const isOverwrites = await this.confirmOverwrites(existsPath)
+      const existsFiles = await fs.getExistsTemplateFiles(templateDir, destinationDir)
+      if (existsFiles.length > 0) {
+        const isOverwrites = await this.confirmOverwrites(existsFiles)
         if (!isOverwrites) {
           throw new Error('Overwrites canceled!')
         }
@@ -101,11 +100,7 @@ export abstract class Plugin {
     options: RenderOptions & { overwrites?: boolean } = {},
   ) {
     const { overwrites = false, ...fsOptions } = options
-    const templateFilePath = path.resolve(
-      this.#templatePath,
-      templateName,
-      templateFile,
-    )
+    const templateFilePath = path.resolve(this.#templatePath, templateName, templateFile)
     const destinationFilePath = path.resolve(this.pwd, destinationFile)
     if (!overwrites) {
       if (await fs.exists(destinationFile)) {
