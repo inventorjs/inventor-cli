@@ -7,15 +7,44 @@ import fse from 'fs-extra'
 import { globby } from 'globby'
 import ejs from 'ejs'
 
+export interface RenderOptions {
+  data?: Record<string, unknown>
+}
+
 export async function getAllFiles(dirPath: string) {
   const allFiles = await globby(`${dirPath}/**/(.)?*`, { gitignore: false })
   return allFiles
 }
 
+export async function getExistsTemplatePaths(
+  templateDir: string,
+  destinationDir: string,
+) {
+  const templateFiles = await getAllFiles(templateDir)
+  const existsPaths = []
+  for (const templateFile of templateFiles) {
+    const destinationFile = path.resolve(
+      destinationDir,
+      templateFile.replace(templateDir, '').slice(1),
+    )
+    if (await exists(destinationFile)) {
+      existsPaths.push(destinationFile)
+    }
+  }
+  if (existsPaths.length > 0) {
+    return existsPaths
+  }
+  return []
+}
+
+export async function exists(filePath: string) {
+  return await fse.pathExists(filePath)
+}
+
 export async function renderTemplate(
   templateDir: string,
   destinationDir: string,
-  templateData: Record<string, unknown>,
+  options: RenderOptions = {},
 ) {
   const templateFiles = await getAllFiles(templateDir)
   const tmpDestinationDir = path.resolve(
@@ -31,7 +60,7 @@ export async function renderTemplate(
       templateFile.replace(templateDir, '').slice(1),
     )
     await fse.ensureDir(path.dirname(destinationFile))
-    await renderTemplateFile(templateFile, destinationFile, templateData)
+    await renderTemplateFile(templateFile, destinationFile, options)
   }
   await fse.copy(tmpDestinationDir, destinationDir)
   await fse.remove(tmpDestinationDir)
@@ -40,9 +69,10 @@ export async function renderTemplate(
 export async function renderTemplateFile(
   templateFile: string,
   destinationFile: string,
-  templateData: Record<string, unknown> = {},
+  options: RenderOptions = {},
 ) {
-  const renderContent = await ejs.renderFile(templateFile, templateData, {
+  const { data = {} } = options
+  const renderContent = await ejs.renderFile(templateFile, data, {
     async: true,
   })
   await fse.ensureDir(path.dirname(destinationFile))

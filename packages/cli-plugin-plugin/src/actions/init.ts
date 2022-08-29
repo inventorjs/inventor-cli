@@ -64,11 +64,11 @@ export default class InitAction extends Action {
     const templateName = 'default'
 
     await this.loadingTask(
-      this.renderTemplate(templateName, packageName, {
+      this.renderTemplate(templateName, packageName, { data: {
         packageName,
         description,
         author,
-      }),
+      }}),
       '初始化目录',
     )
 

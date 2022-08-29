@@ -2,6 +2,8 @@
  * Plugin 抽象类
  * @author: sunkeysun
  */
+import type { RenderOptions } from './modules/fs.js'
+
 import path from 'node:path'
 import inquirer from 'inquirer'
 import { oraPromise } from 'ora'
@@ -56,32 +58,64 @@ export abstract class Plugin {
     return pm.removeDevDependencies(...args)
   }
 
+  async confirmOverwrites(paths: string[]) {
+    const anwsers = await this.prompt([
+      {
+        type: 'confirm',
+        name: 'isConfirm',
+        message: () => `以下文件已经存在:\n${paths.join('\n')}\n是否进行覆盖`,
+        default: true,
+      },
+    ])
+    const { isConfirm } = anwsers
+
+    return isConfirm
+  }
+
   async renderTemplate(
     templateName: string,
     destinationName: string,
-    templateData: Record<string, unknown>,
+    options: RenderOptions & { overwrites?: boolean } = {},
   ) {
+    const { overwrites = false, ...fsOptions } = options
     const templateDir = path.resolve(this.#templatePath, templateName)
     const destinationDir = path.resolve(this.pwd, destinationName)
-    return fs.renderTemplate(templateDir, destinationDir, templateData)
+    if (!overwrites) {
+      const existsPath = await fs.getExistsTemplatePaths(
+        templateDir,
+        destinationDir,
+      )
+      if (existsPath.length > 0) {
+        const isOverwrites = await this.confirmOverwrites(existsPath)
+        if (!isOverwrites) {
+          return false
+        }
+      }
+    }
+    fs.renderTemplate(templateDir, destinationDir, fsOptions)
   }
   async renderTemplateFile(
     templateName: string,
     templateFile: string,
     destinationFile: string,
-    templateData: Record<string, unknown>,
+    options: RenderOptions & { overwrites?: boolean } = {},
   ) {
+    const { overwrites = false, ...fsOptions } = options
     const templateFilePath = path.resolve(
       this.#templatePath,
       templateName,
       templateFile,
     )
     const destinationFilePath = path.resolve(env.cwd, destinationFile)
-    return fs.renderTemplateFile(
-      templateFilePath,
-      destinationFilePath,
-      templateData,
-    )
+    if (!overwrites) {
+      if (await fs.exists(destinationFile)) {
+        const isOverwrites = await this.confirmOverwrites([destinationFile])
+        if (!isOverwrites) {
+          return false
+        }
+      }
+    }
+    fs.renderTemplateFile(templateFilePath, destinationFilePath, fsOptions)
   }
 
   async runTask(task: () => Promise<unknown>, cwd?: string) {

@@ -1,1 +1,4 @@
-console.log('样板 action')
+/**
+ * action 入口
+ * @author: <%- author %>
+ */
