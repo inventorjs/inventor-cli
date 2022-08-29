@@ -35,7 +35,7 @@ export abstract class Plugin {
   }
 
   async prompt(...args: Parameters<typeof inquirer.prompt>) {
-    return inquirer.prompt(args[0])
+    return inquirer.prompt(...args)
   }
 
   async install(...args: Parameters<typeof pm.install>) {
