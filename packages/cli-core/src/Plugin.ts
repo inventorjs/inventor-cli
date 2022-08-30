@@ -3,9 +3,9 @@
  * @author: sunkeysun
  */
 import type { RenderOptions } from './modules/fs.js'
+import type { Options } from './modules/cmd.js'
 import path from 'node:path'
 import inquirer from 'inquirer'
-import { execa } from 'execa'
 import { oraPromise } from 'ora'
 import * as fs from './modules/fs.js'
 import * as env from './modules/env.js'
@@ -13,7 +13,6 @@ import * as log from './modules/log.js'
 import * as git from './modules/git.js'
 import * as pm from './modules/pm.js'
 import * as cmd from './modules/cmd.js'
-import * as husky from './modules/husky.js'
 
 export abstract class Plugin {
   abstract description: string
@@ -93,6 +92,7 @@ export abstract class Plugin {
     }
     fs.renderTemplate(templateDir, destinationDir, fsOptions)
   }
+
   async renderTemplateFile(
     templateName: string,
     templateFile: string,
@@ -124,9 +124,11 @@ export abstract class Plugin {
       throw err
     }
   }
+
   async loadingTask(...args: Parameters<typeof oraPromise>) {
     return oraPromise(...args)
   }
+
   async seriesTask(tasks: Promise<unknown>[]) {
     const results = []
     for (const task of tasks) {
@@ -136,38 +138,64 @@ export abstract class Plugin {
     return results
   }
 
+  async exec(...args: Parameters<typeof cmd.exec>) {
+    return this.cmd.exec(...args)
+  }
+
+  async installHusky() {
+    await this.exec('husky', ['install'])
+  }
+
+  async addCommitLint() {
+    await this.exec('husky', ['add', 'commit-msg', `${this.pm.bin} commitlint --edit $1`])
+  }
+
+  async gitInit() {
+    await this.git.init()
+  }
+
   filename(...args: Parameters<typeof env.filename>) {
     return env.filename(...args)
   }
+
   dirname(...args: Parameters<typeof env.dirname>) {
     return env.dirname(...args)
   }
+
   get color() {
     return this.log.color
   }
+
   get pwd() {
     return env.pwd()
   }
+
   get homedir() {
     return env.homedir()
   }
+
   get username() {
     return env.username()
   }
+
   get log() {
     return log
   }
+
   get git() {
     return git
   }
+
   get pm() {
     return pm
   }
+
   get fs() {
     return fs
   }
-  get husky() {
-    return husky
+
+  get cmd() {
+    return cmd
   }
 }
 
