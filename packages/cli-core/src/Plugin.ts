@@ -90,7 +90,7 @@ export abstract class Plugin {
         }
       }
     }
-    fs.renderTemplate(templateDir, destinationDir, fsOptions)
+    await fs.renderTemplate(templateDir, destinationDir, fsOptions)
   }
 
   async renderTemplateFile(
@@ -110,10 +110,10 @@ export abstract class Plugin {
         }
       }
     }
-    fs.renderTemplateFile(templateFilePath, destinationFilePath, fsOptions)
+    await fs.renderTemplateFile(templateFilePath, destinationFilePath, fsOptions)
   }
 
-  async runTask(task: () => Promise<unknown>, cwd?: string) {
+  async runTask(task: () => Promise<unknown>, { cwd = env.cwd }: { cwd?: string } = {}) {
     const oldCwd = env.cwd
     env.changeCwd(cwd ?? env.cwd)
     try {
@@ -143,11 +143,11 @@ export abstract class Plugin {
   }
 
   async installHusky() {
-    await this.exec('husky', ['install'])
+    await this.exec(this.pm.bin, ['husky', 'install'])
   }
 
   async addCommitLint() {
-    await this.exec('husky', ['add', 'commit-msg', `${this.pm.bin} commitlint --edit $1`])
+    await this.exec(this.pm.bin, ['husky', 'add', 'commit-msg', `${this.pm.bin} commitlint --edit $1`])
   }
 
   async gitInit() {

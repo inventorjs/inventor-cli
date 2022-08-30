@@ -25,8 +25,6 @@ export async function exec(bin: string, args: string[], options: Options = {}) {
     pipe = (buf) => ({ status: 'data', output: buf }),
   } = options
 
-  console.log({ bin, args, cwd, stdio })
-
   const child = execa(bin, args, { cwd, stdio })
   if (stdio !== 'pipe') {
     return child

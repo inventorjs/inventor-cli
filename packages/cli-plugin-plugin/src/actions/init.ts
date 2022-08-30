@@ -75,7 +75,7 @@ export default class InitAction extends Action {
       await this.loadingTask(this.git.init(), '初始化Git')
       await this.loadingTask(this.install(), '安装依赖')
       await this.loadingTask(this.addCommitLint(), '安装 commitlint')
-    }, packagePath)
+    }, { cwd: packagePath })
 
     log.success(
   `${this.color.cyan('Done. Now run:')}
