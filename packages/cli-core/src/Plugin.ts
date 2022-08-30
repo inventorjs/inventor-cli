@@ -3,7 +3,6 @@
  * @author: sunkeysun
  */
 import type { RenderOptions } from './modules/fs.js'
-import type { Options } from './modules/cmd.js'
 import path from 'node:path'
 import inquirer from 'inquirer'
 import { oraPromise } from 'ora'
@@ -126,6 +125,10 @@ export abstract class Plugin {
   }
 
   async loadingTask(...args: Parameters<typeof oraPromise>) {
+    const message = args[1]
+    if (typeof message === 'string' && !message.includes('...')) {
+      args.splice(1, 1, `${message}...`)
+    }
     return oraPromise(...args)
   }
 

@@ -43,8 +43,6 @@ export async function exec(bin: string, args: string[], options: Options = {}) {
       }
     })
     child[stdout]?.on('end', () => resolve(null))
-    child.on('error', (err) => {
-      reject(err)
-    })
+    child.catch((err) => reject(err))
   })
 }
