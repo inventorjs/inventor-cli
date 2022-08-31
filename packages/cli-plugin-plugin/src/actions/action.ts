@@ -2,32 +2,51 @@
  * 添加 action
  * @author: sunkeysun
  */
+import path from 'node:path'
 import { Action } from '@inventorjs/cli-core'
 
 export default class ActionAction extends Action {
   description = '初始化创建一个插件 action，可快速开发插件 action'
   options = []
   async action() {
+    const nameRegex = /^[a-z-]{1,10}$/
+    const descRegex = /^[a-z-]{5,20}$/
+    const authorRegex = /^\w{1,}$/
     const anwsers = await this.prompt([
       {
-        name: 'actionName',
+        name: 'name',
         type: 'text',
         message: '请输入 action 名称，将作为 action 的调用指令',
-        validate: (actionName) =>
-          !/^[a-z-]{1,10}$/.test(actionName)
-            ? 'action 只能是 1-10 个字符[小写字母和-]'
-            : true,
+        validate: (value) => !nameRegex.test(value) ? `请输入合法的 action 名称(${nameRegex})` : true
+      },
+      {
+        name: 'description',
+        type: 'text',
+        message: '请输入 action 描述',
+        validate: (value) => !descRegex.test(value) ? `请输入合法的 action 描述(${descRegex})` : true
+      },
+      {
+        name: 'author',
+        type: 'text',
+        message: '请输入 action 的作者',
+        default: this.username,
+        validate: (value) => !authorRegex.test(value) ? `请输入合法的作者名称(${authorRegex})` : true
       },
     ])
-    const { actionName } = anwsers
+    const { name } = anwsers
+    const actionPath = `src/actions/${name}.ts`
 
-    await this.runTask(async () => {
-      await this.renderTemplateFile(
-        'default',
-        'src/actions/init.ts',
-        `src/actions/${actionName}.ts`,
-        {},
-      )
-    })
+    await this.loadingTask(this.renderTemplateFile(
+      'files',
+      'action.ts',
+      actionPath,
+      {
+        data: {
+          ...anwsers,
+          capitalName: name.replace(/^\S/, (s: string) => s.toUpperCase())
+        },
+      },
+    ), '生成 action 文件')
+    this.log.success(`action 路径：${path.resolve(this.pwd, actionPath)}`)
   }
 }

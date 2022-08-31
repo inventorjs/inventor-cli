@@ -4,22 +4,23 @@
  */
 import { Action } from '@inventorjs/cli-core'
 
-export default class extends Action {
+export default class InitAction extends Action {
   description = '<%- description %>'
   options = []
   async action() {
+    const nameRegex = /\w{3}/
     const anwsers = await this.prompt([
       {
         name: 'name',
         type: 'text',
         message: '请输入你的名字',
-        validate: (name) => (!name ? '你的名字不能为空' : true),
+        validate: (name) => ( !nameRegex.test(name) ? `请输入合法的名字(${nameRegex.toString()})` : true),
       },
       {
         name: 'age',
         type: 'number',
         message: '请输入你的年龄',
-        validate: (age) => (age > 100 || age < 0 ? '你的年龄不太正常喔' : true),
+        validate: (age) => (age > 100 || age < 0 ? '你的年龄不太正常喔([0, 100])' : true),
       },
     ])
 

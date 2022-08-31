@@ -53,8 +53,8 @@ async function execBin(args: string[], options: Options = {}) {
       if (/ERR_PNPM/.test(str)) {
         return { status: 'error', output: str }
       }
-      if (/(Progress: resolved|\+{3,}|Virtual store is at)/.test(str)) {
-        return { status: 'skip' }
+      if (/(Progress: resolved|\+{3,}|Virtual store is at|Update available)/.test(str)) {
+        return {}
       }
       return { status: 'data', output: buf }
     },

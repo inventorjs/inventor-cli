@@ -2,39 +2,41 @@
  * 命令执行模块
  * @author: sunkeysun
  */
-import { execa } from 'execa'
+import { type Options as ExecaOptions, execa } from 'execa'
 import { cwd as envCwd } from './env.js'
 
 export interface Output {
-  status: 'data' | 'error' | 'skip'
+  status?: 'data' | 'error'
   output?: Buffer | string
 }
 
-export interface Options {
-  cwd?: string
-  stdio?: 'pipe' | 'ignore' | 'inherit'
-  stdout?: 'stdout' | 'stderr'
-  pipe?: (buf: Buffer) => Output
+type SupportedExecaOptions = 'cwd' | 'timeout' | 'env' | 'stdio'
+
+export interface Options extends Pick<ExecaOptions, SupportedExecaOptions> {
+  pipeline?: 'stdout' | 'stderr'
+  pipe?: (buf: Buffer) => Output 
 }
 
 export async function exec(bin: string, args: string[], options: Options = {}) {
   const {
     cwd = envCwd,
     stdio = 'pipe',
-    stdout = 'stdout',
+    timeout,
+    env,
+    pipeline = 'stdout',
     pipe = (buf) => ({ status: 'data', output: buf }),
   } = options
 
-  const child = execa(bin, args, { cwd, stdio })
+  const child = execa(bin, args, { cwd, stdio, timeout, env })
   if (stdio !== 'pipe') {
     return child
   }
   return new Promise((resolve, reject) => {
-    child[stdout]?.on('data', (buf) => {
+    child[pipeline]?.on('data', (buf) => {
       const { status, output = '' } = pipe(buf)
       switch (status) {
         case 'data':
-          process[stdout].write(output)
+          process[pipeline].write(output)
           break
         case 'error':
           child.kill()
@@ -42,7 +44,7 @@ export async function exec(bin: string, args: string[], options: Options = {}) {
           break
       }
     })
-    child[stdout]?.on('end', () => resolve(null))
+    child[pipeline]?.on('end', () => resolve(null))
     child.catch((err) => reject(err))
   })
 }

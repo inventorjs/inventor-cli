@@ -14,44 +14,37 @@ export default class InitAction extends Action {
   }
 
   async action() {
+    const nameRegex = /^[a-z0-9-]{3,}$/
+    const descRegex = /^[a-z0-9-]{5,}$/
     const answers = await this.prompt([
       {
         type: 'text',
         name: 'name',
         message:
           '请输入插件名称，项目目录将自动初始化为"inventor-plugin-[name]"',
-        validate: (name) => {
-          const regex = /^[a-z0-9-]{3,}$/
-          if (!regex.test(name)) {
-            return `请输入合法的插件名称(正则：${regex.toString()})`
-          }
-          return true
-        },
+        validate: (value) =>
+          !nameRegex.test(value)
+            ? `请输入合法的插件名称(${nameRegex})`
+            : true,
       },
       {
         type: 'text',
         name: 'description',
         message: '请输入插件描述，用于说明插件功能',
-        validate: (description) => {
-          const regex = /^[a-z0-9-]{5,}$/
-          if (!regex.test(description)) {
-            return `请输入合法的插件描述(正则：${regex.toString()})`
-          }
-          return true
-        },
+        validate: (value) =>
+          !descRegex.test(value)
+            ? `请输入合法的插件描述(${descRegex})`
+            : true,
       },
       {
         type: 'text',
         name: 'author',
         message: '请输入插件作者名称',
         default: this.username,
-        validate: (author) => {
-          const regex = /^[a-z0-9-]{3,}/
-          if (!regex.test(author)) {
-            return `请输入合法的插件作者名称(正则：${regex.toString()})`
-          }
-          return true
-        },
+        validate: (value) =>
+          !nameRegex.test(value)
+            ? `请输入合法的插件作者名称(${nameRegex})`
+            : true,
       },
       {
         type: 'confirm',
@@ -75,14 +68,17 @@ export default class InitAction extends Action {
       },
     })
 
-    await this.runTask(async () => {
+    await this.runTask(
+      async () => {
         await this.loadingTask(this.git.init(), '初始化 git')
         await this.loadingTask(this.install(), '安装依赖')
         await this.loadingTask(this.addCommitLint(), '安装 commitlint')
-    }, { cwd: packagePath })
+      },
+      { cwd: packagePath },
+    )
 
     log.success(
-  `${this.color.cyan('Done. Now run:')}
+      `${this.color.cyan('Done. Now run:')}
 
     cd ${packageName}
     ${this.pm.bin} dev
