@@ -14,8 +14,9 @@ export default class InitAction extends Action {
   }
 
   async action() {
-    const nameRegex = /^[a-z0-9-]{3,}$/
-    const descRegex = /^[a-z0-9-]{5,}$/
+    const nameRegex = /^[a-z-]{1,10}$/
+    const descRegex = /^[a-z-\u4e00-\u9fa5]{5,20}$/
+    const authorRegex = /^[\w-\u4e00-\u9fa5]{1,}$/
     const answers = await this.prompt([
       {
         type: 'text',
@@ -42,9 +43,27 @@ export default class InitAction extends Action {
         message: '请输入插件作者名称',
         default: this.username,
         validate: (value) =>
-          !nameRegex.test(value)
-            ? `请输入合法的插件作者名称(${nameRegex})`
+          !authorRegex.test(value)
+            ? `请输入合法的插件作者名称(${authorRegex})`
             : true,
+      },
+      {
+        type: 'confirm',
+        name: 'isConfirmGit',
+        message: '是否需要初始化 Git',
+        default: true,
+      },
+      {
+        type: 'confirm',
+        name: 'isConfirmHusky',
+        message: '是否需要安装 Husky',
+        default: true,
+      },
+      {
+        type: 'confirm',
+        name: 'isConfirmCommitlint',
+        message: '是否需要安装 commitlint',
+        default: true,
       },
       {
         type: 'confirm',
@@ -55,8 +74,8 @@ export default class InitAction extends Action {
       },
     ])
 
-    const { name, description, author } = answers
-    const packageName = this.#getPackageName(name as string)
+    const { name, description, author, isConfirmGit, isConfirmHusky, isConfirmCommitlint } = answers
+    const packageName = this.#getPackageName(name)
     const packagePath = path.resolve(this.pwd, packageName)
     const templateName = 'default'
 
@@ -70,9 +89,10 @@ export default class InitAction extends Action {
 
     await this.runTask(
       async () => {
-        await this.loadingTask(this.git.init(), '初始化 git')
+        isConfirmGit && await this.loadingTask(this.git.init(), '初始化 git')
         await this.loadingTask(this.install(), '安装依赖')
-        await this.loadingTask(this.addCommitLint(), '安装 commitlint')
+        isConfirmHusky && await this.loadingTask(this.installHusky(), '安装 husky')
+        isConfirmCommitlint && await this.loadingTask(this.addCommitLint(), '添加 commitlint')
       },
       { cwd: packagePath },
     )

@@ -21,7 +21,8 @@
   },
   "dependencies": {
     "@inventorjs/cli-core": "workspace:*",
-    "@inventorjs/cli-plugin-plugin": "workspace:*",
+    "@inventorjs/inventor-plugin-plugin": "workspace:*",
+    "@inventorjs/inventor-plugin-app": "workspace:*",
     "commander": "^9.4.0"
   },
   "devDependencies": {

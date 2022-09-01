@@ -146,10 +146,12 @@ export abstract class Plugin {
   }
 
   async installHusky() {
+    await this.addDevDependencies(['husky'])
     await this.exec(this.pm.bin, ['husky', 'install'])
   }
 
   async addCommitLint() {
+    await this.addDevDependencies(['@commitlint/cli', '@commitlint/config-conventional'])
     await this.exec(this.pm.bin, ['husky', 'add', 'commit-msg', `${this.pm.bin} commitlint --edit $1`])
   }
 

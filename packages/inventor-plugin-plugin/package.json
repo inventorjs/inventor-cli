@@ -1,5 +1,5 @@
 {
-  "name": "@inventorjs/cli-plugin-plugin",
+  "name": "@inventorjs/inventor-plugin-plugin",
   "version": "1.0.14",
   "description": "inventor-cli plugin manager",
   "main": "lib/index.js",
@@ -16,8 +16,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@inventorjs/cli-core": "workspace:*",
-    "chalk": "^5.0.1"
+    "@inventorjs/cli-core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^4.7.4"

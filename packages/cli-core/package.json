@@ -14,9 +14,9 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@iarna/toml": "^2.2.5",
     "chalk": "^5.0.1",
     "commander": "^9.4.0",
+    "cosmiconfig": "7.0.1",
     "ejs": "^3.1.8",
     "execa": "^6.1.0",
     "figlet": "^1.5.2",

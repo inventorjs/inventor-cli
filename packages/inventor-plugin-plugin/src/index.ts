@@ -5,5 +5,5 @@
 import { Plugin } from '@inventorjs/cli-core'
 
 export default class PluginPlugin extends Plugin {
-  description = '用于实现 inventor 插件相关功能'
+  description = '初始化创建 inventor 插件'
 }

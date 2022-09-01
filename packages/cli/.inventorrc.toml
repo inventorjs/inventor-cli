@@ -1,6 +1,0 @@
-[[plugins]]
-pluginName = "app"
-packageName = "/inventor-cli/packages/cli/src/plugins/app/index.ts"
-
-  [plugins.options]
-  type = "web-ts"

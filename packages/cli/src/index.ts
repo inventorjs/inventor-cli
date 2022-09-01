@@ -7,7 +7,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { readdir } from 'node:fs/promises'
 import { Command } from 'commander'
-import { Plugin, Action, log, type ActionOption } from '@inventorjs/cli-core'
+import { Plugin, Action, log, type ActionOption, rc } from '@inventorjs/cli-core'
 
 const BIN = 'inventor'
 const DEFAULT_ACTION = 'index'
@@ -15,7 +15,8 @@ const DEFAULT_ACTION = 'index'
 const require = createRequire(import.meta.url)
 
 const corePlugins = [
-  { pluginName: 'plugin', packageName: '@inventorjs/cli-plugin-plugin' },
+  { pluginName: 'plugin', packageName: '@inventorjs/inventor-plugin-plugin' },
+  { pluginName: 'app', packageName: '@inventorjs/inventor-plugin-app' },
 ]
 
 async function loadActions(plugin: Plugin) {

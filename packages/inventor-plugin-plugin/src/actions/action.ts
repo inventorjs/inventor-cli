@@ -10,8 +10,8 @@ export default class ActionAction extends Action {
   options = []
   async action() {
     const nameRegex = /^[a-z-]{1,10}$/
-    const descRegex = /^[a-z-]{5,20}$/
-    const authorRegex = /^\w{1,}$/
+    const descRegex = /^[a-z-\u4e00-\u9fa5]{5,20}$/
+    const authorRegex = /^[\w-\u4e00-\u9fa5]{1,}$/
     const anwsers = await this.prompt([
       {
         name: 'name',
