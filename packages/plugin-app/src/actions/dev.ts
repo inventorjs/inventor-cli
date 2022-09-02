@@ -2,7 +2,7 @@
  * action 入口
  * @author: sunkeysun
  */
-import { Action } from '@inventorjs/cli-core'
+import { Action } from '@inventorjs/core'
 
 export default class InitAction extends Action {
   description = '启动开发服务器'

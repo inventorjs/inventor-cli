@@ -7,7 +7,8 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { readdir } from 'node:fs/promises'
 import { Command } from 'commander'
-import { Plugin, Action, log, type ActionOption, rc } from '@inventorjs/cli-core'
+import figlet from 'figlet'
+import { Plugin, Action, log, type ActionOption } from '@inventorjs/core'
 
 const BIN = 'inventor'
 const DEFAULT_ACTION = 'index'
@@ -15,8 +16,8 @@ const DEFAULT_ACTION = 'index'
 const require = createRequire(import.meta.url)
 
 const corePlugins = [
-  { pluginName: 'plugin', packageName: '@inventorjs/inventor-plugin-plugin' },
-  { pluginName: 'app', packageName: '@inventorjs/inventor-plugin-app' },
+  { pluginName: 'plugin', packageName: '@inventorjs/plugin-plugin' },
+  { pluginName: 'app', packageName: '@inventorjs/plugin-app' },
 ]
 
 async function loadActions(plugin: Plugin) {
@@ -82,11 +83,15 @@ async function registerPlugin(
   }
 }
 
+function welcome({ cliName }: Record<string, string>) {
+  log.raw(log.color.cyan(figlet.textSync(cliName, { font: 'Speed' })))
+}
+
 async function run() {
   const packageJson = require('../package.json')
   const cli = new Command(BIN).version(packageJson.version)
 
-  log.welcome({ cliName: BIN, version: packageJson.version })
+  welcome({ cliName: BIN, version: packageJson.version })
 
   for (const { pluginName, packageName } of corePlugins) {
     await registerPlugin(cli, pluginName, packageName)
@@ -95,8 +100,8 @@ async function run() {
   cli.parse(process.argv)
 }
 
-process.on('uncaughtException', () => {
-  log.error('uncaughtException')
+process.on('uncaughtException', (err) => {
+  log.error(`uncaughtException: ${err}`)
 })
 
 process.on('unhandledRejection', (reason) => {

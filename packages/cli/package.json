@@ -20,12 +20,14 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@inventorjs/cli-core": "workspace:*",
-    "@inventorjs/inventor-plugin-plugin": "workspace:*",
-    "@inventorjs/inventor-plugin-app": "workspace:*",
-    "commander": "^9.4.0"
+    "@inventorjs/core": "workspace:*",
+    "@inventorjs/plugin-app": "workspace:*",
+    "@inventorjs/plugin-plugin": "workspace:*",
+    "commander": "^9.4.0",
+    "figlet": "^1.5.2"
   },
   "devDependencies": {
+    "@types/figlet": "^1.5.4",
     "typescript": "^4.7.4"
   }
 }

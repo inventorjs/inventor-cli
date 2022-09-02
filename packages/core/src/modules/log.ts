@@ -2,7 +2,6 @@
  * 日志打印模块
  * @author: sunkeysun
  */
-import figlet from 'figlet'
 import chalk from 'chalk'
 
 function log(msg: string) {
@@ -10,11 +9,6 @@ function log(msg: string) {
 }
 
 export const color = chalk
-
-export function welcome({ cliName, version }: Record<string, string>) {
-  log(color.green(figlet.textSync(cliName, { font: 'Kban' })))
-  log(color.yellow(`welecome ${cliName} v${version} !`))
-}
 
 export function bye(msg: string) {
   log(`👋 ${color.green(msg)}`)

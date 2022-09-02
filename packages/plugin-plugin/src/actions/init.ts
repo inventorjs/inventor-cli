@@ -3,7 +3,7 @@
  * @author: sunkeysun
  */
 import path from 'node:path'
-import { Action, log } from '@inventorjs/cli-core'
+import { Action, log } from '@inventorjs/core'
 
 export default class InitAction extends Action {
   description = '初始化创建一个插件项目，可快速开发插件'
