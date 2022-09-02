@@ -3,34 +3,52 @@
  * @author: sunkeysun
  */
 import { Action } from '@inventorjs/core'
+import path from 'node:path'
+import { mergeWithCustomize, customizeObject, unique } from 'webpack-merge'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
+import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import webpackConfig from '../config/webpack.config.js'
 
 export default class InitAction extends Action {
   description = '启动开发服务器'
   options = []
   async action() {
-    const nameRegex = /\w{3}/
-    const anwsers = await this.prompt([
-      {
-        name: 'name',
-        type: 'text',
-        message: '请输入你的名字',
-        validate: (name) =>
-          !nameRegex.test(name)
-            ? `请输入合法的名字(${nameRegex.toString()})`
-            : true,
-      },
-      {
-        name: 'age',
-        type: 'number',
-        message: '请输入你的年龄',
-        validate: (age) =>
-          age > 100 || age < 0 ? '你的年龄不太正常喔([0, 100])' : true,
-      },
-    ])
+    const pluginConfig = await this.getPluginConfig('app', 'local')
+    const { type } = pluginConfig
 
-    this.log.info('下面为你创建一个欢迎模版')
-    await this.renderTemplate('default', 'welecome', {
-      data: anwsers,
-    })
+    if (type === 'react-webpack') {
+      const baseConfig = webpackConfig({ root: this.pwd })
+      const extConfig = {
+        entry: {
+          index: path.resolve(this.pwd, 'index.jsx'),
+        },
+        plugins: [
+          new HtmlWebpackPlugin({
+            filename: 'index.html',
+            template: path.resolve(this.pwd, 'public/index.html'),
+            inject: false,
+          }),
+        ],
+      }
+      console.log(
+        mergeWithCustomize({
+          customizeObject: customizeObject({
+            entry: 'replace',
+            output: 'merge',
+          }),
+          customizeArray: unique(
+            'plugins',
+            [
+              'HtmlWebpackPlugin',
+              'ProgressPlugin',
+              'MiniCssExtractPlugin',
+              'ReactRefreshWebpackPlugin',
+              'BundleAnalyzerPlugin',
+            ],
+            (plugin) => plugin.constructor.name,
+          ),
+        })(baseConfig, extConfig),
+      )
+    }
   }
 }

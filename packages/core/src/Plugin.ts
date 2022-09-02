@@ -3,6 +3,7 @@
  * @author: sunkeysun
  */
 import type { RenderOptions } from './modules/fs.js'
+import type { LoadFrom } from './modules/rc.js'
 import path from 'node:path'
 import inquirer from 'inquirer'
 import { oraPromise } from 'ora'
@@ -12,6 +13,7 @@ import * as log from './modules/log.js'
 import * as git from './modules/git.js'
 import * as pm from './modules/pm.js'
 import * as cmd from './modules/cmd.js'
+import * as rc from './modules/rc.js'
 
 export abstract class Plugin {
   abstract description: string
@@ -51,7 +53,9 @@ export abstract class Plugin {
   async removeDependencies(...args: Parameters<typeof pm.removeDependencies>) {
     return pm.removeDependencies(...args)
   }
-  async removeDevDependencies(...args: Parameters<typeof pm.removeDevDependencies>) {
+  async removeDevDependencies(
+    ...args: Parameters<typeof pm.removeDevDependencies>
+  ) {
     return pm.removeDevDependencies(...args)
   }
 
@@ -81,7 +85,10 @@ export abstract class Plugin {
     const templateDir = path.resolve(this.#templatePath, templateName)
     const destinationDir = path.resolve(this.pwd, destinationName)
     if (!overwrites) {
-      const existsFiles = await fs.getExistsTemplateFiles(templateDir, destinationDir)
+      const existsFiles = await fs.getExistsTemplateFiles(
+        templateDir,
+        destinationDir,
+      )
       if (existsFiles.length > 0) {
         const isOverwrites = await this.confirmOverwrites(existsFiles)
         if (!isOverwrites) {
@@ -99,7 +106,11 @@ export abstract class Plugin {
     options: RenderOptions & { overwrites?: boolean } = {},
   ) {
     const { overwrites = false, ...fsOptions } = options
-    const templateFilePath = path.resolve(this.#templatePath, templateName, templateFile)
+    const templateFilePath = path.resolve(
+      this.#templatePath,
+      templateName,
+      templateFile,
+    )
     const destinationFilePath = path.resolve(this.pwd, destinationFile)
     if (!overwrites) {
       if (await fs.exists(destinationFile)) {
@@ -109,10 +120,17 @@ export abstract class Plugin {
         }
       }
     }
-    await fs.renderTemplateFile(templateFilePath, destinationFilePath, fsOptions)
+    await fs.renderTemplateFile(
+      templateFilePath,
+      destinationFilePath,
+      fsOptions,
+    )
   }
 
-  async runTask(task: () => Promise<unknown>, { cwd = env.cwd }: { cwd?: string } = {}) {
+  async runTask(
+    task: () => Promise<unknown>,
+    { cwd = env.cwd }: { cwd?: string } = {},
+  ) {
     const oldCwd = env.cwd
     env.changeCwd(cwd ?? env.cwd)
     try {
@@ -151,12 +169,35 @@ export abstract class Plugin {
   }
 
   async addCommitLint() {
-    await this.addDevDependencies(['@commitlint/cli', '@commitlint/config-conventional'])
-    await this.exec(this.pm.bin, ['husky', 'add', 'commit-msg', `${this.pm.bin} commitlint --edit $1`])
+    await this.addDevDependencies([
+      '@commitlint/cli',
+      '@commitlint/config-conventional',
+    ])
+    await this.exec(this.pm.bin, [
+      'husky',
+      'add',
+      'commit-msg',
+      `${this.pm.bin} commitlint --edit $1`,
+    ])
   }
 
-  async gitInit() {
-    await this.git.init()
+  async getPluginConfig(pluginName: string, from: LoadFrom) {
+    const rcConfig = await rc.load(from)
+    const plugins = (rcConfig?.plugins as unknown[]) ?? []
+    const pluginItem = plugins.find((plugin) => {
+      if (
+        (Array.isArray(plugin) && plugin[0] === pluginName) ||
+        (typeof plugin === 'string' && plugin === pluginName)
+      ) {
+        return true
+      }
+      return false
+    })
+
+    if (pluginItem && Array.isArray(pluginItem)) {
+      return pluginItem[1] ?? {}
+    }
+    return {}
   }
 
   filename(...args: Parameters<typeof env.filename>) {
@@ -201,6 +242,10 @@ export abstract class Plugin {
 
   get cmd() {
     return cmd
+  }
+
+  get rc() {
+    return rc
   }
 }
 

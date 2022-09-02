@@ -14,5 +14,5 @@
     "resolveJsonModule": true,
     "moduleResolution": "nodenext"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "global.d.ts"]
 }

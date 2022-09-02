@@ -1,0 +1,10 @@
+{
+  "plugins": [
+    [
+      "app",
+      {
+        "type": "react-webapck"
+      }
+    ]
+  ]
+}
