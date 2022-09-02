@@ -6,7 +6,6 @@ import { Action } from '@inventorjs/core'
 import path from 'node:path'
 import { mergeWithCustomize, customizeObject, unique } from 'webpack-merge'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import webpackConfig from '../config/webpack.config.js'
 
 export default class InitAction extends Action {
