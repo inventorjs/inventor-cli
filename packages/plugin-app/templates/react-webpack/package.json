@@ -8,5 +8,17 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "0.5.7",
+    "gauge": "4.0.4",
+    "html-webpack-plugin": "5.5.0",
+    "mini-css-extract-plugin": "2.6.1",
+    "react-refresh": "0.14.0",
+    "terser-webpack-plugin": "5.3.6",
+    "webpack": "5.74.0",
+    "webpack-bundle-analyzer": "4.6.1"
+  }
 }

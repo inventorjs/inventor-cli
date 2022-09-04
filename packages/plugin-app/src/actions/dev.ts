@@ -3,11 +3,9 @@
  * @author: sunkeysun
  */
 import { Action } from '@inventorjs/core'
-import path from 'node:path'
+import webpack from 'webpack'
 import { mergeWithCustomize, customizeObject, unique } from 'webpack-merge'
-import HtmlWebpackPlugin from 'html-webpack-plugin'
-import webpackConfig from '../config/webpack.config.js'
-
+import baseWebpackConfig from '../config/webpack.config.js'
 export default class InitAction extends Action {
   description = '启动开发服务器'
   options = []
@@ -16,38 +14,41 @@ export default class InitAction extends Action {
     const { type } = pluginConfig
 
     if (type === 'react-webpack') {
-      const baseConfig = webpackConfig({ root: this.pwd })
-      const extConfig = {
-        entry: {
-          index: path.resolve(this.pwd, 'index.jsx'),
-        },
-        plugins: [
-          new HtmlWebpackPlugin({
-            filename: 'index.html',
-            template: path.resolve(this.pwd, 'public/index.html'),
-            inject: false,
-          }),
-        ],
-      }
-      console.log(
-        mergeWithCustomize({
-          customizeObject: customizeObject({
-            entry: 'replace',
-            output: 'merge',
-          }),
-          customizeArray: unique(
-            'plugins',
-            [
-              'HtmlWebpackPlugin',
-              'ProgressPlugin',
-              'MiniCssExtractPlugin',
-              'ReactRefreshWebpackPlugin',
-              'BundleAnalyzerPlugin',
-            ],
-            (plugin) => plugin.constructor.name,
-          ),
-        })(baseConfig, extConfig),
-      )
+      const baseConfig = baseWebpackConfig({ root: this.pwd })
+      const customConfig = pluginConfig?.webpack ?? {}
+      const webpackConfig = mergeWithCustomize({
+        customizeObject: customizeObject({
+          entry: 'replace',
+          output: 'merge',
+        }),
+        customizeArray: unique(
+          'plugins',
+          [
+            'HtmlWebpackPlugin',
+            'ProgressPlugin',
+            'MiniCssExtractPlugin',
+            'ReactRefreshWebpackPlugin',
+            'BundleAnalyzerPlugin',
+          ],
+          (plugin) => plugin.constructor.name,
+        ),
+      })(baseConfig, customConfig)
+
+      webpack(webpackConfig, (err, stats) => {
+        if (err) {
+          this.log.error(err.message)
+        }
+        if (stats?.hasErrors) {
+          this.log.error(
+            stats
+              .toJson()
+              .errors?.map((err) => err.message)
+              .join('\n') as string,
+          )
+          return
+        }
+        this.log.success('building success!')
+      })
     }
   }
 }

@@ -3,6 +3,7 @@
  * @author: sunkeysun
  */
 import { Action } from '@inventorjs/core'
+import path from 'path'
 
 export default class InitAction extends Action {
   description = '初始化前端应用'
@@ -13,7 +14,7 @@ export default class InitAction extends Action {
         name: 'name',
         type: 'text',
         message: '请输入项目名称',
-        default: 'inventor-app-project'
+        default: 'inventor-app-project',
       },
       {
         name: 'type',
@@ -25,6 +26,10 @@ export default class InitAction extends Action {
 
     const { type, name } = anwsers
 
-    this.renderTemplate(type, name)
+    await this.loadingTask(this.renderTemplate(type, name), '生成目录')
+    await this.loadingTask(
+      this.install({ cwd: path.resolve(this.pwd, name) }),
+      '安装依赖',
+    )
   }
 }

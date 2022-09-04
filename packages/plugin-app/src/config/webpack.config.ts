@@ -106,7 +106,7 @@ export default ({ root }: { root: string }) => ({
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: path.resolve(root, 'public/index.html'),
-      inject: false,
+      // inject: false,
     }),
     ifRelease(null, new ReactRefreshWebpackPlugin()),
     ANALYSE && new BundleAnalyzerPlugin(),
