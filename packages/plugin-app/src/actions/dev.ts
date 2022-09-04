@@ -34,20 +34,26 @@ export default class InitAction extends Action {
         ),
       })(baseConfig, customConfig)
 
-      webpack(webpackConfig, (err, stats) => {
+      const compiler = webpack(webpackConfig)
+
+      compiler.run((err, stats) => {
         if (err) {
           this.log.error(err.message)
         }
         if (stats?.hasErrors) {
+          const info = stats.toJson()
           this.log.error(
-            stats
-              .toJson()
-              .errors?.map((err) => err.message)
-              .join('\n') as string,
+            info.errors?.map((err) => err.message).join('\n') as string,
           )
           return
         }
-        this.log.success('building success!')
+        compiler.close((err) => {
+          if (err) {
+            this.log.error(err.message)
+            return 
+          }
+          this.log.success('building success!')
+        })
       })
     }
   }
