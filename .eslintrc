@@ -3,6 +3,7 @@
   "env": {
     "node": true
   },
+  "ignorePatterns": ["**/templates/**/*"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
