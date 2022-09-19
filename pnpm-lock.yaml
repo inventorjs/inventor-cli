@@ -108,6 +108,7 @@ importers:
       css-loader: 6.7.1
       gauge: ^4.0.4
       html-webpack-plugin: ^5.5.0
+      less-loader: 11.0.0
       mini-css-extract-plugin: ^2.6.1
       react-refresh: ^0.14.0
       terser-webpack-plugin: ^5.3.6
@@ -133,6 +134,7 @@ importers:
       css-loader: 6.7.1_webpack@5.74.0
       gauge: 4.0.4
       html-webpack-plugin: 5.5.0_webpack@5.74.0
+      less-loader: 11.0.0_webpack@5.74.0
       mini-css-extract-plugin: 2.6.1_webpack@5.74.0
       react-refresh: 0.14.0
       terser-webpack-plugin: 5.3.6_webpack@5.74.0
@@ -4712,6 +4714,22 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
     dev: true
+
+  /klona/2.0.5:
+    resolution: {integrity: sha512-pJiBpiXMbt7dkzXe8Ghj/u4FfXOOa98fPW+bihOJ4SjnoijweJrNThJfd3ifXpXhREjpoF2mZVH1GfS9LV3kHQ==}
+    engines: {node: '>= 8'}
+    dev: false
+
+  /less-loader/11.0.0_webpack@5.74.0:
+    resolution: {integrity: sha512-9+LOWWjuoectIEx3zrfN83NAGxSUB5pWEabbbidVQVgZhN+wN68pOvuyirVlH1IK4VT1f3TmlyvAnCXh8O5KEw==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      less: ^3.5.0 || ^4.0.0
+      webpack: ^5.0.0
+    dependencies:
+      klona: 2.0.5
+      webpack: 5.74.0
+    dev: false
 
   /levn/0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
