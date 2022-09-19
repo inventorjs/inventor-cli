@@ -17,6 +17,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.19.1",
     "@babel/eslint-parser": "^7.19.1",
     "@inventorjs/cli": "latest",
     "eslint": "^8.23.1",

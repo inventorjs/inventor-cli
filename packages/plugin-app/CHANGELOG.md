@@ -1,5 +1,11 @@
 # @inventorjs/plugin-app
 
+## 1.4.0
+
+### Minor Changes
+
+- 1d48afe: babel-loader
+
 ## 1.3.0
 
 ### Minor Changes
