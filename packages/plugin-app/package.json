@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc"
+    "build": "rm -rf lib && tsc"
   },
   "dependencies": {
     "@babel/core": "^7.19.1",

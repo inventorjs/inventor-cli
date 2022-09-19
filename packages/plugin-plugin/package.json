@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc"
+    "build": "rm -rf && tsc"
   },
   "dependencies": {
     "@inventorjs/core": "workspace:*"
