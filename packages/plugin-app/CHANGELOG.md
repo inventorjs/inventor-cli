@@ -1,5 +1,11 @@
 # @inventorjs/plugin-app
 
+## 1.3.0
+
+### Minor Changes
+
+- 35eba0c: add less
+
 ## 1.2.0
 
 ### Minor Changes

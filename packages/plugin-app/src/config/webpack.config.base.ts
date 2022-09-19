@@ -42,7 +42,7 @@ export default ({ root }: { root: string }) => ({
         test: /\.jsx?$/,
         use: [
           { loader: require.resolve('thread-loader'), options: { workers: os.cpus().length } },
-          'babel-loader',
+          require.resolve('babel-loader'),
         ],
         exclude: /node_modules/,
       },
