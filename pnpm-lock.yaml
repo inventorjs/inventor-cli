@@ -108,6 +108,7 @@ importers:
       eslint: ^8.23.1
       eslint-config-prettier: ^8.5.0
       eslint-plugin-react: ^7.31.8
+      guage: 0.0.0
       html-webpack-plugin: ^5.5.0
       mini-css-extract-plugin: ^2.6.1
       prettier: ^2.7.1
@@ -134,6 +135,7 @@ importers:
       eslint: 8.23.1
       eslint-config-prettier: 8.5.0_eslint@8.23.1
       eslint-plugin-react: 7.31.8_eslint@8.23.1
+      guage: 0.0.0
       html-webpack-plugin: 5.5.0_webpack@5.74.0
       mini-css-extract-plugin: 2.6.1_webpack@5.74.0
       prettier: 2.7.1
@@ -4191,6 +4193,10 @@ packages:
 
   /grapheme-splitter/1.0.4:
     resolution: {integrity: sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==}
+
+  /guage/0.0.0:
+    resolution: {integrity: sha512-bhhRKabm/lO+iGtM1OD/cgUpU0SarcmUVWyv9dN9WUYyVqKldhXcT3XJX92/33oekYXmdOiyPN4E/WM5scr5UQ==}
+    dev: false
 
   /gzip-size/6.0.0:
     resolution: {integrity: sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q==}

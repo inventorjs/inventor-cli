@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/plugin-app",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "前端应用初始化与开发工作流",
   "main": "lib/index.js",
   "author": "sunkeysun",
@@ -30,6 +30,7 @@
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-react": "^7.31.8",
+    "guage": "0.0.0",
     "html-webpack-plugin": "^5.5.0",
     "mini-css-extract-plugin": "^2.6.1",
     "prettier": "^2.7.1",
