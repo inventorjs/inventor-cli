@@ -1,5 +1,16 @@
 # @inventorjs/cli-plugin-plugin
 
+## 1.2.0
+
+### Minor Changes
+
+- e72be51: change build scripts
+
+### Patch Changes
+
+- Updated dependencies [e72be51]
+  - @inventorjs/core@3.7.0
+
 ## 1.1.0
 
 ### Minor Changes
