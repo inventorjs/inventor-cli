@@ -1,0 +1,26 @@
+{
+  "root": true,
+  "parser": "@babel/eslint-parser",
+  "env": {
+    "browser": true
+  },
+  "settings": {
+    "react": {
+      "version": "latest"
+    }
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react/jsx-runtime",
+    "prettier"
+  ],
+  "overrides": [
+    {
+      "files": ["babel.config.js"],
+      "env": {
+        "node": true
+      }
+    }
+  ]
+}

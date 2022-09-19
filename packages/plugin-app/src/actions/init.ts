@@ -20,7 +20,7 @@ export default class InitAction extends Action {
         name: 'type',
         type: 'list',
         message: '请选择应用类型',
-        choices: ['react-webpack'],
+        choices: ['react-webpack-js'],
       },
     ])
 

@@ -3,20 +3,21 @@
  * @author: sunkeysun
  */
 import { Action } from '@inventorjs/core'
-import webpack from 'webpack'
+import webpack, { type Configuration } from 'webpack'
+import webpackDevServer from 'webpack-dev-server'
 import { mergeWithCustomize, customizeObject, unique } from 'webpack-merge'
-import baseWebpackConfig from '../config/webpack.config.js'
-export default class InitAction extends Action {
+import baseWebpackConfig from '../config/webpack.config.base.js'
+export default class DevAction extends Action {
   description = '启动开发服务器'
   options = []
   async action() {
     const pluginConfig = await this.getPluginConfig('app', 'local')
     const { type } = pluginConfig
 
-    if (type === 'react-webpack') {
+    if (type === 'react-webpack-js') {
       const baseConfig = baseWebpackConfig({ root: this.pwd })
       const customConfig = pluginConfig?.webpack ?? {}
-      const webpackConfig = mergeWithCustomize({
+      const webpackConfig: Configuration = mergeWithCustomize({
         customizeObject: customizeObject({
           entry: 'replace',
           output: 'merge',
@@ -35,26 +36,8 @@ export default class InitAction extends Action {
       })(baseConfig, customConfig)
 
       const compiler = webpack(webpackConfig)
-
-      compiler.run((err, stats) => {
-        if (err) {
-          this.log.error(err.message)
-        }
-        if (stats?.hasErrors) {
-          const info = stats.toJson()
-          this.log.error(
-            info.errors?.map((err) => err.message).join('\n') as string,
-          )
-          return
-        }
-        compiler.close((err) => {
-          if (err) {
-            this.log.error(err.message)
-            return 
-          }
-          this.log.success('building success!')
-        })
-      })
+      const devServer = new webpackDevServer(webpackConfig.devServer, compiler)
+      await devServer.start()
     }
   }
 }

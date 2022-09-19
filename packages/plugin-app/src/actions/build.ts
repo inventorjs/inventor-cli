@@ -2,35 +2,59 @@
  * action 入口
  * @author: sunkeysun
  */
-import { Action } from '@inventorjs/core'
-
-export default class InitAction extends Action {
-  description = '构建前端应用'
-  options = []
-  async action() {
-    const nameRegex = /\w{3}/
-    const anwsers = await this.prompt([
-      {
-        name: 'name',
-        type: 'text',
-        message: '请输入你的名字',
-        validate: (name) =>
-          !nameRegex.test(name)
-            ? `请输入合法的名字(${nameRegex.toString()})`
-            : true,
-      },
-      {
-        name: 'age',
-        type: 'number',
-        message: '请输入你的年龄',
-        validate: (age) =>
-          age > 100 || age < 0 ? '你的年龄不太正常喔([0, 100])' : true,
-      },
-    ])
-
-    this.log.info('下面为你创建一个欢迎模版')
-    await this.renderTemplate('default', 'welecome', {
-      data: anwsers,
-    })
-  }
-}
+ import { Action } from '@inventorjs/core'
+ import webpack, { type Configuration } from 'webpack'
+ import { mergeWithCustomize, customizeObject, unique } from 'webpack-merge'
+ import baseWebpackConfig from '../config/webpack.config.base.js'
+ export default class BuildAction extends Action {
+   description = '启动开发服务器'
+   options = []
+   async action() {
+     const pluginConfig = await this.getPluginConfig('app', 'local')
+     const { type } = pluginConfig
+ 
+     if (type === 'react-webpack-js') {
+       const baseConfig = baseWebpackConfig({ root: this.pwd })
+       const customConfig = pluginConfig?.webpack ?? {}
+       const webpackConfig: Configuration = mergeWithCustomize({
+         customizeObject: customizeObject({
+           entry: 'replace',
+           output: 'merge',
+         }),
+         customizeArray: unique(
+           'plugins',
+           [
+             'HtmlWebpackPlugin',
+             'ProgressPlugin',
+             'MiniCssExtractPlugin',
+             'ReactRefreshWebpackPlugin',
+             'BundleAnalyzerPlugin',
+           ],
+           (plugin) => plugin.constructor.name,
+         ),
+       })(baseConfig, customConfig)
+ 
+       const compiler = webpack(webpackConfig)
+ 
+       compiler.run((err, stats) => {
+         if (err) {
+           this.log.error(err.message)
+         }
+         if (stats?.hasErrors) {
+           const info = stats.toJson()
+           this.log.error(
+             info.errors?.map((err) => err.message).join('\n') ?? '',
+           )
+           return
+         }
+         compiler.close((err) => {
+           if (err) {
+             this.log.error(err.message)
+             return 
+           }
+           this.log.success('building success!')
+         })
+       })
+     }
+   }
+ }
