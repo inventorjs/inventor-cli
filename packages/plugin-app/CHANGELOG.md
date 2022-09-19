@@ -1,5 +1,11 @@
 # @inventorjs/plugin-app
 
+## 1.2.0
+
+### Minor Changes
+
+- 8afb6d4: add css-loader
+
 ## 1.1.0
 
 ### Minor Changes
