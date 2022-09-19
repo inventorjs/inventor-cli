@@ -1,5 +1,11 @@
 # @inventorjs/plugin-app
 
+## 1.0.0
+
+### Major Changes
+
+- 7fa4cb7: change webpack loader to require.resolve
+
 ## 0.2.0
 
 ### Minor Changes
