@@ -1,5 +1,11 @@
 # @inventorjs/plugin-app
 
+## 1.5.0
+
+### Minor Changes
+
+- 55f1ab2: add App.jsx
+
 ## 1.4.0
 
 ### Minor Changes
