@@ -1,5 +1,11 @@
 # @inventorjs/plugin-app
 
+## 0.1.1
+
+### Patch Changes
+
+- 2bc2def: 添加 gauge 依赖
+
 ## 0.1.0
 
 ### Minor Changes

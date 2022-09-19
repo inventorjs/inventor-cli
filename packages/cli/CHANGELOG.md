@@ -1,5 +1,12 @@
 # @inventorjs/cli
 
+## 1.2.1
+
+### Patch Changes
+
+- Updated dependencies [2bc2def]
+  - @inventorjs/plugin-app@0.1.1
+
 ## 1.2.0
 
 ### Minor Changes
