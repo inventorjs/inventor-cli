@@ -10,15 +10,7 @@ function ifRelease(release, development) {
 module.exports = {
   presets: [
     ['@babel/preset-react', { runtime: 'automatic' }],
-    [
-      '@babel/preset-env',
-      {
-        targets: {
-          // detail: https://browserl.ist/?q=%3E+0.1%25%2C+not+ie+%3C%3D+8
-          browsers: '> 0.1%, not ie <= 11',
-        },
-      },
-    ],
+    ['@babel/preset-env'],
   ],
   plugins: [
     ['@babel/plugin-proposal-decorators', { legacy: true }],

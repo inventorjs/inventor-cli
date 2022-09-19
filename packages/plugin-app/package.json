@@ -30,7 +30,7 @@
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-react": "^7.31.8",
-    "guage": "0.0.0",
+    "gauge": "4.0.4",
     "html-webpack-plugin": "^5.5.0",
     "mini-css-extract-plugin": "^2.6.1",
     "prettier": "^2.7.1",
