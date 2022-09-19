@@ -17,6 +17,11 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@inventorjs/cli": "latest"
+    "@babel/eslint-parser": "^7.19.1",
+    "@inventorjs/cli": "latest",
+    "eslint": "^8.23.1",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-react": "^7.31.8",
+    "prettier": "^2.7.1"
   }
 }
