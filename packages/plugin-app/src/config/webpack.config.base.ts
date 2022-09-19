@@ -4,6 +4,7 @@
  */
 import path from 'node:path'
 import os from 'node:os'
+import { createRequire } from 'node:module'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import TerserPlugin from 'terser-webpack-plugin'
@@ -11,6 +12,8 @@ import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 import webpack from 'webpack'
 import Gauge from 'gauge'
+
+const require = createRequire(import.meta.url)
 
 const { NODE_ENV, ANALYSE } = process.env
 const progressBar = new Gauge()
@@ -38,7 +41,7 @@ export default ({ root }: { root: string }) => ({
       {
         test: /\.jsx?$/,
         use: [
-          { loader: 'thread-loader', options: { workers: os.cpus().length } },
+          { loader: require.resolve('thread-loader'), options: { workers: os.cpus().length } },
           'babel-loader',
         ],
         exclude: /node_modules/,
@@ -46,10 +49,10 @@ export default ({ root }: { root: string }) => ({
       {
         test: /\.css$/,
         use: [
-          { loader: 'thread-loader', options: { workers: os.cpus().length } },
+          { loader: require.resolve('thread-loader'), options: { workers: os.cpus().length } },
           MiniCssExtractPlugin.loader,
           {
-            loader: 'css-loader',
+            loader: require.resolve('css-loader'),
             options: {
               modules: {
                 auto: (resourcePath: string) =>
@@ -63,9 +66,9 @@ export default ({ root }: { root: string }) => ({
         test: /\.less$/,
         use: [
           MiniCssExtractPlugin.loader,
-          'css-loader',
+          require.resolve('css-loader'),
           {
-            loader: 'less-loader',
+            loader: require.resolve('less-loader'),
             options: {
               lessOptions: {
                 javascriptEnabled: true,
@@ -79,7 +82,7 @@ export default ({ root }: { root: string }) => ({
         test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/,
         use: [
           {
-            loader: 'url-loader',
+            loader: require.resolve('url-loader'),
             options: {
               limit: 1,
               name: 'resources/[name].[contenthash:10].[ext]?[hash]',
@@ -106,7 +109,6 @@ export default ({ root }: { root: string }) => ({
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: path.resolve(root, 'public/index.html'),
-      // inject: false,
     }),
     ifRelease(null, new ReactRefreshWebpackPlugin()),
     ANALYSE && new BundleAnalyzerPlugin(),
