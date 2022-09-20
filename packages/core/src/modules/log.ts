@@ -27,6 +27,10 @@ export function error(msg: string) {
   log(`❌ ${color.red(msg)}`)
 }
 
+export function clear() {
+  log(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H') 
+}
+
 export function raw(msg: string) {
   log(msg)
 }

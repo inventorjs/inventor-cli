@@ -7,7 +7,7 @@
  import { mergeWithCustomize, customizeObject, unique } from 'webpack-merge'
  import baseWebpackConfig from '../config/webpack.config.base.js'
  export default class BuildAction extends Action {
-   description = '启动开发服务器'
+   description = '构建项目'
    options = []
    async action() {
      const pluginConfig = await this.getPluginConfig('app', 'local')
