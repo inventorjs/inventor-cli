@@ -181,7 +181,7 @@ export abstract class Plugin {
     ])
   }
 
-  async getPluginConfig(pluginName: string, from: LoadFrom) {
+  async getPluginConfig(pluginName: string, from: LoadFrom = 'local') {
     const rcConfig = await rc.load(from)
     const plugins = (rcConfig?.plugins as unknown[]) ?? []
     const pluginItem = plugins.find((plugin) => {
