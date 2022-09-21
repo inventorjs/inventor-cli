@@ -37,12 +37,13 @@ export default class DevAction extends Action {
 
       const compiler = webpack(webpackConfig)
       compiler.hooks.done.tap('done', (stats) => {
-        // this.log.clear()
-        // const statJson = stats.toJson({
-        //   all: false,
-        //   warnings: true,
-        //   errors: true,
-        // })
+        this.log.clear()
+        const statJson = stats.toJson({
+          all: false,
+          warnings: true,
+          errors: true,
+        })
+        this.log.info(statJson)
       })
 
       const devServer = new webpackDevServer(webpackConfig.devServer, compiler)
