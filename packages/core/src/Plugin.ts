@@ -146,8 +146,10 @@ export abstract class Plugin {
     const message = args[1]
     if (typeof message === 'string' && !message.includes('...')) {
       args.splice(1, 1, `${message}...`)
+      return oraPromise(...args)
+    } else if (typeof message === 'object') {
+      return oraPromise(...args).catch(() => null)
     }
-    return oraPromise(...args)
   }
 
   async seriesTask(tasks: Promise<unknown>[]) {

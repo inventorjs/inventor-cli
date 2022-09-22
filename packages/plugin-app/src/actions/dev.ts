@@ -4,8 +4,8 @@
  */
 import { Action } from '@inventorjs/core'
 import webpack, { type Configuration } from 'webpack'
+import detectPort from 'detect-port';
 import webpackDevServer from 'webpack-dev-server'
-import { mergeWithCustomize, customizeObject, unique } from 'webpack-merge'
 import webpackFactory from '../config/webpackFactory.js'
 export default class DevAction extends Action {
   description = '启动开发服务器'
@@ -15,41 +15,38 @@ export default class DevAction extends Action {
     const { type } = pluginConfig
 
     if (type === 'react-webpack-js') {
-      const baseConfig = webpackFactory({ root: this.pwd })
-      const customConfig = pluginConfig?.webpack ?? {}
-      const webpackConfig: Configuration = mergeWithCustomize({
-        customizeObject: customizeObject({
-          entry: 'replace',
-          output: 'merge',
-        }),
-        customizeArray: unique(
-          'plugins',
-          [
-            'HtmlWebpackPlugin',
-            'ProgressPlugin',
-            'MiniCssExtractPlugin',
-            'ReactRefreshWebpackPlugin',
-            'BundleAnalyzerPlugin',
-          ],
-          (plugin) => plugin.constructor.name,
-        ),
-      })(baseConfig, customConfig)
+      const port = await detectPort(8089)
+      const baseConfig = webpackFactory({ root: this.pwd, release: false, port })
+      const webpackConfig: Configuration = pluginConfig?.webpack?.(baseConfig) ?? baseConfig
+      const devServerConfig = webpackConfig.devServer;
 
       const compiler = webpack(webpackConfig)
       compiler.hooks.done.tap('done', (stats) => {
-        this.log.clear()
         const statJson = stats.toJson({
           all: false,
           warnings: true,
           errors: true,
         })
-        this.log.info(statJson)
+        if (statJson.errors?.length) {
+          this.log.error('Compile failed.')
+          return 
+        }
+        if (statJson.warnings?.length) {
+          this.log.error('Compile with warnings.')
+        }
+      })
+      compiler.hooks.invalid.tap('invalid', (modulePath) => {
+        this.log.info(`Compiling...[${this.color.yellow(modulePath)}]`)
       })
 
-      const devServer = new webpackDevServer(webpackConfig.devServer, compiler)
+      const devServer = new webpackDevServer({ ...devServerConfig }, compiler)
       await devServer.startCallback(() => {
-        // this.log.clear()
-        this.log.info('Starting development server...')
+        this.log.clear()
+        this.log.success(`Development server started
+    ServerHost: ${devServerConfig?.server}://localhost:${port}
+    StaticPath: ${devServerConfig?.static?.directory}
+    HistoryApiFallback: ${devServerConfig?.historyApiFallback}
+        `)
       })
     }
   }

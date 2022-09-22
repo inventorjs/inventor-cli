@@ -18,9 +18,10 @@ interface FactoryParams {
   release?: boolean
   analyse?: boolean
   alias?: Record<string, string> | null
+  port: number
 }
 
-export default ({ root, release = false, analyse = false, alias = null }: FactoryParams) => {
+export default ({ root, release = false, analyse = false, alias = null, port }: FactoryParams) => {
   function ifRelease<T>(releaseValue: T, developmentValue: T): T {
     return release ? releaseValue : developmentValue
   }
@@ -75,6 +76,7 @@ export default ({ root, release = false, analyse = false, alias = null }: Factor
                   ifRelease(null, require.resolve('react-refresh/babel')),
                   alias && [require.resolve('babel-plugin-module-resolver'), { alias }],
                 ].filter(Boolean),
+                cacheDirectory: true,
               },
             },
           ],
@@ -181,7 +183,7 @@ export default ({ root, release = false, analyse = false, alias = null }: Factor
     },
 
     devServer: {
-      port: 'auto',
+      port,
       server: 'http',
       hot: true,
       historyApiFallback: true,
