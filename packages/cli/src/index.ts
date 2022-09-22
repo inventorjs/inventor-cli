@@ -8,12 +8,16 @@ import path from 'node:path'
 import { readdir } from 'node:fs/promises'
 import { Command } from 'commander'
 import figlet from 'figlet'
-import { Plugin, Action, log, type ActionOption } from '@inventorjs/core'
+import { Plugin, Action, log, type ActionOption, rc, env } from '@inventorjs/core'
 
 const BIN = 'inventor'
 const DEFAULT_ACTION = 'index'
 
 const require = createRequire(import.meta.url)
+
+/**
+ * 本地插件 -> 内置插件
+ */
 
 const corePlugins = [
   { pluginName: 'plugin', packageName: '@inventorjs/plugin-plugin' },
@@ -83,17 +87,40 @@ async function registerPlugin(
   }
 }
 
-function welcome({ cliName }: Record<string, string>) {
+async function searchPlugins() {
+  const envContext = env.context()
+  const config = await rc.load(envContext)
+  if (!config) return corePlugins
+
+  const { plugins } = config as {plugins: [string, string][]}
+  const externalPlugins = plugins.map(([packageName]) => ({
+    pluginName: getPluginName(packageName),
+    packageName,
+  }));
+  return [...corePlugins, ...externalPlugins]
+}
+
+function welcome({ cliName }: { cliName: string }) {
   log.raw(log.color.cyan(figlet.textSync(cliName, { font: 'Speed' })))
 }
 
+function getPluginName(packageName: string) {
+  return packageName.replace('@inventorjs/plugin-', '').replace(/(@\w+)?inventor-plugin-/g, '')
+}
+
 async function run() {
+  const [,, pluginName] = process.argv
   const packageJson = require('../package.json')
   const cli = new Command(BIN).version(packageJson.version)
 
-  welcome({ cliName: BIN, version: packageJson.version })
+  welcome({ cliName: BIN })
 
-  for (const { pluginName, packageName } of corePlugins) {
+  let plugins = await searchPlugins()
+  if (pluginName) {
+    plugins = plugins.filter((plugin) => plugin.pluginName === pluginName)
+  }
+
+  for (const { pluginName, packageName } of plugins) {
     await registerPlugin(cli, pluginName, packageName)
   }
 

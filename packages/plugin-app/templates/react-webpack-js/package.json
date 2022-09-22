@@ -20,10 +20,10 @@
     "@babel/core": "^7.19.1",
     "@babel/eslint-parser": "^7.19.1",
     "@inventorjs/cli": "latest",
+    "@inventorjs/plugin-app-react-webpack": "latest",
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-react": "^7.31.8",
-    "prettier": "^2.7.1",
-    "@inventorjs/app-scripts": "1.1.1"
+    "prettier": "^2.7.1"
   }
 }

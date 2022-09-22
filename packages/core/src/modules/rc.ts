@@ -21,5 +21,5 @@ export async function search(dirname?: string): Promise<{ config?: Record<string
 export async function load(from: LoadFrom = 'local') {
   const location = from === 'global' ? homedir() : pwd()
   const result = await search(location)
-  return result?.config ?? {}
+  return result?.config ?? null
 }
