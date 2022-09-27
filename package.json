@@ -17,7 +17,8 @@
   "scripts": {
     "clean": "rimraf node_modules **/*/node_modules",
     "dev": "pnpm -r --parallel dev",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "change": "changeset"
   },
   "devDependencies": {
     "@changesets/cli": "^2.24.3",
