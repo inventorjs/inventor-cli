@@ -146,9 +146,7 @@ export default ({ root, release = false, analyse = false, alias = null, port }) 
             headers: {
                 'Access-Control-Allow-Origin': '*',
             },
-            static: {
-                directory: path.resolve(root, 'dist'),
-            },
+            static: path.resolve(root, 'dist'),
         },
     };
 };

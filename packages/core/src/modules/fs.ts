@@ -11,6 +11,9 @@ export interface RenderOptions {
   data?: Record<string, unknown>
 }
 
+export const readdir = fse.readdir
+export const readFile = fse.readFile
+
 export async function getAllFiles(dirPath: string) {
   const allFiles = await globby(`${dirPath}/**/(.)?*`, { gitignore: false })
   return allFiles

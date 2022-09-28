@@ -14,6 +14,7 @@
     "build": "rm -rf lib && tsc"
   },
   "dependencies": {
+    "boxen": "7.0.0",
     "chalk": "^5.0.1",
     "commander": "^9.4.0",
     "cosmiconfig": "7.0.1",

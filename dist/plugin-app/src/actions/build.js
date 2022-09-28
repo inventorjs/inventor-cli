@@ -9,7 +9,7 @@ export default class BuildAction extends Action {
     description = '构建项目';
     options = [];
     async action() {
-        const pluginConfig = await this.getPluginConfig('app');
+        const pluginConfig = await this.getPluginConfig(import.meta.url);
         const { type } = pluginConfig;
         if (type === 'react-webpack-js') {
             const baseConfig = webpackFactory({

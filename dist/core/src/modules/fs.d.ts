@@ -1,6 +1,9 @@
+import fse from 'fs-extra';
 export interface RenderOptions {
     data?: Record<string, unknown>;
 }
+export declare const readdir: typeof fse.readdir;
+export declare const readFile: typeof fse.readFile;
 export declare function getAllFiles(dirPath: string): Promise<string[]>;
 export declare function getExistsTemplateFiles(templateDir: string, destinationDir: string): Promise<string[]>;
 export declare function exists(filePath: string): Promise<boolean>;

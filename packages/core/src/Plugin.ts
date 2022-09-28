@@ -183,13 +183,42 @@ export abstract class Plugin {
     ])
   }
 
-  async getPluginConfig(pluginName: string, from: LoadFrom = 'local') {
+  async getPackageJson(metaUrl: string) {
+    const filename = this.filename(metaUrl)
+    let parentDir = path.dirname(filename)
+    let packageJson = null
+    while (parentDir !== '/') {
+      const files = await fs.readdir(parentDir)
+      const packageJsonFile = files.find((file) => file === 'package.json')
+      if (packageJsonFile) {
+          try {
+            packageJson = JSON.parse(await fs.readFile(path.join(parentDir, packageJsonFile), 'utf8'))
+            break
+          } catch (err) {
+            // continue
+          }
+      }
+      parentDir = path.dirname(parentDir)
+    }
+    return packageJson
+  }
+
+  async getPackageName(metaUrl: string) {
+    const packageJson = await this.getPackageJson(metaUrl)
+    if (packageJson) {
+      return packageJson.name
+    }
+    return ''
+  }
+
+  async getPluginConfig(metaUrl: string, from: LoadFrom = 'local') {
     const rcConfig = await rc.load(from)
     const plugins = (rcConfig?.plugins as unknown[]) ?? []
+    const packageName = await this.getPackageName(metaUrl);
     const pluginItem = plugins.find((plugin) => {
       if (
-        (Array.isArray(plugin) && plugin[0] === pluginName) ||
-        (typeof plugin === 'string' && plugin === pluginName)
+        (Array.isArray(plugin) && plugin[0] === packageName) ||
+        (typeof plugin === 'string' && plugin === packageName)
       ) {
         return true
       }

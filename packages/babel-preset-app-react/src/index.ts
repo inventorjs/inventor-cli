@@ -30,7 +30,7 @@ export default (api: ConfigAPI, opts: Options = {}, env: Env = 'production') => 
     return false
   }
 
-  api.cache.forever()
+  api.cache.using(() => env)
 
   return {
     presets: [

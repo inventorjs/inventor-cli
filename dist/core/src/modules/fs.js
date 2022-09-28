@@ -6,6 +6,8 @@ import path from 'node:path';
 import fse from 'fs-extra';
 import { globby } from 'globby';
 import ejs from 'ejs';
+export const readdir = fse.readdir;
+export const readFile = fse.readFile;
 export async function getAllFiles(dirPath) {
     const allFiles = await globby(`${dirPath}/**/(.)?*`, { gitignore: false });
     return allFiles;

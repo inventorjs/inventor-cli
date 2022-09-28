@@ -9,7 +9,7 @@ export default class BuildAction extends Action {
   description = '构建项目'
   options = []
   async action() {
-    const pluginConfig = await this.getPluginConfig('app')
+    const pluginConfig = await this.getPluginConfig(import.meta.url)
     const { type } = pluginConfig
 
     if (type === 'react-webpack-js') {
@@ -55,7 +55,7 @@ export default class BuildAction extends Action {
         successText: this.color.green('webpack build assets successfully'),
         failText: (err) =>
           `webpack build assets failed(${this.color.red(
-            (err as any)?.length,
+            (err as unknown as string[])?.length,
           )} errors)\n`,
       })
     }

@@ -11,8 +11,7 @@ export default class DevAction extends Action {
   description = '启动开发服务器'
   options = []
   async action() {
-    const pluginConfig = await this.getPluginConfig('app')
-    console.log(pluginConfig, '-----------')
+    const pluginConfig = await this.getPluginConfig(import.meta.url)
     const { type } = pluginConfig
 
     if (type === 'react-webpack-js') {
@@ -43,11 +42,12 @@ export default class DevAction extends Action {
       const devServer = new webpackDevServer({ ...devServerConfig }, compiler)
       await devServer.startCallback(() => {
         this.log.clear()
-        this.log.success(`Development server started
-    ServerHost: ${devServerConfig?.server}://localhost:${port}
-    StaticPath: ${devServerConfig?.static?.directory}
+        this.log.success(`Development server started`);
+        this.log.raw(`
+    LocalAddress:   ${devServerConfig?.server}://localhost:${port}
+    StaticPath: ${devServerConfig?.static}
     HistoryApiFallback: ${devServerConfig?.historyApiFallback}
-        `)
+        `, { boxen: true })
       })
     }
   }

@@ -43,7 +43,9 @@ export declare abstract class Plugin {
     exec(...args: Parameters<typeof cmd.exec>): Promise<unknown>;
     installHusky(): Promise<void>;
     addCommitLint(): Promise<void>;
-    getPluginConfig(pluginName: string, from?: LoadFrom): Promise<any>;
+    getPackageJson(metaUrl: string): Promise<any>;
+    getPackageName(metaUrl: string): Promise<any>;
+    getPluginConfig(metaUrl: string, from?: LoadFrom): Promise<any>;
     filename(...args: Parameters<typeof env.filename>): string;
     dirname(...args: Parameters<typeof env.dirname>): string;
     get color(): import("chalk").ChalkInstance;

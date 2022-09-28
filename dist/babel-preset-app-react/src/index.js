@@ -12,7 +12,7 @@ export default (api, opts = {}, env = 'production') => {
         }
         return false;
     }
-    api.cache.forever();
+    api.cache.using(() => env);
     return {
         presets: [
             ifRequire('@babel/preset-env'),

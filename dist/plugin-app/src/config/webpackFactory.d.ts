@@ -113,9 +113,7 @@ declare const _default: ({ root, release, analyse, alias, port }: FactoryParams)
         headers: {
             'Access-Control-Allow-Origin': string;
         };
-        static: {
-            directory: string;
-        };
+        static: string;
     };
 };
 export default _default;
