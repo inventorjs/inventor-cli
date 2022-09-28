@@ -2,10 +2,7 @@
   "name": "@inventorjs/plugin-app-react-webpack",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "bin": {
-    "inventor": "./lib/index.js"
-  },
+  "main": "lib/index.js",
   "private": false,
   "type": "module",
   "author": "sunkeysun",

@@ -12,6 +12,7 @@ export default class DevAction extends Action {
   options = []
   async action() {
     const pluginConfig = await this.getPluginConfig('app')
+    console.log(pluginConfig, '-----------')
     const { type } = pluginConfig
 
     if (type === 'react-webpack-js') {

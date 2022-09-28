@@ -56,26 +56,6 @@ export default ({ root, release = false, analyse = false, alias = null, port }: 
             {
               loader: require.resolve('babel-loader'),
               options: {
-                presets: [
-                  ['@babel/preset-react', { runtime: 'automatic' }],
-                  ['@babel/preset-env'],
-                ],
-                plugins: [
-                  [
-                    require.resolve('@babel/plugin-proposal-decorators'),
-                    { legacy: true },
-                  ],
-                  require.resolve('@babel/plugin-proposal-export-default-from'),
-                  require.resolve(
-                    '@babel/plugin-proposal-export-namespace-from',
-                  ),
-                  [
-                    require.resolve('@babel/plugin-transform-runtime'),
-                    { regenerator: true },
-                  ],
-                  ifRelease(null, require.resolve('react-refresh/babel')),
-                  alias && [require.resolve('babel-plugin-module-resolver'), { alias }],
-                ].filter(Boolean),
                 cacheDirectory: true,
               },
             },

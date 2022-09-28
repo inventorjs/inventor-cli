@@ -29,23 +29,11 @@ declare const _default: ({ root, release, analyse, alias, port }: FactoryParams)
                 loader: string;
                 options: {
                     workers: number;
-                    presets?: undefined;
-                    plugins?: undefined;
                     cacheDirectory?: undefined;
                 };
             } | {
                 loader: string;
                 options: {
-                    presets: (string | {
-                        runtime: string;
-                    })[][];
-                    plugins: (string | (string | {
-                        legacy: boolean;
-                    })[] | (string | {
-                        regenerator: boolean;
-                    })[] | (string | {
-                        alias: Record<string, string>;
-                    })[] | null)[];
                     cacheDirectory: boolean;
                     workers?: undefined;
                 };

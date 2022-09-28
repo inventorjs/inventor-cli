@@ -64,6 +64,7 @@ importers:
     specifiers:
       '@inventorjs/core': workspace:*
       '@inventorjs/plugin-app': workspace:*
+      '@inventorjs/plugin-app-react-webpack': workspace:*
       '@inventorjs/plugin-plugin': workspace:*
       '@types/figlet': ^1.5.4
       commander: ^9.4.0
@@ -72,6 +73,7 @@ importers:
     dependencies:
       '@inventorjs/core': link:../core
       '@inventorjs/plugin-app': link:../plugin-app
+      '@inventorjs/plugin-app-react-webpack': link:../plugin-app-react-webpack
       '@inventorjs/plugin-plugin': link:../plugin-plugin
       commander: 9.4.0
       figlet: 1.5.2
