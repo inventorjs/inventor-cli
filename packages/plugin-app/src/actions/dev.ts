@@ -40,13 +40,14 @@ export default class DevAction extends Action {
       })
 
       const devServer = new webpackDevServer({ ...devServerConfig }, compiler)
+      const localAddress = `${devServerConfig?.server}://localhost:${port}`
       await devServer.startCallback(() => {
         this.log.clear()
         this.log.success(`Development server started`);
         this.log.raw(`
-    LocalAddress:   ${devServerConfig?.server}://localhost:${port}
-    StaticPath: ${devServerConfig?.static}
-    HistoryApiFallback: ${devServerConfig?.historyApiFallback}
+LocalAddress:       ${this.color.cyan(localAddress)} 
+StaticPath:         ${this.color.cyan(devServerConfig?.static)}
+HistoryApiFallback: ${this.color.cyan(devServerConfig?.historyApiFallback)}
         `, { boxen: true })
       })
     }
