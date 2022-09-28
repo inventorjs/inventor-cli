@@ -1,9 +1,9 @@
 /**
  * action 入口
- * @author: sunkeysun
+ * @author: <%- author %>
  */
 import { Action } from '@inventorjs/core';
-export default class DevAction extends Action {
+export default class InitAction extends Action {
     description: string;
     options: never[];
     action(): Promise<void>;
