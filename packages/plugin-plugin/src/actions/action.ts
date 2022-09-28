@@ -5,7 +5,7 @@
 import path from 'node:path'
 import { Action } from '@inventorjs/core'
 
-export default class ActionAction extends Action {
+export default class extends Action {
   description = '初始化创建一个插件 action，可快速开发插件 action'
   options = []
   async action() {

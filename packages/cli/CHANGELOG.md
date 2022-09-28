@@ -1,5 +1,18 @@
 # @inventorjs/cli
 
+## 1.4.0
+
+### Minor Changes
+
+- 9ca3719: publish new version
+
+### Patch Changes
+
+- Updated dependencies [9ca3719]
+  - @inventorjs/core@3.8.0
+  - @inventorjs/plugin-app@1.6.0
+  - @inventorjs/plugin-plugin@1.3.0
+
 ## 1.3.4
 
 ### Patch Changes

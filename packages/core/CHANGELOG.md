@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.8.0
+
+### Minor Changes
+
+- 9ca3719: publish new version
+
 ## 3.7.0
 
 ### Minor Changes

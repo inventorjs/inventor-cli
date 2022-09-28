@@ -4,6 +4,6 @@
  */
 import { Plugin } from '@inventorjs/core'
 
-export default class PluginPlugin extends Plugin {
+export default class extends Plugin {
   description = '初始化创建 inventor 插件'
 }

@@ -3,9 +3,9 @@
  * @author: sunkeysun
  */
 import path from 'node:path'
-import { Action, log } from '@inventorjs/core'
+import { Action } from '@inventorjs/core'
 
-export default class InitAction extends Action {
+export default class extends Action {
   description = '初始化创建一个插件项目，可快速开发插件'
   options = []
 
@@ -15,8 +15,8 @@ export default class InitAction extends Action {
 
   async action() {
     const nameRegex = /^[a-z-]{1,10}$/
-    const descRegex = /^[a-z-\u4e00-\u9fa5]{5,20}$/
-    const authorRegex = /^[\w-\u4e00-\u9fa5]{1,}$/
+    const descRegex = /^[\sa-z-\u4e00-\u9fa5]{5,30}$/
+    const authorRegex = /^[\s\w-\u4e00-\u9fa5]{1,20}$/
     const answers = await this.prompt([
       {
         type: 'text',
@@ -32,6 +32,7 @@ export default class InitAction extends Action {
         type: 'text',
         name: 'description',
         message: '请输入插件描述，用于说明插件功能',
+        default: 'a powerful inventor plugin',
         validate: (value) =>
           !descRegex.test(value)
             ? `请输入合法的插件描述(${descRegex})`
@@ -97,14 +98,10 @@ export default class InitAction extends Action {
       { cwd: packagePath },
     )
 
-    log.success(
-      `${this.color.cyan('Done. Now run:')}
-
-    cd ${packageName}
-    ${this.pm.bin} dev
-
-  ${this.color.cyan('To develop inventor plugin.')}
-  `,
-    )
+    this.log.success('Init successful. Start develop to run:')
+    this.log.raw(`
+      cd ${packageName}
+      ${this.pm.bin} dev
+  `, { boxen: true })
   }
 }

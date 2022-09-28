@@ -4,7 +4,7 @@
  */
 import { Action } from '@inventorjs/core'
 
-export default class InitAction extends Action {
+export default class extends Action {
   description = '<%- description %>'
   options = []
   async action() {
@@ -14,7 +14,7 @@ export default class InitAction extends Action {
         name: 'name',
         type: 'text',
         message: '请输入项目名称',
-        validate: (name) => ( !nameRegex.test(name) ? `请输入合法的项目名称(${nameRegex.toString()})` : true),
+        validate: (name: string) => ( !nameRegex.test(name) ? `请输入合法的项目名称(${nameRegex.toString()})` : true),
       },
     ])
 
