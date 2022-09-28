@@ -132,7 +132,7 @@ export class Plugin {
         await this.exec(this.pm.bin, [
             'husky',
             'add',
-            'commit-msg',
+            '.husky/commit-msg',
             `${this.pm.bin} commitlint --edit $1`,
         ]);
     }

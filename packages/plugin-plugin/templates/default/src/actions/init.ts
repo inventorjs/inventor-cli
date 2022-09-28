@@ -2,7 +2,7 @@
  * action 入口
  * @author: <%- author %>
  */
-import { Action } from '@inventorjs/cli-core'
+import { Action } from '@inventorjs/core'
 
 export default class InitAction extends Action {
   description = '<%- description %>'
@@ -13,19 +13,13 @@ export default class InitAction extends Action {
       {
         name: 'name',
         type: 'text',
-        message: '请输入你的名字',
-        validate: (name) => ( !nameRegex.test(name) ? `请输入合法的名字(${nameRegex.toString()})` : true),
-      },
-      {
-        name: 'age',
-        type: 'number',
-        message: '请输入你的年龄',
-        validate: (age) => (age > 100 || age < 0 ? '你的年龄不太正常喔([0, 100])' : true),
+        message: '请输入项目名称',
+        validate: (name) => ( !nameRegex.test(name) ? `请输入合法的项目名称(${nameRegex.toString()})` : true),
       },
     ])
 
     this.log.info('下面为你创建一个欢迎模版')
-    await this.renderTemplate('default', 'welecome', {
+    await this.renderTemplate('default', 'welcome', {
       data: anwsers,
     })
   }

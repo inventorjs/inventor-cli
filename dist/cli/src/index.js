@@ -12,12 +12,9 @@ import { Plugin, Action, log, rc, env } from '@inventorjs/core';
 const BIN = 'inventor';
 const DEFAULT_ACTION = 'index';
 const require = createRequire(import.meta.url);
-/**
- * 本地插件 -> 内置插件
- */
 const corePlugins = [
-    { pluginName: 'plugin', packageName: '@inventorjs/plugin-plugin' },
-    { pluginName: 'app', packageName: '@inventorjs/plugin-app' },
+    ['@inventorjs/plugin-plugin'],
+    ['@inventorjs/plugin-app'],
 ];
 async function loadActions(plugin) {
     const actionFiles = (await readdir(plugin.actionPath)).filter((file) => file.endsWith('.js'));
@@ -64,14 +61,21 @@ async function registerPlugin(cli, pluginName, packageName) {
 async function searchPlugins() {
     const envContext = env.context();
     const config = await rc.load(envContext);
-    if (!config)
-        return corePlugins;
-    const { plugins } = config;
-    const externalPlugins = plugins.map(([packageName]) => ({
-        pluginName: getPluginName(packageName),
-        packageName,
-    }));
-    return [...corePlugins, ...externalPlugins];
+    const pluginList = corePlugins;
+    if (config) {
+        const { plugins } = config;
+        pluginList.push(...plugins);
+    }
+    const result = pluginList.reduce((result, [packageName]) => {
+        if (!result.find((plugin) => plugin.packageName === packageName)) {
+            return [
+                ...result,
+                { pluginName: getPluginName(packageName), packageName }
+            ];
+        }
+        return result;
+    }, []);
+    return result;
 }
 function welcome({ cliName }) {
     log.raw(log.color.cyan(figlet.textSync(cliName, { font: 'Speed' })));
