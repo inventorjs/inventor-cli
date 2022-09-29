@@ -165,9 +165,24 @@ export abstract class Plugin {
     return this.cmd.exec(...args)
   }
 
-  async installHusky() {
+  async addHusky() {
     await this.addDevDependencies(['husky'])
     await this.exec(this.pm.bin, ['husky', 'install'])
+  }
+
+  async addPackageJsonConfig(key: string, value: unknown) {
+    try {
+      const packageJsonPath = path.join(env.cwd, 'package.json')
+      const packageJson = JSON.parse(
+        await fs.readFile(packageJsonPath, 'utf8'),
+      )
+      if (packageJson) {
+        packageJson[key] = value
+        await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf8')
+      }
+    } catch (err) {
+      log.raw(log.color.red(err))
+    }
   }
 
   async addCommitLint() {
@@ -181,6 +196,23 @@ export abstract class Plugin {
       '.husky/commit-msg',
       `${this.pm.bin} commitlint --edit $1`,
     ])
+    await this.addPackageJsonConfig('commitlint', { extends: '@commitlint/config-conventional' })
+  }
+
+  async addEslint() {
+    await this.addDevDependencies([
+      'eslint',
+      'eslint-config-prettier',
+      '@typescript-eslint/eslint-plugin',
+      '@typescript-eslint/parser',
+    ])
+    await this.exec(this.pm.bin, [
+      'husky',
+      'add',
+      '.husky/pre-commit',
+      `${this.pm.bin} lint-staged -c package.json`,
+    ])
+    await this.addPackageJsonConfig('lint-staged', { '*.ts': 'eslint' })
   }
 
   async getPackageJson(metaUrl: string) {
@@ -191,12 +223,14 @@ export abstract class Plugin {
       const files = await fs.readdir(parentDir)
       const packageJsonFile = files.find((file) => file === 'package.json')
       if (packageJsonFile) {
-          try {
-            packageJson = JSON.parse(await fs.readFile(path.join(parentDir, packageJsonFile), 'utf8'))
-            break
-          } catch (err) {
-            // continue
-          }
+        try {
+          packageJson = JSON.parse(
+            await fs.readFile(path.join(parentDir, packageJsonFile), 'utf8'),
+          )
+          break
+        } catch (err) {
+          // continue
+        }
       }
       parentDir = path.dirname(parentDir)
     }
@@ -214,7 +248,7 @@ export abstract class Plugin {
   async getPluginConfig(metaUrl: string, from: LoadFrom = 'local') {
     const rcConfig = await rc.load(from)
     const plugins = (rcConfig?.plugins as unknown[]) ?? []
-    const packageName = await this.getPackageName(metaUrl);
+    const packageName = await this.getPackageName(metaUrl)
     const pluginItem = plugins.find((plugin) => {
       if (
         (Array.isArray(plugin) && plugin[0] === packageName) ||

@@ -52,14 +52,14 @@ export default class extends Action {
       },
       {
         type: 'confirm',
-        name: 'isConfirmEslint',
-        message: '是否需要安装 eslint',
+        name: 'isConfirmHusky',
+        message: '是否需要安装 husky',
         default: true,
       },
       {
         type: 'confirm',
-        name: 'isConfirmHusky',
-        message: '是否需要安装 Husky',
+        name: 'isConfirmEslint',
+        message: '是否需要安装 eslint',
         default: true,
       },
       {
@@ -95,8 +95,6 @@ export default class extends Action {
         packageName,
         description,
         author,
-        isConfirmCommitlint,
-        isConfirmEslint,
       },
     })
 
@@ -104,10 +102,11 @@ export default class extends Action {
       async () => {
         isConfirmGit && (await this.loadingTask(this.git.init(), '初始化 git'))
         await this.loadingTask(this.install(), '安装依赖')
-        isConfirmHusky &&
-          (await this.loadingTask(this.installHusky(), '安装 husky'))
+        ;(isConfirmHusky || isConfirmCommitlint || isConfirmEslint) &&
+          (await this.loadingTask(this.addHusky(), '安装 husky'))
         isConfirmCommitlint &&
           (await this.loadingTask(this.addCommitLint(), '添加 commitlint'))
+        isConfirmEslint && (await this.loadingTask(this.addEslint(), '安装 eslint'))
       },
       { cwd: packagePath },
     )
