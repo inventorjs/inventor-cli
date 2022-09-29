@@ -63,6 +63,8 @@ async function loadActions(plugin: CorePlugin) {
   return actions
 }
 
+const a = 1
+
 async function registerPlugin(
   cli: Command,
   pluginName: string,
