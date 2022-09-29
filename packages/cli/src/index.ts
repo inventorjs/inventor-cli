@@ -128,7 +128,7 @@ function welcome({ cliName }: { cliName: string }) {
 function getPluginName(packageName: string) {
   return packageName
     .replace('@inventorjs/plugin-', '')
-    .replace(/$(@[\w-_]+)?inventor-plugin-/g, '')
+    .replace(/^(@[\w-_]+\/)?inventor-plugin-/g, '')
 }
 
 async function run() {
