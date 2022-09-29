@@ -23,10 +23,6 @@
     "@inventorjs/core": "workspace:*",
     "@inventorjs/plugin-app": "workspace:*",
     "@inventorjs/plugin-plugin": "workspace:*",
-    "commander": "^9.4.0",
-    "figlet": "^1.5.2"
-  },
-  "devDependencies": {
-    "@types/figlet": "^1.5.4"
+    "commander": "^9.4.0"
   }
 }

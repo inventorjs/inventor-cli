@@ -69,17 +69,12 @@ importers:
       '@inventorjs/core': workspace:*
       '@inventorjs/plugin-app': workspace:*
       '@inventorjs/plugin-plugin': workspace:*
-      '@types/figlet': ^1.5.4
       commander: ^9.4.0
-      figlet: ^1.5.2
     dependencies:
       '@inventorjs/core': link:../core
       '@inventorjs/plugin-app': link:../plugin-app
       '@inventorjs/plugin-plugin': link:../plugin-plugin
       commander: 9.4.0
-      figlet: 1.5.2
-    devDependencies:
-      '@types/figlet': 1.5.4
 
   packages/core:
     specifiers:
@@ -97,6 +92,7 @@ importers:
       dedent: 0.7.0
       ejs: ^3.1.8
       execa: ^6.1.0
+      figlet: ^1.5.2
       fs-extra: ^10.1.0
       globby: ^13.1.2
       inquirer: 9.1.0
@@ -109,6 +105,7 @@ importers:
       dedent: 0.7.0
       ejs: 3.1.8
       execa: 6.1.0
+      figlet: 1.5.2
       fs-extra: 10.1.0
       globby: 13.1.2
       inquirer: 9.1.0

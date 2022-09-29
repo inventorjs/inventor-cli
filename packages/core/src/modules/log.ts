@@ -6,9 +6,12 @@ import type { Options as BoxenOptions } from 'boxen'
 import chalk from 'chalk'
 import boxen from 'boxen'
 import dedent from 'dedent'
+import figlet from 'figlet'
+
 interface Options {
   boxen?: BoxenOptions | true
   dedent?: boolean
+  art?: figlet.Options & { color: 'green' | 'cyan' }
 }
 
 const defaultOptions = { dedent: true }
@@ -18,6 +21,13 @@ function log(msg: unknown, options: Options = {}) {
   const exOptions = { ...defaultOptions, ...options }
   if (exOptions?.dedent) {
     exMsg = dedent(exMsg)
+  }
+  if (exOptions?.art) {
+    const { color, ...figletOptions} = exOptions.art
+    exMsg = figlet.textSync(exMsg, figletOptions) 
+    if (color) {
+      exMsg = chalk[color](exMsg)
+    }
   }
   if (exOptions?.boxen) {
     const boxenOptions = options.boxen
@@ -56,4 +66,3 @@ export function clear() {
 export function raw(msg: unknown, options?: Options) {
   log(msg, options)
 }
-

@@ -117,7 +117,7 @@ async function searchPlugins() {
 }
 
 function welcome({ cliName }: { cliName: string }) {
-  log.raw(log.color.cyan(figlet.textSync(cliName, { font: 'Speed' })))
+  log.raw(cliName, { art: { font: 'Speed', color: 'cyan' } })
 }
 
 function getPluginName(packageName: string) {
