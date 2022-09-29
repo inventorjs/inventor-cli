@@ -1,5 +1,16 @@
 # @inventorjs/plugin-app
 
+## 1.7.0
+
+### Minor Changes
+
+- 2c3e370: add version
+
+### Patch Changes
+
+- Updated dependencies [2c3e370]
+  - @inventorjs/core@3.9.0
+
 ## 1.6.0
 
 ### Minor Changes

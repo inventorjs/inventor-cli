@@ -24,9 +24,7 @@ export default class extends Action {
         message:
           '请输入插件名称，项目目录将自动初始化为"inventor-plugin-[name]"',
         validate: (value) =>
-          !nameRegex.test(value)
-            ? `请输入合法的插件名称(${nameRegex})`
-            : true,
+          !nameRegex.test(value) ? `请输入合法的插件名称(${nameRegex})` : true,
       },
       {
         type: 'text',
@@ -34,9 +32,7 @@ export default class extends Action {
         message: '请输入插件描述，用于说明插件功能',
         default: 'a powerful inventor plugin',
         validate: (value) =>
-          !descRegex.test(value)
-            ? `请输入合法的插件描述(${descRegex})`
-            : true,
+          !descRegex.test(value) ? `请输入合法的插件描述(${descRegex})` : true,
       },
       {
         type: 'text',
@@ -52,6 +48,12 @@ export default class extends Action {
         type: 'confirm',
         name: 'isConfirmGit',
         message: '是否需要初始化 Git',
+        default: true,
+      },
+      {
+        type: 'confirm',
+        name: 'isConfirmEslint',
+        message: '是否需要安装 eslint',
         default: true,
       },
       {
@@ -75,7 +77,15 @@ export default class extends Action {
       },
     ])
 
-    const { name, description, author, isConfirmGit, isConfirmHusky, isConfirmCommitlint } = answers
+    const {
+      name,
+      description,
+      author,
+      isConfirmGit,
+      isConfirmEslint,
+      isConfirmHusky,
+      isConfirmCommitlint,
+    } = answers
     const packageName = this.#getPackageName(name)
     const packagePath = path.resolve(this.pwd, packageName)
     const templateName = 'default'
@@ -85,23 +95,30 @@ export default class extends Action {
         packageName,
         description,
         author,
+        isConfirmCommitlint,
+        isConfirmEslint,
       },
     })
 
     await this.runTask(
       async () => {
-        isConfirmGit && await this.loadingTask(this.git.init(), '初始化 git')
+        isConfirmGit && (await this.loadingTask(this.git.init(), '初始化 git'))
         await this.loadingTask(this.install(), '安装依赖')
-        isConfirmHusky && await this.loadingTask(this.installHusky(), '安装 husky')
-        isConfirmCommitlint && await this.loadingTask(this.addCommitLint(), '添加 commitlint')
+        isConfirmHusky &&
+          (await this.loadingTask(this.installHusky(), '安装 husky'))
+        isConfirmCommitlint &&
+          (await this.loadingTask(this.addCommitLint(), '添加 commitlint'))
       },
       { cwd: packagePath },
     )
 
     this.log.success('Init successful. Start develop to run:')
-    this.log.raw(`
+    this.log.raw(
+      `
       cd ${packageName}
       ${this.pm.bin} dev
-  `, { boxen: true })
+  `,
+      { boxen: true },
+    )
   }
 }

@@ -1,5 +1,16 @@
 # @inventorjs/cli-plugin-plugin
 
+## 1.4.0
+
+### Minor Changes
+
+- 2c3e370: add version
+
+### Patch Changes
+
+- Updated dependencies [2c3e370]
+  - @inventorjs/core@3.9.0
+
 ## 1.3.0
 
 ### Minor Changes

@@ -8,9 +8,19 @@ import path from 'node:path'
 import { readdir } from 'node:fs/promises'
 import { Command } from 'commander'
 import figlet from 'figlet'
-import { Plugin, Action, log, type ActionOption, rc, env } from '@inventorjs/core'
+import {
+  type ActionOption,
+  Plugin as CorePlugin,
+  Action as CoreAction,
+  log,
+  rc,
+  env,
+} from '@inventorjs/core'
 
-interface PluginItem { packageName: string, pluginName: string }
+interface PluginItem {
+  packageName: string
+  pluginName: string
+}
 
 const BIN = 'inventor'
 const DEFAULT_ACTION = 'index'
@@ -22,21 +32,21 @@ const corePlugins: [string, unknown?][] = [
   ['@inventorjs/plugin-app'],
 ]
 
-async function loadActions(plugin: Plugin) {
+async function loadActions(plugin: CorePlugin) {
   const actionFiles = (await readdir(plugin.actionPath)).filter((file) =>
     file.endsWith('.js'),
   )
-  const actions: { name: string; action: Action }[] = []
+  const actions: { name: string; action: CoreAction }[] = []
 
   for (const actionFile of actionFiles) {
     try {
       const actionPath = path.resolve(plugin.actionPath, actionFile)
-      const { default: SubAction } = await import(actionPath)
-      const action = new SubAction({
+      const { default: Action } = await import(actionPath)
+      const action = new Action({
         entryPath: plugin.entryPath,
-      }) as Action
-      if (!(action instanceof Action)) {
-        throw new Error('SubAction must extends from Action base class!')
+      }) as CoreAction
+      if (!action.__Action__) {
+        throw new Error('Action must extends from core Action class!')
       }
       const name = path.basename(actionFile, path.extname(actionFile))
 
@@ -58,11 +68,11 @@ async function registerPlugin(
   pluginName: string,
   packageName: string,
 ) {
-  const { default: SubPlugin } = await import(packageName)
+  const { default: Plugin } = await import(packageName)
   const entryPath = require.resolve(packageName)
-  const plugin = new SubPlugin({ entryPath }) as Plugin
-  if (!(plugin instanceof Plugin)) {
-    throw new Error('SubPlugin must extends from Plugin base class!')
+  const plugin = new Plugin({ entryPath }) as CorePlugin
+  if (!plugin.__Plugin__) {
+    throw new Error('Plugin must extends from core Plugin class!')
   }
 
   const actions = await loadActions(plugin)
@@ -91,14 +101,14 @@ async function searchPlugins() {
 
   const pluginList = corePlugins
   if (config) {
-    const { plugins } = config as {plugins: [string, unknown?][]}
+    const { plugins } = config as { plugins: [string, unknown?][] }
     pluginList.push(...plugins)
   }
   const result = pluginList.reduce((result: PluginItem[], [packageName]) => {
     if (!result.find((plugin) => plugin.packageName === packageName)) {
       return [
         ...result,
-        { pluginName: getPluginName(packageName), packageName }
+        { pluginName: getPluginName(packageName), packageName },
       ]
     }
     return result
@@ -111,11 +121,13 @@ function welcome({ cliName }: { cliName: string }) {
 }
 
 function getPluginName(packageName: string) {
-  return packageName.replace('@inventorjs/plugin-', '').replace(/(@\w+)?inventor-plugin-/g, '')
+  return packageName
+    .replace('@inventorjs/plugin-', '')
+    .replace(/$(@[\w-_]+)?inventor-plugin-/g, '')
 }
 
 async function run() {
-  const [,, pluginName] = process.argv
+  const [, , pluginName] = process.argv
   const packageJson = require('../package.json')
   const cli = new Command(BIN).version(packageJson.version)
 

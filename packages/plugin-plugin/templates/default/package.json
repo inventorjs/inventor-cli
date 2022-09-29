@@ -11,27 +11,29 @@
     "lib/",
     "templates/"
   ],
+  <% if (isConfirmCommitlint) { %>
+  "commitlint": {
+    "extends": "@commitlint/config-conventional"
+  },
+  <% } %>
   "scripts": {
     "clean": "rimraf node_modules",
     "changeset": "changeset",
     "dev": "tsc --watch",
     "build": "tsc"
   },
-  "dependencies": {
-    "@inventorjs/core": "latest"
-  },
   "devDependencies": {
     "@changesets/cli": "^2.24.3",
+    "@inventorjs/core": "^3.9.0",
     "@types/node": "^18.6.5",
+    <% if (isConfirmEslint) { %>
+    "@typescript-eslint/eslint-plugin": "^5.38.1",
     "eslint": "^8.21.0",
     "eslint-config-prettier": "^8.5.0",
     "lint-staged": "^13.0.3",
+    <% } %>
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
-    "typescript": "^4.7.4",
-    "ts-node": "^10.9.1"
-  },
-  "commitlint": {
-    "extends": "@commitlint/config-conventional"
+    "typescript": "^4.7.4"
   }
 }

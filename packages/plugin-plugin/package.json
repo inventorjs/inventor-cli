@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/plugin-plugin",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "inventor-cli plugin manager",
   "main": "lib/index.js",
   "author": "sunkeysun",
@@ -17,8 +17,5 @@
   },
   "dependencies": {
     "@inventorjs/core": "workspace:*"
-  },
-  "devDependencies": {
-    "typescript": "^4.7.4"
   }
 }

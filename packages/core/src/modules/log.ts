@@ -3,33 +3,31 @@
  * @author: sunkeysun
  */
 import type { Options as BoxenOptions } from 'boxen'
-
+import chalk from 'chalk'
+import boxen from 'boxen'
+import dedent from 'dedent'
 interface Options {
   boxen?: BoxenOptions | true
   dedent?: boolean
 }
 
-import chalk from 'chalk'
-import boxen from 'boxen'
-import dedent from 'dedent'
-
 const defaultOptions = { dedent: true }
 
 function log(msg: unknown, options: Options = {}) {
-  let realMsg = String(msg)
-  const realOptions = { ...defaultOptions, ...options }
-  if (realOptions?.dedent) {
-    realMsg = dedent(realMsg)
+  let exMsg = String(msg)
+  const exOptions = { ...defaultOptions, ...options }
+  if (exOptions?.dedent) {
+    exMsg = dedent(exMsg)
   }
-  if (realOptions?.boxen) {
+  if (exOptions?.boxen) {
     const boxenOptions = options.boxen
     if (boxenOptions === true) {
-      realMsg = boxen(realMsg, { padding: 1, borderColor: 'green' })
+      exMsg = boxen(exMsg, { padding: 1, borderColor: 'green' })
     } else {
-      realMsg = boxen(realMsg, boxenOptions)
+      exMsg = boxen(exMsg, boxenOptions)
     }
   }
-  console.log(realMsg)
+  console.log(exMsg)
 }
 
 export const color = chalk

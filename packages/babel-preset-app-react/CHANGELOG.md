@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.3.0
+
+### Minor Changes
+
+- 2c3e370: add version
+
 ## 1.2.0
 
 ### Minor Changes

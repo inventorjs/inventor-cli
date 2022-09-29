@@ -239,6 +239,10 @@ export abstract class Plugin {
     return env.dirname(...args)
   }
 
+  get __Plugin__() {
+    return this
+  }
+
   get color() {
     return this.log.color
   }
@@ -292,4 +296,8 @@ export interface ActionOptions {
 export abstract class Action extends Plugin {
   abstract options: ActionOption[]
   abstract action(options: Record<string, unknown>): Promise<void>
+
+  get __Action__() {
+    return this
+  }
 }

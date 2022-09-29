@@ -1,8 +1,5 @@
-import dedent from 'dedent'
+import { createRequire } from 'node:module'
 
-const a = `
-  hello
-    world
-`
+const require = createRequire(import.meta.url)
 
-console.log(dedent(a))
+console.log(require.resolve('typescript'), '--------------')
