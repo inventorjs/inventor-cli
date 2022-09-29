@@ -5,7 +5,7 @@
 import { Action } from '@inventorjs/core'
 import webpack, { type Configuration } from 'webpack'
 import webpackFactory from '../config/webpackFactory.js'
-export default class BuildAction extends Action {
+export default class extends Action {
   description = '构建项目'
   options = []
   async action() {

@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@7.12.1",
+  "packageManager": "pnpm@7.12.2",
   "commitlint": {
     "extends": "@commitlint/config-conventional"
   },
@@ -15,7 +15,7 @@
     "*.ts": "eslint"
   },
   "scripts": {
-    "clean": "rimraf node_modules **/*/node_modules",
+    "clean": "rimraf node_modules **/*/node_modules **/*/lib",
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "change": "changeset",

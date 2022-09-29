@@ -7,7 +7,6 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { readdir } from 'node:fs/promises'
 import { Command } from 'commander'
-import figlet from 'figlet'
 import {
   type ActionOption,
   Plugin as CorePlugin,
@@ -63,14 +62,18 @@ async function loadActions(plugin: CorePlugin) {
   return actions
 }
 
-const a = 1
-
 async function registerPlugin(
   cli: Command,
   pluginName: string,
   packageName: string,
 ) {
-  const { default: Plugin } = await import(packageName)
+  let Plugin
+  try {
+    ({ default: Plugin } = await import(packageName))
+  } catch (err) {
+    log.error(`Plugin package "${packageName}" not installed!`)
+    return
+  }
   const entryPath = require.resolve(packageName)
   const plugin = new Plugin({ entryPath }) as CorePlugin
   if (!plugin.__Plugin__) {
