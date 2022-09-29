@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/plugin-plugin",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "inventor-cli plugin manager",
   "main": "lib/index.js",
   "author": "sunkeysun",
@@ -15,7 +15,7 @@
     "dev": "tsc --watch",
     "build": "rm -rf && tsc"
   },
-  "peerDependencies": {
+  "dependencies": {
     "@inventorjs/core": "workspace:*"
   }
 }

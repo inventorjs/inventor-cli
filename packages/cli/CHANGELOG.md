@@ -1,5 +1,15 @@
 # @inventorjs/cli
 
+## 1.5.1
+
+### Patch Changes
+
+- e114b83: change dependency
+- Updated dependencies [e114b83]
+  - @inventorjs/core@3.9.1
+  - @inventorjs/plugin-app@1.7.1
+  - @inventorjs/plugin-plugin@1.4.1
+
 ## 1.5.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.9.1
+
+### Patch Changes
+
+- e114b83: change dependency
+
 ## 3.9.0
 
 ### Minor Changes
