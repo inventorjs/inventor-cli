@@ -1,5 +1,11 @@
 # @inventorjs/cli
 
+## 1.5.3
+
+### Patch Changes
+
+- d887924: add peer dependience
+
 ## 1.5.2
 
 ### Patch Changes

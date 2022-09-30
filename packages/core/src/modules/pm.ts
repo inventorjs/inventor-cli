@@ -3,8 +3,19 @@
  * @author: sunkeysun
  */
 import { type Options, exec } from './cmd.js'
+import { context } from './env.js'
 
 export const bin = 'pnpm'
+
+export async function root() {
+  const args = ['root']
+  const ctx = context()
+  if (ctx === 'global') {
+    args.push('-g')
+  }
+  const { stdout: rootPath } = await exec(bin, args, { output: false }) as { stdout: string}
+  return rootPath
+}
 
 export async function init(options?: Options) {
   return execBin(['init'], options)

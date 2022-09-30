@@ -14,6 +14,7 @@ import {
   log,
   rc,
   env,
+  pm,
 } from '@inventorjs/core'
 
 interface PluginItem {
@@ -21,15 +22,21 @@ interface PluginItem {
   pluginName: string
 }
 
+type PluginConfigItem = [string, unknown?] | string
+
 const BIN = 'inventor'
 const DEFAULT_ACTION = 'index'
 
 const require = createRequire(import.meta.url)
 
-const corePlugins: [string, unknown?][] = [
-  ['@inventorjs/plugin-plugin'],
-  ['@inventorjs/plugin-app'],
+const corePlugins: PluginConfigItem[] = [
+  '@inventorjs/plugin-plugin',
+  '@inventorjs/plugin-app',
 ]
+
+function isCorePlugin(packageName: string) {
+  return corePlugins.find((pkgName) => packageName === pkgName)
+}
 
 async function loadActions(plugin: CorePlugin) {
   const actionFiles = (await readdir(plugin.actionPath)).filter((file) =>
@@ -68,13 +75,15 @@ async function registerPlugin(
   packageName: string,
 ) {
   let Plugin
+  const pmRoot = await pm.root()
+  const fullPackageName = isCorePlugin(packageName) ? packageName : path.resolve(pmRoot, packageName, 'lib/index.js')
   try {
-    ({ default: Plugin } = await import(packageName))
+    ;({ default: Plugin } = await import(fullPackageName))
   } catch (err) {
-    log.error(`Plugin package "${packageName}" not installed!`)
+    log.error(`[${(err as { code: string }).code}]Plugin package "${packageName}" load error!`)
     return
   }
-  const entryPath = require.resolve(packageName)
+  const entryPath = require.resolve(fullPackageName)
   const plugin = new Plugin({ entryPath }) as CorePlugin
   if (!plugin.__Plugin__) {
     throw new Error('Plugin must extends from core Plugin class!')
@@ -104,12 +113,13 @@ async function searchPlugins() {
   const envContext = env.context()
   const config = await rc.load(envContext)
 
-  const pluginList = corePlugins
+  let pluginList = corePlugins
   if (config) {
-    const { plugins } = config as { plugins: [string, unknown?][] }
-    pluginList.push(...plugins)
+    const { plugins } = config as { plugins: PluginConfigItem[] }
+    pluginList = pluginList.concat(plugins)
   }
-  const result = pluginList.reduce((result: PluginItem[], [packageName]) => {
+  const result = pluginList.reduce((result: PluginItem[], plugin) => {
+    const packageName = typeof plugin === 'string' ? plugin : plugin[0]
     if (!result.find((plugin) => plugin.packageName === packageName)) {
       return [
         ...result,

@@ -13,6 +13,7 @@ export interface Output {
 type SupportedExecaOptions = 'cwd' | 'timeout' | 'env' | 'stdio'
 
 export interface Options extends Pick<ExecaOptions, SupportedExecaOptions> {
+  output?: boolean
   pipeline?: 'stdout' | 'stderr'
   pipe?: (buf: Buffer) => Output 
 }
@@ -20,6 +21,7 @@ export interface Options extends Pick<ExecaOptions, SupportedExecaOptions> {
 export async function exec(bin: string, args: string[], options: Options = {}) {
   const {
     cwd = envCwd,
+    output = true,
     stdio = 'pipe',
     timeout,
     env,
@@ -28,7 +30,7 @@ export async function exec(bin: string, args: string[], options: Options = {}) {
   } = options
 
   const child = execa(bin, args, { cwd, stdio, timeout, env })
-  if (stdio !== 'pipe') {
+  if (!output) {
     return child
   }
   return new Promise((resolve, reject) => {

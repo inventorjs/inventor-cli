@@ -1,5 +1,5 @@
-import { createRequire } from 'node:module'
+import { execa } from 'execa'
 
-const require = createRequire(import.meta.url)
+const result = await execa('pnpm', ['root', '-g'])
 
-console.log(require.resolve('typescript'), '--------------')
+console.log(result)

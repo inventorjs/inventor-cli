@@ -15,6 +15,10 @@ export function homedir() {
   return os.homedir()
 }
 
+export function packageRoot() {
+  const ctx = context()
+}
+
 export function context() {
   return process.env.npm_config_user_agent ? 'local' : 'global'
 }
