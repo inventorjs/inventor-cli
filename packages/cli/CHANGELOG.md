@@ -1,5 +1,11 @@
 # @inventorjs/cli
 
+## 1.5.2
+
+### Patch Changes
+
+- da5c02a: change match regex
+
 ## 1.5.1
 
 ### Patch Changes

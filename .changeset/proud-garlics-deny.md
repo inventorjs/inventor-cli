@@ -2,4 +2,4 @@
 '@inventorjs/cli': patch
 ---
 
-change match regex
+add peer dependience
