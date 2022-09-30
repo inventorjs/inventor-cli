@@ -2,10 +2,64 @@
  * 依赖包管理模块
  * @author: sunkeysun
  */
+import path from 'node:path'
+import { cwd } from './env.js'
 import { type Options, exec } from './cmd.js'
+import { readFile, writeFile, readdir } from './fs.js'
 import { context } from './env.js'
 
 export const bin = 'pnpm'
+
+export async function addPackageJsonFields(
+  fieldsData: Record<string, unknown>,
+  filePath = cwd,
+) {
+  let packageJson = await loadPackageJson(filePath)
+  if (!packageJson) return
+
+  packageJson = { ...packageJson, ...fieldsData }
+  await savePackageJson(filePath, packageJson)
+}
+
+export async function loadPackageJson(loadPath: string) {
+  let filePath = loadPath
+  if (!loadPath.endsWith('package.json')) {
+    filePath = path.resolve(loadPath, 'package.json')
+  }
+  try {
+    const packageJson = JSON.parse(await readFile(filePath, 'utf8'))
+    return packageJson
+  } catch (err) {
+    return null
+  }
+}
+
+export async function savePackageJson(
+  savePath: string,
+  packageJson: Record<string, unknown>,
+) {
+  let filePath = savePath
+  if (!savePath.endsWith('package.json')) {
+    filePath = path.resolve(savePath, 'package.json')
+  }
+  const fileContent = JSON.stringify(packageJson, null, 2)
+  await writeFile(filePath, fileContent)
+}
+
+export async function searchPackageJson(fromPath: string) {
+  let parentDir = path.dirname(fromPath)
+  let packageJson = null
+  while (parentDir !== '/') {
+    const files = await readdir(parentDir)
+    const packageJsonFile = files.find((file) => file === 'package.json')
+    if (packageJsonFile) {
+      packageJson = await loadPackageJson(packageJsonFile)
+      return { path: path.resolve(parentDir, packageJsonFile), content: packageJson }
+    }
+    parentDir = path.dirname(parentDir)
+  }
+  return null
+}
 
 export async function root() {
   const args = ['root']
@@ -13,7 +67,9 @@ export async function root() {
   if (ctx === 'global') {
     args.push('-g')
   }
-  const { stdout: rootPath } = await exec(bin, args, { output: false }) as { stdout: string}
+  const { stdout: rootPath } = (await exec(bin, args, { output: false })) as {
+    stdout: string
+  }
   return rootPath
 }
 
@@ -64,7 +120,11 @@ async function execBin(args: string[], options: Options = {}) {
       if (/ERR_PNPM/.test(str)) {
         return { status: 'error', output: str }
       }
-      if (/(Progress: resolved|\+{3,}|Virtual store is at|Update available|WARN)/.test(str)) {
+      if (
+        /(Progress: resolved|\+{3,}|Virtual store is at|Update available|WARN)/.test(
+          str,
+        )
+      ) {
         return {}
       }
       return { status: 'data', output: buf }

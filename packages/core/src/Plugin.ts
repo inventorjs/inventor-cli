@@ -53,10 +53,25 @@ export abstract class Plugin {
   async removeDependencies(...args: Parameters<typeof pm.removeDependencies>) {
     return pm.removeDependencies(...args)
   }
-  async removeDevDependencies(
-    ...args: Parameters<typeof pm.removeDevDependencies>
+  async addPackageJsonFields(
+    ...args: Parameters<typeof pm.addPackageJsonFields>
   ) {
-    return pm.removeDevDependencies(...args)
+    return pm.addPackageJsonFields(...args)
+  }
+  async savePackageJson(
+    ...args: Parameters<typeof pm.savePackageJson>
+  ) {
+    return pm.savePackageJson(...args)
+  }
+  async loadPackageJson(
+    ...args: Parameters<typeof pm.loadPackageJson>
+  ) {
+    return pm.loadPackageJson(...args)
+  }
+  async searchPackageJson(
+    ...args: Parameters<typeof pm.searchPackageJson>
+  ) {
+    return pm.searchPackageJson(...args)
   }
 
   async confirmOverwrites(paths: string[]) {
@@ -170,21 +185,6 @@ export abstract class Plugin {
     await this.exec(this.pm.bin, ['husky', 'install'])
   }
 
-  async addPackageJsonConfig(key: string, value: unknown) {
-    try {
-      const packageJsonPath = path.join(env.cwd, 'package.json')
-      const packageJson = JSON.parse(
-        await fs.readFile(packageJsonPath, 'utf8'),
-      )
-      if (packageJson) {
-        packageJson[key] = value
-        await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf8')
-      }
-    } catch (err) {
-      log.raw(log.color.red(err))
-    }
-  }
-
   async addCommitLint() {
     await this.addDevDependencies([
       '@commitlint/cli',
@@ -196,7 +196,9 @@ export abstract class Plugin {
       '.husky/commit-msg',
       `${this.pm.bin} commitlint --edit $1`,
     ])
-    await this.addPackageJsonConfig('commitlint', { extends: '@commitlint/config-conventional' })
+    await pm.addPackageJsonFields({
+      commitlint: { extends: '@commitlint/config-conventional' },
+    })
   }
 
   async addEslint() {
@@ -212,35 +214,13 @@ export abstract class Plugin {
       '.husky/pre-commit',
       `${this.pm.bin} lint-staged -c package.json`,
     ])
-    await this.addPackageJsonConfig('lint-staged', { '*.ts': 'eslint' })
-  }
-
-  async getPackageJson(metaUrl: string) {
-    const filename = this.filename(metaUrl)
-    let parentDir = path.dirname(filename)
-    let packageJson = null
-    while (parentDir !== '/') {
-      const files = await fs.readdir(parentDir)
-      const packageJsonFile = files.find((file) => file === 'package.json')
-      if (packageJsonFile) {
-        try {
-          packageJson = JSON.parse(
-            await fs.readFile(path.join(parentDir, packageJsonFile), 'utf8'),
-          )
-          break
-        } catch (err) {
-          // continue
-        }
-      }
-      parentDir = path.dirname(parentDir)
-    }
-    return packageJson
+    await pm.addPackageJsonFields({ 'lint-staged': { '*.ts': 'eslint' } })
   }
 
   async getPackageName(metaUrl: string) {
-    const packageJson = await this.getPackageJson(metaUrl)
-    if (packageJson) {
-      return packageJson.name
+    const result = await pm.searchPackageJson(metaUrl)
+    if (result) {
+      return result.content.name
     }
     return ''
   }

@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.9.2
+
+### Patch Changes
+
+- 82aaad2: support context import plugin
+
 ## 3.9.1
 
 ### Patch Changes

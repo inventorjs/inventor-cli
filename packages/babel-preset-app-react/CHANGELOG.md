@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.3.2
+
+### Patch Changes
+
+- 82aaad2: support context import plugin
+
 ## 1.3.1
 
 ### Patch Changes

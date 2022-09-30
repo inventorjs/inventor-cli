@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app
 
+## 1.7.2
+
+### Patch Changes
+
+- 82aaad2: support context import plugin
+- Updated dependencies [82aaad2]
+  - @inventorjs/core@3.9.2
+
 ## 1.7.1
 
 ### Patch Changes
