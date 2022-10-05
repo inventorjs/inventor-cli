@@ -76,9 +76,9 @@ async function registerPlugin(
 ) {
   let Plugin
   const pmRoot = await pm.root()
-  const fullPackageName = isCorePlugin(packageName) ? packageName : path.resolve(pmRoot, packageName, 'lib/index.js')
+  const fullPackageName = isCorePlugin(packageName) ? packageName : path.resolve(pmRoot, packageName)
   try {
-    ;({ default: Plugin } = await import(fullPackageName))
+    ;({ default: Plugin } = await import(require.resolve(fullPackageName)))
   } catch (err) {
     log.error(`[${(err as { code: string }).code}]Plugin package "${packageName}" load error!`)
     return
