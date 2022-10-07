@@ -6,7 +6,6 @@
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { readdir } from 'node:fs/promises'
-import { Command } from 'commander'
 import {
   type ActionOption,
   Plugin as CorePlugin,
@@ -15,19 +14,22 @@ import {
   rc,
   env,
   pm,
+  cmd,
+  util,
 } from '@inventorjs/core'
 
-interface PluginItem {
-  packageName: string
-  pluginName: string
-}
-
 type PluginConfigItem = [string, unknown?] | string
+type PluginItem = { packageName: string, pluginName: string }
+
+const { Command } = cmd
 
 const BIN = 'inventor'
 const DEFAULT_ACTION = 'index'
 
 const require = createRequire(import.meta.url)
+
+const packageJson = require('../package.json')
+const cli = new Command(BIN).version(packageJson.version)
 
 const corePlugins: PluginConfigItem[] = [
   '@inventorjs/plugin-plugin',
@@ -44,6 +46,7 @@ async function loadActions(plugin: CorePlugin) {
   )
   const actions: { name: string; action: CoreAction }[] = []
 
+  let pluginName = ''
   for (const actionFile of actionFiles) {
     try {
       const actionPath = path.resolve(plugin.actionPath, actionFile)
@@ -54,12 +57,13 @@ async function loadActions(plugin: CorePlugin) {
       if (!action.__Action__) {
         throw new Error('Action must extends from core Action class!')
       }
+      pluginName = await action.getPluginName()
       const name = path.basename(actionFile, path.extname(actionFile))
 
       actions.push({ name, action })
     } catch (err) {
-      console.log(
-        `${path.basename(actionFile)} load error[skipped]: ${
+      log.error(
+        `plugin[${pluginName}] action[${path.basename(actionFile)}] load error[skipped]: ${
           (err as Error).message
         }`,
       )
@@ -69,18 +73,20 @@ async function loadActions(plugin: CorePlugin) {
   return actions
 }
 
-async function registerPlugin(
-  cli: Command,
-  pluginName: string,
-  packageName: string,
-) {
+async function registerPlugin({ packageName, pluginName }: PluginItem) {
   let Plugin
   const pmRoot = await pm.root()
-  const fullPackageName = isCorePlugin(packageName) ? packageName : path.resolve(pmRoot, packageName)
+  const fullPackageName = isCorePlugin(packageName)
+    ? packageName
+    : path.resolve(pmRoot, packageName)
   try {
     ;({ default: Plugin } = await import(require.resolve(fullPackageName)))
   } catch (err) {
-    log.error(`[${(err as { code: string }).code}]Plugin package "${packageName}" load error!`)
+    log.error(
+      `[${
+        (err as { code: string }).code
+      }]Plugin package "${packageName}" load error!`,
+    )
     return
   }
   const entryPath = require.resolve(fullPackageName)
@@ -90,6 +96,9 @@ async function registerPlugin(
   }
 
   const actions = await loadActions(plugin)
+  if (!pluginName) {
+    throw new Error(`Plugin[${fullPackageName}] not a valid plugin!`)
+  }
 
   const cmd = cli.command(pluginName)
   cmd.description(plugin.description)
@@ -121,9 +130,10 @@ async function searchPlugins() {
   const result = pluginList.reduce((result: PluginItem[], plugin) => {
     const packageName = typeof plugin === 'string' ? plugin : plugin[0]
     if (!result.find((plugin) => plugin.packageName === packageName)) {
+      const pluginName = util.getPluginName(packageName)
       return [
         ...result,
-        { pluginName: getPluginName(packageName), packageName },
+        { packageName, pluginName }
       ]
     }
     return result
@@ -135,26 +145,19 @@ function welcome({ cliName }: { cliName: string }) {
   log.raw(cliName, { art: { font: 'Speed', color: 'cyan' } })
 }
 
-function getPluginName(packageName: string) {
-  return packageName
-    .replace('@inventorjs/plugin-', '')
-    .replace(/^(@[\w-_]+\/)?inventor-plugin-/g, '')
-}
-
 async function run() {
   const [, , pluginName] = process.argv
-  const packageJson = require('../package.json')
-  const cli = new Command(BIN).version(packageJson.version)
 
   welcome({ cliName: BIN })
 
   let plugins = await searchPlugins()
+
   if (pluginName) {
     plugins = plugins.filter((plugin) => plugin.pluginName === pluginName)
   }
 
-  for (const { pluginName, packageName } of plugins) {
-    await registerPlugin(cli, pluginName, packageName)
+  for (const plugin of plugins ) {
+    await registerPlugin(plugin)
   }
 
   cli.parse(process.argv)

@@ -14,20 +14,21 @@ export async function addPackageJsonFields(
   fieldsData: Record<string, unknown>,
   filePath = cwd,
 ) {
-  let packageJson = await loadPackageJson(filePath)
+  let packageJson = await getPackageJson(filePath)
   if (!packageJson) return
 
   packageJson = { ...packageJson, ...fieldsData }
   await savePackageJson(filePath, packageJson)
 }
 
-export async function loadPackageJson(loadPath: string) {
-  let filePath = loadPath
-  if (!loadPath.endsWith('package.json')) {
-    filePath = path.resolve(loadPath, 'package.json')
+export async function getPackageJson(packageJsonPath: string) {
+  let filePath = packageJsonPath
+  if (!packageJsonPath.endsWith('package.json')) {
+    filePath = path.resolve(packageJsonPath, 'package.json')
   }
   try {
-    const packageJson = JSON.parse(await readFile(filePath, 'utf8'))
+    const fileContent = await readFile(filePath, 'utf8')
+    const packageJson = JSON.parse(fileContent)
     return packageJson
   } catch (err) {
     return null
@@ -48,12 +49,13 @@ export async function savePackageJson(
 
 export async function searchPackageJson(fromPath: string) {
   let parentDir = path.dirname(fromPath)
-  let packageJson = null
+  let packageJson: Record<string, unknown> | null = null
   while (parentDir !== '/') {
     const files = await readdir(parentDir)
     const packageJsonFile = files.find((file) => file === 'package.json')
     if (packageJsonFile) {
-      packageJson = await loadPackageJson(packageJsonFile)
+      packageJson = await getPackageJson(packageJsonFile)
+      if (!packageJson) return null
       return { path: path.resolve(parentDir, packageJsonFile), content: packageJson }
     }
     parentDir = path.dirname(parentDir)

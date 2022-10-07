@@ -22,10 +22,6 @@
   "dependencies": {
     "@inventorjs/core": "workspace:*",
     "@inventorjs/plugin-app": "workspace:*",
-    "@inventorjs/plugin-plugin": "workspace:*",
-    "commander": "^9.4.0"
-  },
-  "peerDependencies": {
-    "inventor-plugin-hello": "0.0.3"
+    "@inventorjs/plugin-plugin": "workspace:*"
   }
 }

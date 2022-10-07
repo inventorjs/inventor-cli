@@ -63,15 +63,26 @@ export abstract class Plugin {
   ) {
     return pm.savePackageJson(...args)
   }
-  async loadPackageJson(
-    ...args: Parameters<typeof pm.loadPackageJson>
-  ) {
-    return pm.loadPackageJson(...args)
+  async getPackageJson(fromPath = this.#entryPath) {
+    const result = await pm.searchPackageJson(fromPath)
+    if (!result) {
+      return null
+    }
+    return result.content
   }
-  async searchPackageJson(
-    ...args: Parameters<typeof pm.searchPackageJson>
-  ) {
-    return pm.searchPackageJson(...args)
+  async getPackageName(fromPath = this.#entryPath) {
+    const packageJson = await this.getPackageJson(fromPath)
+    if (!packageJson) return ''
+    const packageName = packageJson.name as string
+    return packageName
+  }
+  async getPluginName(fromPath = this.#entryPath) {
+    const packageName = await this.getPackageName(fromPath)
+    if (!packageName) return ''
+    const pluginName = packageName
+      .replace('@inventorjs/plugin-', '')
+      .replace(/^(@[\w-_]+\/)?inventor-plugin-/g, '')
+    return pluginName 
   }
 
   async confirmOverwrites(paths: string[]) {
@@ -217,18 +228,10 @@ export abstract class Plugin {
     await pm.addPackageJsonFields({ 'lint-staged': { '*.ts': 'eslint' } })
   }
 
-  async getPackageName(metaUrl: string) {
-    const result = await pm.searchPackageJson(metaUrl)
-    if (result) {
-      return result.content.name
-    }
-    return ''
-  }
-
-  async getPluginConfig(metaUrl: string, from: LoadFrom = 'local') {
+  async getPluginConfig(from: LoadFrom = 'local') {
     const rcConfig = await rc.load(from)
     const plugins = (rcConfig?.plugins as unknown[]) ?? []
-    const packageName = await this.getPackageName(metaUrl)
+    const packageName = await this.getPackageName()
     const pluginItem = plugins.find((plugin) => {
       if (
         (Array.isArray(plugin) && plugin[0] === packageName) ||

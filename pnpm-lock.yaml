@@ -69,12 +69,10 @@ importers:
       '@inventorjs/core': workspace:*
       '@inventorjs/plugin-app': workspace:*
       '@inventorjs/plugin-plugin': workspace:*
-      commander: ^9.4.0
     dependencies:
       '@inventorjs/core': link:../core
       '@inventorjs/plugin-app': link:../plugin-app
       '@inventorjs/plugin-plugin': link:../plugin-plugin
-      commander: 9.4.0
 
   packages/core:
     specifiers:

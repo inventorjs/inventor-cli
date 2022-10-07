@@ -2,6 +2,7 @@
  * 命令执行模块
  * @author: sunkeysun
  */
+import { Command } from 'commander'
 import { type Options as ExecaOptions, execa } from 'execa'
 import { cwd as envCwd } from './env.js'
 
@@ -17,6 +18,8 @@ export interface Options extends Pick<ExecaOptions, SupportedExecaOptions> {
   pipeline?: 'stdout' | 'stderr'
   pipe?: (buf: Buffer) => Output 
 }
+
+export { Command }
 
 export async function exec(bin: string, args: string[], options: Options = {}) {
   const {
