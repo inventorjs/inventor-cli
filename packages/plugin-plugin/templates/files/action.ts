@@ -4,11 +4,11 @@
  */
 import { Action } from '@inventorjs/cli-core'
 
-export default class <%- capitalName %>Action extends Action {
+export default class extends Action {
   description = '<%- description %>'
   options = []
   async action() {
-    const nameRegex = /^\w{3}$/
+    const nameRegex = /^\w{3,}$/
     const anwsers = await this.prompt([
       {
         name: 'name',
@@ -22,6 +22,6 @@ export default class <%- capitalName %>Action extends Action {
     ])
     const { name } = anwsers
 
-    this.log.info(`Hello，${name}!`)
+    this.log.success(`Hello，${name}!`)
   }
 }

@@ -41,10 +41,7 @@ export default class extends Action {
       'action.ts',
       actionPath,
       {
-        data: {
-          ...anwsers,
-          capitalName: name.replace(/^\S/, (s: string) => s.toUpperCase())
-        },
+        data: anwsers,
       },
     ), '生成 action 文件')
     this.log.success(`action 路径：${path.resolve(this.pwd, actionPath)}`)

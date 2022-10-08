@@ -20,9 +20,11 @@ export default class extends Action {
 
     const { name } = anwsers
 
-    this.log.info('下面为你创建一个欢迎模版')
-    await this.renderTemplate('default', `welcome-${name}`, {
+    const targetDir = `welcome-${name}`
+
+    await this.renderTemplate('default', targetDir, {
       data: anwsers,
     })
+    this.log.success(`欢迎模版[${targetDir}]初始化成功`)
   }
 }
