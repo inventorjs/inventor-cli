@@ -14,7 +14,10 @@
     "dev": "tsc --watch",
     "build": "rm -rf lib && tsc"
   },
-  "dependencies": {
+  "devDependencies": {
+    "@inventorjs/core": "workspace:*"
+  },
+  "peerDependencies": {
     "@inventorjs/core": "workspace:*"
   }
 }

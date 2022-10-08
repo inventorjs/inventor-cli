@@ -20,8 +20,13 @@
     "build": "rm -rf lib && tsc"
   },
   "dependencies": {
-    "@inventorjs/core": "workspace:*",
     "@inventorjs/plugin-app": "workspace:*",
     "@inventorjs/plugin-plugin": "workspace:*"
+  },
+  "devDependencies": {
+    "@inventorjs/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@inventorjs/core": "workspace:*"
   }
 }
