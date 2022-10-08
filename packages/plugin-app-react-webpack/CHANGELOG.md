@@ -1,5 +1,16 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.3.0
+
+### Minor Changes
+
+- bec5471: change addon
+
+### Patch Changes
+
+- Updated dependencies [bec5471]
+  - @inventorjs/core@3.10.0
+
 ## 1.2.3
 
 ### Patch Changes

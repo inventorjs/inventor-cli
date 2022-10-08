@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.10.0
+
+### Minor Changes
+
+- bec5471: change addon
+
 ## 3.9.3
 
 ### Patch Changes

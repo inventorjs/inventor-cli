@@ -19,7 +19,7 @@
     "dev": "pnpm build && pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "change": "changeset",
-    "vpublish": "pnpm build && changeset version && changeset publish"
+    "pub": "pnpm build && changeset version && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.24.3",

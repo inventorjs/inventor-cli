@@ -1,5 +1,16 @@
 # @inventorjs/cli-plugin-plugin
 
+## 2.0.0
+
+### Minor Changes
+
+- bec5471: change addon
+
+### Patch Changes
+
+- Updated dependencies [bec5471]
+  - @inventorjs/core@3.10.0
+
 ## 1.4.3
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.4.0
+
+### Minor Changes
+
+- bec5471: change addon
+
 ## 1.3.3
 
 ### Patch Changes
