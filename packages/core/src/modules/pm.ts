@@ -7,8 +7,22 @@ import { cwd } from './env.js'
 import { type Options, exec } from './cmd.js'
 import { readFile, writeFile, readdir, stat } from './fs.js'
 import { context } from './env.js'
+import semver from 'semver'
 
-export const bin = 'pnpm'
+export const BIN = 'pnpm'
+const VERSION = '^7.12.0'
+
+export async function checkVersion() {
+  let version = ''
+  try {
+    ({ stdout: version } = await exec(BIN, ['-v'], { output: false }) as { stdout: string })
+  } catch (err) {
+    throw new Error(`${BIN}@${VERSION} is required globally. try "npm install -g pnpm" to fix.`)
+  }
+  if (!semver.satisfies(version, VERSION)) {
+    throw new Error(`pnpm current version[${version}] not satisfy required [${VERSION}].`)
+  }
+}
 
 export async function addPackageJsonFields(
   fieldsData: Record<string, unknown>,
@@ -70,7 +84,7 @@ export async function root() {
   if (ctx === 'global') {
     args.push('-g')
   }
-  const { stdout: rootPath } = (await exec(bin, args, { output: false })) as {
+  const { stdout: rootPath } = (await exec(BIN, args, { output: false })) as {
     stdout: string
   }
   return rootPath
@@ -114,7 +128,7 @@ export async function removeDevDependencies(
 
 async function execBin(args: string[], options: Options = {}) {
   const { cwd, stdio = 'pipe' } = options
-  return exec(bin, args, {
+  return exec(BIN, args, {
     ...options,
     cwd,
     stdio,

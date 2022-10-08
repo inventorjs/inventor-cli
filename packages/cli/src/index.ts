@@ -150,6 +150,13 @@ async function run() {
 
   welcome({ cliName: BIN })
 
+  try {
+    await pm.checkVersion()
+  } catch (err) {
+    log.error(err);
+    return 
+  }
+
   let plugins = await searchPlugins()
 
   if (pluginName) {

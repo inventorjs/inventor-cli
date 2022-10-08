@@ -197,7 +197,7 @@ export abstract class Plugin {
 
     return this.loadingTask(async () => {
       await this.addDevDependencies(['husky'])
-      await this.exec(this.pm.bin, ['husky', 'install'])
+      await this.exec(pm.BIN, ['husky', 'install'])
     }, '安装 Husky')
   }
 
@@ -208,11 +208,11 @@ export abstract class Plugin {
         '@commitlint/cli',
         '@commitlint/config-conventional',
       ])
-      await this.exec(this.pm.bin, [
+      await this.exec(pm.BIN, [
         'husky',
         'add',
         '.husky/commit-msg',
-        `${this.pm.bin} commitlint --edit $1`,
+        `${pm.BIN} commitlint --edit $1`,
       ])
       await pm.addPackageJsonFields({
         commitlint: { extends: '@commitlint/config-conventional' },
@@ -229,11 +229,11 @@ export abstract class Plugin {
         '@typescript-eslint/eslint-plugin',
         '@typescript-eslint/parser',
       ])
-      await this.exec(this.pm.bin, [
+      await this.exec(pm.BIN, [
         'husky',
         'add',
         '.husky/pre-commit',
-        `${this.pm.bin} lint-staged -c package.json`,
+        `${pm.BIN} lint-staged -c package.json`,
       ])
       await pm.addPackageJsonFields({ 'lint-staged': { '*.ts': 'eslint' } })
     }, '安装 Eslint')

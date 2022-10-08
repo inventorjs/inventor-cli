@@ -115,7 +115,7 @@ export default class extends Action {
     this.log.raw(
       `
       cd ${packageName}
-      ${this.pm.bin} dev
+      ${this.pm.BIN} dev
   `,
       { boxen: true },
     )
