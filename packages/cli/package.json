@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/cli",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "type": "module",
   "bin": {
     "inventor": "./lib/index.js"
@@ -17,7 +17,7 @@
   },
   "scripts": {
     "dev": "tsc --watch",
-    "build": "rm -rf lib && tsc"
+    "build": "rimraf lib && tsc && chmod 777 lib/index.js"
   },
   "dependencies": {
     "@inventorjs/plugin-app": "workspace:*",

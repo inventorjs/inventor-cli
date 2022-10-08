@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.2.3
+
+### Patch Changes
+
+- 2dc9a25: change dependences
+- Updated dependencies [2dc9a25]
+  - @inventorjs/core@3.9.3
+
 ## 1.2.2
 
 ### Patch Changes

@@ -48,15 +48,15 @@ export function bye(msg: unknown, options?: Options) {
 }
 
 export function info(msg: unknown, options?: Options) {
-  log(`🌎 ${color.cyan(msg)}`, options)
+  log(`💧 ${color.cyan(msg)}`, options)
 }
 
 export function success(msg: unknown, options?: Options) {
-  log(`✅ ${color.green(msg)}`, options)
+  log(`🎉 ${color.green(msg)}`, options)
 }
 
 export function error(msg: unknown, options?: Options) {
-  log(`❌ ${color.red(msg)}`, options)
+  log(`❗${color.red(msg)}`, options)
 }
 
 export function clear() {

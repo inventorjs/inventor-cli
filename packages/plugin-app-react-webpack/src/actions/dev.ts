@@ -11,7 +11,7 @@ export default class extends Action {
   description = '启动开发服务器'
   options = []
   async action() {
-    const pluginConfig = await this.getPluginConfig(import.meta.url)
+    const pluginConfig = await this.getPluginConfig()
     const { type } = pluginConfig
 
     if (type === 'react-webpack-js') {

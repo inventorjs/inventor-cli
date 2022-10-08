@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.9.3
+
+### Patch Changes
+
+- 2dc9a25: change dependences
+
 ## 3.9.2
 
 ### Patch Changes

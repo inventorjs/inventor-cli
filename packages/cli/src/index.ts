@@ -46,24 +46,24 @@ async function loadActions(plugin: CorePlugin) {
   )
   const actions: { name: string; action: CoreAction }[] = []
 
-  let pluginName = ''
+  const packageName = await plugin.getPackageName()
   for (const actionFile of actionFiles) {
     try {
       const actionPath = path.resolve(plugin.actionPath, actionFile)
       const { default: Action } = await import(actionPath)
       const action = new Action({
         entryPath: plugin.entryPath,
+        plugin,
       }) as CoreAction
       if (!action.__Action__) {
         throw new Error('Action must extends from core Action class!')
       }
-      pluginName = await action.getPluginName()
       const name = path.basename(actionFile, path.extname(actionFile))
 
       actions.push({ name, action })
     } catch (err) {
       log.error(
-        `plugin[${pluginName}] action[${path.basename(actionFile)}] load error[skipped]: ${
+        `plugin[${packageName}] action[${path.basename(actionFile)}] load error[skipped]: ${
           (err as Error).message
         }`,
       )

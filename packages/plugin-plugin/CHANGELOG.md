@@ -1,5 +1,13 @@
 # @inventorjs/cli-plugin-plugin
 
+## 1.4.3
+
+### Patch Changes
+
+- 2dc9a25: change dependences
+- Updated dependencies [2dc9a25]
+  - @inventorjs/core@3.9.3
+
 ## 1.4.2
 
 ### Patch Changes

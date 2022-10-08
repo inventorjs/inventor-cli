@@ -58,9 +58,7 @@ export abstract class Plugin {
   ) {
     return pm.addPackageJsonFields(...args)
   }
-  async savePackageJson(
-    ...args: Parameters<typeof pm.savePackageJson>
-  ) {
+  async savePackageJson(...args: Parameters<typeof pm.savePackageJson>) {
     return pm.savePackageJson(...args)
   }
   async getPackageJson(fromPath = this.#entryPath) {
@@ -82,7 +80,7 @@ export abstract class Plugin {
     const pluginName = packageName
       .replace('@inventorjs/plugin-', '')
       .replace(/^(@[\w-_]+\/)?inventor-plugin-/g, '')
-    return pluginName 
+    return pluginName
   }
 
   async confirmOverwrites(paths: string[]) {
@@ -153,7 +151,7 @@ export abstract class Plugin {
     )
   }
 
-  async runTask(
+  async runTaskContext(
     task: () => Promise<unknown>,
     { cwd = env.cwd }: { cwd?: string } = {},
   ) {
@@ -169,7 +167,10 @@ export abstract class Plugin {
   }
 
   async loadingTask(...args: Parameters<typeof oraPromise>) {
-    const message = args[1]
+    let message = args[1]
+    if (!message) {
+      message = 'Loading'
+    }
     if (typeof message === 'string' && !message.includes('...')) {
       args.splice(1, 1, `${message}...`)
       return oraPromise(...args)
@@ -192,40 +193,50 @@ export abstract class Plugin {
   }
 
   async addHusky() {
-    await this.addDevDependencies(['husky'])
-    await this.exec(this.pm.bin, ['husky', 'install'])
+    if (await fs.exists(path.resolve(env.cwd, '.husky'))) return true
+
+    return this.loadingTask(async () => {
+      await this.addDevDependencies(['husky'])
+      await this.exec(this.pm.bin, ['husky', 'install'])
+    }, '安装 Husky')
   }
 
   async addCommitLint() {
-    await this.addDevDependencies([
-      '@commitlint/cli',
-      '@commitlint/config-conventional',
-    ])
-    await this.exec(this.pm.bin, [
-      'husky',
-      'add',
-      '.husky/commit-msg',
-      `${this.pm.bin} commitlint --edit $1`,
-    ])
-    await pm.addPackageJsonFields({
-      commitlint: { extends: '@commitlint/config-conventional' },
-    })
+    return this.loadingTask(async () => {
+      await this.addHusky()
+      await this.addDevDependencies([
+        '@commitlint/cli',
+        '@commitlint/config-conventional',
+      ])
+      await this.exec(this.pm.bin, [
+        'husky',
+        'add',
+        '.husky/commit-msg',
+        `${this.pm.bin} commitlint --edit $1`,
+      ])
+      await pm.addPackageJsonFields({
+        commitlint: { extends: '@commitlint/config-conventional' },
+      })
+    }, '安装 Commitlint')
   }
 
   async addEslint() {
-    await this.addDevDependencies([
-      'eslint',
-      'eslint-config-prettier',
-      '@typescript-eslint/eslint-plugin',
-      '@typescript-eslint/parser',
-    ])
-    await this.exec(this.pm.bin, [
-      'husky',
-      'add',
-      '.husky/pre-commit',
-      `${this.pm.bin} lint-staged -c package.json`,
-    ])
-    await pm.addPackageJsonFields({ 'lint-staged': { '*.ts': 'eslint' } })
+    return this.loadingTask(async () => {
+      await this.addHusky()
+      await this.addDevDependencies([
+        'eslint',
+        'eslint-config-prettier',
+        '@typescript-eslint/eslint-plugin',
+        '@typescript-eslint/parser',
+      ])
+      await this.exec(this.pm.bin, [
+        'husky',
+        'add',
+        '.husky/pre-commit',
+        `${this.pm.bin} lint-staged -c package.json`,
+      ])
+      await pm.addPackageJsonFields({ 'lint-staged': { '*.ts': 'eslint' } })
+    }, '安装 Eslint')
   }
 
   async getPluginConfig(from: LoadFrom = 'local') {
@@ -311,8 +322,18 @@ export interface ActionOptions {
   [k: string]: unknown
 }
 export abstract class Action extends Plugin {
+  #plugin: Plugin
   abstract options: ActionOption[]
   abstract action(options: Record<string, unknown>): Promise<void>
+
+  constructor({ plugin, entryPath }: { entryPath: string; plugin: Plugin }) {
+    super({ entryPath })
+    this.#plugin = plugin
+  }
+
+  get plugin() {
+    return this.#plugin
+  }
 
   get __Action__() {
     return this

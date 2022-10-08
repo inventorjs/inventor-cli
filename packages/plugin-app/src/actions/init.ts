@@ -5,7 +5,7 @@
 import { Action } from '@inventorjs/core'
 import path from 'path'
 
-export default class InitAction extends Action {
+export default class extends Action {
   description = '初始化前端应用'
   options = []
   async action() {

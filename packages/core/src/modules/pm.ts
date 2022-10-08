@@ -5,7 +5,7 @@
 import path from 'node:path'
 import { cwd } from './env.js'
 import { type Options, exec } from './cmd.js'
-import { readFile, writeFile, readdir } from './fs.js'
+import { readFile, writeFile, readdir, stat } from './fs.js'
 import { context } from './env.js'
 
 export const bin = 'pnpm'
@@ -48,13 +48,14 @@ export async function savePackageJson(
 }
 
 export async function searchPackageJson(fromPath: string) {
-  let parentDir = path.dirname(fromPath)
+  const fsStat = await stat(fromPath)
+  let parentDir = fsStat.isDirectory() ? fromPath : path.dirname(fromPath)
   let packageJson: Record<string, unknown> | null = null
   while (parentDir !== '/') {
     const files = await readdir(parentDir)
     const packageJsonFile = files.find((file) => file === 'package.json')
     if (packageJsonFile) {
-      packageJson = await getPackageJson(packageJsonFile)
+      packageJson = await getPackageJson(path.resolve(parentDir, packageJsonFile))
       if (!packageJson) return null
       return { path: path.resolve(parentDir, packageJsonFile), content: packageJson }
     }

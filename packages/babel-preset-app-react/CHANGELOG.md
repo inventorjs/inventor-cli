@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.3.3
+
+### Patch Changes
+
+- 2dc9a25: change dependences
+
 ## 1.3.2
 
 ### Patch Changes

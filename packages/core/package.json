@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/core",
-  "version": "3.9.2",
+  "version": "3.9.3",
   "description": "inventor-cli core",
   "main": "lib/index.js",
   "author": "sunkeysun",
@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "dev": "tsc --watch",
-    "build": "rm -rf lib && tsc"
+    "build": "rimraf lib && tsc"
   },
   "dependencies": {
     "boxen": "7.0.0",

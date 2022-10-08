@@ -98,7 +98,7 @@ export default class extends Action {
       },
     })
 
-    await this.runTask(
+    await this.runTaskContext(
       async () => {
         isConfirmGit && (await this.loadingTask(this.git.init(), '初始化 git'))
         await this.loadingTask(this.install(), '安装依赖')

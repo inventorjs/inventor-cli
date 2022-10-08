@@ -47,8 +47,7 @@ importers:
       '@types/babel__core': 7.1.19
       '@types/lodash.merge': 4.6.7
       babel-plugin-module-resolver: ^4.1.0
-      lodash.merge: 4.6.2
-      typescript: ^4.7.4
+      lodash.merge: ^4.6.2
     dependencies:
       '@babel/core': 7.19.1
       '@babel/plugin-proposal-decorators': 7.19.1_@babel+core@7.19.1
@@ -62,7 +61,6 @@ importers:
     devDependencies:
       '@types/babel__core': 7.1.19
       '@types/lodash.merge': 4.6.7
-      typescript: 4.7.4
 
   packages/cli:
     specifiers:
@@ -70,9 +68,10 @@ importers:
       '@inventorjs/plugin-app': workspace:*
       '@inventorjs/plugin-plugin': workspace:*
     dependencies:
-      '@inventorjs/core': link:../core
       '@inventorjs/plugin-app': link:../plugin-app
       '@inventorjs/plugin-plugin': link:../plugin-plugin
+    devDependencies:
+      '@inventorjs/core': link:../core
 
   packages/core:
     specifiers:
@@ -120,7 +119,7 @@ importers:
   packages/plugin-app:
     specifiers:
       '@inventorjs/core': workspace:*
-    dependencies:
+    devDependencies:
       '@inventorjs/core': link:../core
 
   packages/plugin-app-react-webpack:
@@ -173,7 +172,7 @@ importers:
   packages/plugin-plugin:
     specifiers:
       '@inventorjs/core': workspace:*
-    dependencies:
+    devDependencies:
       '@inventorjs/core': link:../core
 
 packages:
