@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.0
+
+### Minor Changes
+
+- 21cbdad: change template
+
 ## 3.10.0
 
 ### Minor Changes

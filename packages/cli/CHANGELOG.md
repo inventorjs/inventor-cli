@@ -1,5 +1,18 @@
 # @inventorjs/cli
 
+## 3.0.0
+
+### Minor Changes
+
+- 21cbdad: change template
+
+### Patch Changes
+
+- Updated dependencies [21cbdad]
+  - @inventorjs/core@3.11.0
+  - @inventorjs/plugin-app@3.0.0
+  - @inventorjs/plugin-plugin@3.0.0
+
 ## 2.0.0
 
 ### Minor Changes

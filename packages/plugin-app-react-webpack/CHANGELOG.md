@@ -1,5 +1,16 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.4.0
+
+### Minor Changes
+
+- 21cbdad: change template
+
+### Patch Changes
+
+- Updated dependencies [21cbdad]
+  - @inventorjs/core@3.11.0
+
 ## 1.3.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.5.0
+
+### Minor Changes
+
+- 21cbdad: change template
+
 ## 1.4.0
 
 ### Minor Changes
