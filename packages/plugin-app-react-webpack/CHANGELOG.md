@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.4.1
+
+### Patch Changes
+
+- 95d644f: add version check
+- Updated dependencies [95d644f]
+  - @inventorjs/core@3.11.1
+
 ## 1.4.0
 
 ### Minor Changes

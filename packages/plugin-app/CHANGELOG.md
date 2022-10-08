@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app
 
+## 3.0.1
+
+### Patch Changes
+
+- 95d644f: add version check
+- Updated dependencies [95d644f]
+  - @inventorjs/core@3.11.1
+
 ## 3.0.0
 
 ### Minor Changes

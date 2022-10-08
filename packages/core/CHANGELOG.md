@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.1
+
+### Patch Changes
+
+- 95d644f: add version check
+
 ## 3.11.0
 
 ### Minor Changes
