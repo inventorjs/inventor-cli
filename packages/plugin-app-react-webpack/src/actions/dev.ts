@@ -8,17 +8,39 @@ import detectPort from 'detect-port'
 import webpackDevServer from 'webpack-dev-server'
 import webpackFactory from '../config/webpackFactory.js'
 
+type DevServerConfig = webpackDevServer.Configuration
+interface ServerInfo {
+  localAddress: string
+  staticPath: DevServerConfig['static']
+  historyApiFallback: DevServerConfig['historyApiFallback']
+}
+
 const PORT = 1990
 export default class extends Action {
   description = '启动开发服务器'
   options = []
+
+  logServerInfo({ localAddress, staticPath, historyApiFallback }: ServerInfo) {
+    this.log.clear()
+    this.log.success(`Development server started`)
+    this.log.raw(
+      `
+        LocalAddress:       ${this.color.cyan(localAddress)} 
+        StaticPath:         ${this.color.cyan(staticPath)}
+        HistoryApiFallback: ${this.color.cyan(historyApiFallback)}
+      `,
+      { boxen: true },
+    )
+  }
+
   async action() {
     const pluginConfig = await this.getPluginConfig()
     const port = await detectPort(PORT)
     const baseConfig = webpackFactory({ root: this.pwd, release: false, port })
     const webpackConfig: Configuration =
       pluginConfig?.webpack?.(baseConfig) ?? baseConfig
-    const devServerConfig = webpackConfig.devServer
+    const devServerConfig = webpackConfig.devServer ?? {}
+    const { static: staticPath = '', historyApiFallback = false } = devServerConfig
 
     const compiler = webpack(webpackConfig)
     compiler.hooks.done.tap('done', (stats) => {
@@ -36,22 +58,14 @@ export default class extends Action {
       }
     })
     compiler.hooks.invalid.tap('invalid', (modulePath) => {
+      this.logServerInfo({ localAddress, staticPath, historyApiFallback })
       this.log.info(`Compiling...[${this.color.yellow(modulePath)}]`)
     })
 
     const devServer = new webpackDevServer({ ...devServerConfig }, compiler)
     const localAddress = `${devServerConfig?.server}://localhost:${port}`
-    await devServer.startCallback(() => {
-      this.log.clear()
-      this.log.success(`Development server started`)
-      this.log.raw(
-        `
-LocalAddress:       ${this.color.cyan(localAddress)} 
-StaticPath:         ${this.color.cyan(devServerConfig?.static)}
-HistoryApiFallback: ${this.color.cyan(devServerConfig?.historyApiFallback)}
-        `,
-        { boxen: true },
-      )
-    })
+    await devServer.startCallback(() =>
+      this.logServerInfo({ localAddress, staticPath, historyApiFallback }),
+    )
   }
 }

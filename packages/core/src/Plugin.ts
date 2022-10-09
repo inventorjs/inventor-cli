@@ -14,6 +14,7 @@ import * as git from './modules/git.js'
 import * as pm from './modules/pm.js'
 import * as cmd from './modules/cmd.js'
 import * as rc from './modules/rc.js'
+import * as util from './modules/util.js'
 
 export abstract class Plugin {
   abstract description: string
@@ -276,20 +277,12 @@ export abstract class Plugin {
     )
   }
 
-  filename(...args: Parameters<typeof env.filename>) {
-    return env.filename(...args)
-  }
-
-  dirname(...args: Parameters<typeof env.dirname>) {
-    return env.dirname(...args)
-  }
-
   get __Plugin__() {
     return this
   }
 
   get color() {
-    return this.log.color
+    return log.color
   }
 
   get pwd() {
@@ -326,6 +319,10 @@ export abstract class Plugin {
 
   get rc() {
     return rc
+  }
+
+  get util() {
+    return util
   }
 }
 

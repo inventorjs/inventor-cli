@@ -91,6 +91,7 @@ importers:
       ejs: ^3.1.8
       execa: ^6.1.0
       figlet: ^1.5.2
+      filesize: 10.0.5
       fs-extra: ^10.1.0
       globby: ^13.1.2
       inquirer: 9.1.0
@@ -105,6 +106,7 @@ importers:
       ejs: 3.1.8
       execa: 6.1.0
       figlet: 1.5.2
+      filesize: 10.0.5
       fs-extra: 10.1.0
       globby: 13.1.2
       inquirer: 9.1.0
@@ -3917,6 +3919,11 @@ packages:
     resolution: {integrity: sha512-w1cEuf3S+DrLCQL7ET6kz+gmlJdbq9J7yXCSjK/OZCPA+qEN1WyF4ZAf0YYJa4/shHJra2t/d/r8SV4Ji+x+8Q==}
     dependencies:
       minimatch: 5.1.0
+    dev: false
+
+  /filesize/10.0.5:
+    resolution: {integrity: sha512-qrzyt8gLh86nsyYiC3ibI5KyIYRCWg2yqIklYrWF4a0qNfekik4OQfn7AoPJG2hRrPMSlH6fET4VEITweZAzjA==}
+    engines: {node: '>= 14.0.0'}
     dev: false
 
   /fill-range/7.0.1:

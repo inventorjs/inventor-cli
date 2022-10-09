@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.4.2
+
+### Patch Changes
+
+- a537206: change loading task
+- Updated dependencies [a537206]
+  - @inventorjs/core@3.11.2
+
 ## 1.4.1
 
 ### Patch Changes

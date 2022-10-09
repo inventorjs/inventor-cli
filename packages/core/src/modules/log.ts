@@ -16,8 +16,8 @@ interface Options {
 
 const defaultOptions = { dedent: true }
 
-function log(msg: unknown, options: Options = {}) {
-  let exMsg = String(msg)
+function log(msg: string, options: Options = {}) {
+  let exMsg = msg
   const exOptions = { ...defaultOptions, ...options }
   if (exOptions?.dedent) {
     exMsg = dedent(exMsg)
@@ -40,23 +40,53 @@ function log(msg: unknown, options: Options = {}) {
   console.log(exMsg)
 }
 
+function stringify(msg: unknown) {
+  let strMsg = ''
+  if (Array.isArray(msg) && msg[0]) {
+    const maxLengthArr = Object.keys(msg[0]).reduce((result, col) => {
+      let maxLength = 0
+      msg.forEach((item: string[]) => {
+        if (item[+col]?.length > maxLength) {
+          maxLength = item[+col].length
+        }
+      })
+      return [...result, maxLength]
+    }, [] as number[])
+
+    strMsg = msg.reduce((result, item) => {
+      return [
+        ...result,
+        item.map((it: string, index: number) => it.padEnd(maxLengthArr[index], ' ')).join(' '),
+      ]
+    }, []).join('\n')
+  } else if (typeof msg === 'object') {
+    try {
+      strMsg = JSON.stringify(msg)
+    } catch (err) {// continue
+    }
+  } else {
+    strMsg = String(msg)
+  }
+  return strMsg
+}
+
 export const color = chalk
 
 export function bye(msg: unknown, options?: Options) {
-  log(`👋 ${color.green(msg)}`, options)
+  log(`👋 ${color.green(stringify(msg))}`, options)
   process.exit()
 }
 
 export function info(msg: unknown, options?: Options) {
-  log(`💧 ${color.cyan(msg)}`, options)
+  log(`💧 ${color.cyan(stringify(msg))}`, options)
 }
 
 export function success(msg: unknown, options?: Options) {
-  log(`🎉 ${color.green(msg)}`, options)
+  log(`🎉 ${color.green(stringify(msg))}`, options)
 }
 
 export function error(msg: unknown, options?: Options) {
-  log(`❗${color.red(msg)}`, options)
+  log(`❗${color.red(stringify(msg))}`, options)
 }
 
 export function clear() {
@@ -64,5 +94,5 @@ export function clear() {
 }
 
 export function raw(msg: unknown, options?: Options) {
-  log(msg, options)
+  log(stringify(msg), options)
 }

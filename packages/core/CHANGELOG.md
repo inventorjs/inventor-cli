@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.2
+
+### Patch Changes
+
+- a537206: change loading task
+
 ## 3.11.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.5.2
+
+### Patch Changes
+
+- a537206: change loading task
+
 ## 1.5.1
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @inventorjs/cli-plugin-plugin
 
+## 3.0.2
+
+### Patch Changes
+
+- a537206: change loading task
+- Updated dependencies [a537206]
+  - @inventorjs/core@3.11.2
+
 ## 3.0.1
 
 ### Patch Changes

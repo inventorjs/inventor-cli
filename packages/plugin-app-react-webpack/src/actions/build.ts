@@ -5,6 +5,8 @@
 import { Action } from '@inventorjs/core'
 import webpack, { type Configuration } from 'webpack'
 import webpackFactory from '../config/webpackFactory.js'
+
+const CRITICAL_SIZE = 1024 * 200
 export default class extends Action {
   description = '构建项目'
   options = []
@@ -29,9 +31,11 @@ export default class extends Action {
         this.log.clear()
         const statJson =
           stats?.toJson?.({
-            all: false,
             warnings: true,
             errors: true,
+            modules: false,
+            chunks: false,
+            children: false,
           }) ?? {}
 
         if (statJson.errors?.length) {
@@ -43,6 +47,17 @@ export default class extends Action {
           this.log.error('Compile with warnings.')
           this.log.raw(statJson.warnings.map((item) => item.message).join('\n'))
         }
+        this.log.success(`webpack build assets successfully.`)
+        this.log.raw(
+          statJson.assets?.map((asset) => {
+            const humanSize = this.util.humanSize(asset.size)
+            const criticalSize = this.util.humanSize(CRITICAL_SIZE)
+            return asset.size > CRITICAL_SIZE
+              ? [this.color.cyan(asset.name), this.color.red(`${humanSize}[exceed ${criticalSize}]`)]
+              : [this.color.cyan(asset.name), this.color.cyan(humanSize)]
+          }),
+          { boxen: true },
+        )
         resolve('')
       })
     })
