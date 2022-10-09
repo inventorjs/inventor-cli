@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.4.5
+
+### Patch Changes
+
+- 77912ca: change dev port
+- Updated dependencies [77912ca]
+  - @inventorjs/core@3.11.5
+
 ## 1.4.4
 
 ### Patch Changes

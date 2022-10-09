@@ -19,9 +19,10 @@
   "devDependencies": {
     "@babel/core": "^7.19.1",
     "@babel/eslint-parser": "^7.19.1",
-    "@inventorjs/cli": "latest",
-    "@inventorjs/core": "latest",
-    "@inventorjs/plugin-app-react-webpack": "latest",
+    "@inventorjs/cli": "3.0.5",
+    "@inventorjs/core": "3.11.5",
+    "@inventorjs/plugin-app-react-webpack": "1.4.5",
+    "@inventorjs/babel-preset-app-react": "1.5.5",
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-react": "^7.31.8",

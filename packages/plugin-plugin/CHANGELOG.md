@@ -1,5 +1,13 @@
 # @inventorjs/cli-plugin-plugin
 
+## 3.0.5
+
+### Patch Changes
+
+- 77912ca: change dev port
+- Updated dependencies [77912ca]
+  - @inventorjs/core@3.11.5
+
 ## 3.0.4
 
 ### Patch Changes

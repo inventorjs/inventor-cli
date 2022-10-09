@@ -90,6 +90,10 @@ export function error(msg: unknown, options?: Options) {
   log(`❗${color.red(stringify(msg))}`, options)
 }
 
+export function warn(msg: unknown, options?: Options) {
+  log(`⚠️ ${color.yellow(stringify(msg))}`, options)
+}
+
 export function clear() {
   log(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H') 
 }

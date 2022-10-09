@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.5
+
+### Patch Changes
+
+- 77912ca: change dev port
+
 ## 3.11.4
 
 ### Patch Changes

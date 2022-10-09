@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.5.5
+
+### Patch Changes
+
+- 77912ca: change dev port
+
 ## 1.5.4
 
 ### Patch Changes
