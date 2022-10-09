@@ -17,10 +17,10 @@ interface FactoryParams {
   root: string
   release?: boolean
   analyse?: boolean
-  devServerPort: number
+  port?: number
 }
 
-export default ({ root, release = false, analyse = false, devServerPort }: FactoryParams) => {
+export default ({ root, release = false, analyse = false, port }: FactoryParams) => {
   function ifRelease<T>(releaseValue: T, developmentValue: T): T {
     return release ? releaseValue : developmentValue
   }
@@ -158,7 +158,7 @@ export default ({ root, release = false, analyse = false, devServerPort }: Facto
     },
 
     devServer: {
-      port: devServerPort,
+      port,
       server: 'http',
       hot: true,
       historyApiFallback: true,

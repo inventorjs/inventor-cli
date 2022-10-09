@@ -34,11 +34,11 @@ export default class extends Action {
 
   async action() {
     const pluginConfig = await this.getPluginConfig()
-    const devServerPort = await detectPort(PORT)
+    const port = await detectPort(PORT)
     const baseConfig = webpackFactory({
       root: this.pwd,
       release: false,
-      devServerPort,
+      port,
     })
     const webpackConfig: Configuration =
       pluginConfig?.webpack?.(baseConfig) ?? baseConfig
@@ -67,7 +67,7 @@ export default class extends Action {
     })
 
     const devServer = new webpackDevServer({ ...devServerConfig }, compiler)
-    const localAddress = `${devServerConfig?.server}://localhost:${port}`
+    const localAddress = `${devServerConfig?.server}://localhost:${devServerPort}`
     await devServer.startCallback(() =>
       this.logServerInfo({ localAddress, staticPath, historyApiFallback }),
     )

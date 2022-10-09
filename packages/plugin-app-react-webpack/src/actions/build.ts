@@ -12,12 +12,7 @@ export default class extends Action {
   options = []
   async action() {
     const pluginConfig = await this.getPluginConfig()
-
-    const baseConfig = webpackFactory({
-      root: this.pwd,
-      release: true,
-      port: 8080,
-    })
+    const baseConfig = webpackFactory({ root: this.pwd, release: true })
     const webpackConfig: Configuration =
       pluginConfig?.webpack?.(baseConfig) ?? baseConfig
     const compiler = webpack(webpackConfig)
@@ -52,7 +47,10 @@ export default class extends Action {
             const humanSize = this.util.humanSize(asset.size)
             const criticalSize = this.util.humanSize(CRITICAL_SIZE)
             return asset.size > CRITICAL_SIZE
-              ? [this.color.cyan(asset.name), this.color.red(`${humanSize}[exceed ${criticalSize}]`)]
+              ? [
+                  this.color.cyan(asset.name),
+                  this.color.red(`${humanSize}[exceed ${criticalSize}]`),
+                ]
               : [this.color.cyan(asset.name), this.color.cyan(humanSize)]
           }),
           { boxen: { title: 'Assets' } },
