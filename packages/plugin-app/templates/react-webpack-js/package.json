@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "inventor-app-scripts dev",
-    "build": "inventor-app-scripts build"
+    "dev": "inventor app-react-webpack dev",
+    "build": "inventor app-react-webpack build"
   },
   "keywords": [],
   "author": "sunkeysun",
@@ -20,6 +20,7 @@
     "@babel/core": "^7.19.1",
     "@babel/eslint-parser": "^7.19.1",
     "@inventorjs/cli": "latest",
+    "@inventorjs/core": "latest",
     "@inventorjs/plugin-app-react-webpack": "latest",
     "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",

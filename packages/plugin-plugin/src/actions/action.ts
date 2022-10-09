@@ -36,14 +36,14 @@ export default class extends Action {
     const { name } = anwsers
     const actionPath = `src/actions/${name}.ts`
 
-    await this.loadingTask(this.renderTemplateFile(
+    this.renderTemplateFile(
       'files',
       'action.ts',
       actionPath,
       {
         data: anwsers,
       },
-    ), '生成 action 文件')
+    )
     this.log.success(`action 路径：${path.resolve(this.pwd, actionPath)}`)
   }
 }

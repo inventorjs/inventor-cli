@@ -19,7 +19,7 @@ import {
 } from '@inventorjs/core'
 
 type PluginConfigItem = [string, unknown?] | string
-type PluginItem = { packageName: string, pluginName: string }
+type PluginItem = { packageName: string; pluginName: string }
 
 const { Command } = cmd
 
@@ -29,7 +29,10 @@ const DEFAULT_ACTION = 'index'
 const require = createRequire(import.meta.url)
 
 const packageJson = require('../package.json')
-const cli = new Command(BIN).version(packageJson.version)
+const cli = new Command(BIN)
+  .version(packageJson.version)
+  .usage('[command] [action]')
+  .addHelpCommand(false)
 
 const corePlugins: PluginConfigItem[] = [
   '@inventorjs/plugin-plugin',
@@ -63,9 +66,9 @@ async function loadActions(plugin: CorePlugin) {
       actions.push({ name, action })
     } catch (err) {
       log.error(
-        `plugin[${packageName}] action[${path.basename(actionFile)}] load error[skipped]: ${
-          (err as Error).message
-        }`,
+        `plugin[${packageName}] action[${path.basename(
+          actionFile,
+        )}] load error[skipped]: ${(err as Error).message}`,
       )
     }
   }
@@ -101,7 +104,11 @@ async function registerPlugin({ packageName, pluginName }: PluginItem) {
   }
 
   const cmd = cli.command(pluginName)
-  cmd.description(plugin.description)
+  cmd.description(
+    isCorePlugin(packageName)
+      ? `[[${plugin.description}]]`
+      : plugin.description,
+  )
 
   for (const { name, action } of actions) {
     const actionCmd = cmd
@@ -131,10 +138,7 @@ async function searchPlugins() {
     const packageName = typeof plugin === 'string' ? plugin : plugin[0]
     if (!result.find((plugin) => plugin.packageName === packageName)) {
       const pluginName = util.getPluginName(packageName)
-      return [
-        ...result,
-        { packageName, pluginName }
-      ]
+      return [...result, { packageName, pluginName }]
     }
     return result
   }, [])
@@ -153,8 +157,8 @@ async function run() {
   try {
     await pm.checkVersion()
   } catch (err) {
-    log.error(err);
-    return 
+    log.error(err)
+    return
   }
 
   let plugins = await searchPlugins()
@@ -163,7 +167,7 @@ async function run() {
     plugins = plugins.filter((plugin) => plugin.pluginName === pluginName)
   }
 
-  for (const plugin of plugins ) {
+  for (const plugin of plugins) {
     await registerPlugin(plugin)
   }
 

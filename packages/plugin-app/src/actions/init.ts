@@ -11,7 +11,7 @@ export default class extends Action {
   async action() {
     const anwsers = await this.prompt([
       {
-        name: 'name',
+        name: 'packageName',
         type: 'text',
         message: '请输入项目名称',
         default: 'inventor-app-project',
@@ -20,16 +20,14 @@ export default class extends Action {
         name: 'type',
         type: 'list',
         message: '请选择应用类型',
-        choices: ['react-webpack'],
+        choices: ['react-webpack-js'],
       },
     ])
 
-    const { type, name } = anwsers
+    const { type, packageName } = anwsers
 
-    await this.loadingTask(this.renderTemplate(type, name), '生成目录')
-    await this.loadingTask(
-      this.install({ cwd: path.resolve(this.pwd, name) }),
-      '安装依赖',
-    )
+    await this.renderTemplate(type, packageName)
+    await this.install({ cwd: path.resolve(this.pwd, packageName) })
+    await this.logInitCmd({ dirName: packageName })
   }
 }

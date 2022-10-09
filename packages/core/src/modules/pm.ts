@@ -17,7 +17,7 @@ export async function checkVersion() {
   try {
     ({ stdout: version } = await exec(BIN, ['-v'], { output: false }) as { stdout: string })
   } catch (err) {
-    throw new Error(`${BIN}@${VERSION} is required globally. try "npm install -g pnpm" to fix.`)
+    throw new Error(`${BIN}@${VERSION} is required globally. try "corepack prepare ${BIN}@${VERSION} --activate" to fix.`)
   }
   if (!semver.satisfies(version, VERSION)) {
     throw new Error(`pnpm current version[${version}] not satisfy required [${VERSION}].`)

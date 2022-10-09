@@ -42,16 +42,16 @@ export abstract class Plugin {
   }
 
   async install(...args: Parameters<typeof pm.install>) {
-    return pm.install(...args)
+    return this.loadingTask(pm.install(...args), '安装依赖')
   }
   async addDependencies(...args: Parameters<typeof pm.addDependencies>) {
-    return pm.addDependencies(...args)
+    return this.loadingTask(pm.addDependencies(...args), '安装依赖')
   }
   async addDevDependencies(...args: Parameters<typeof pm.addDevDependencies>) {
-    return pm.addDevDependencies(...args)
+    return this.loadingTask(pm.addDevDependencies(...args), '安装依赖')
   }
   async removeDependencies(...args: Parameters<typeof pm.removeDependencies>) {
-    return pm.removeDependencies(...args)
+    return this.loadingTask(pm.removeDependencies(...args), '移除依赖')
   }
   async addPackageJsonFields(
     ...args: Parameters<typeof pm.addPackageJsonFields>
@@ -120,7 +120,10 @@ export abstract class Plugin {
         }
       }
     }
-    await fs.renderTemplate(templateDir, destinationDir, fsOptions)
+    return this.loadingTask(
+      fs.renderTemplate(templateDir, destinationDir, fsOptions),
+      '生成模板目录',
+    )
   }
 
   async renderTemplateFile(
@@ -144,10 +147,9 @@ export abstract class Plugin {
         }
       }
     }
-    await fs.renderTemplateFile(
-      templateFilePath,
-      destinationFilePath,
-      fsOptions,
+    return this.loadingTask(
+      fs.renderTemplateFile(templateFilePath, destinationFilePath, fsOptions),
+      '生成模版文件',
     )
   }
 
@@ -192,23 +194,27 @@ export abstract class Plugin {
     return this.cmd.exec(...args)
   }
 
+  async initGit() {
+    return this.loadingTask(git.init(), '初始化 Git')
+  }
+
   async addHusky() {
     if (await fs.exists(path.resolve(env.cwd, '.husky'))) return true
 
     return this.loadingTask(async () => {
-      await this.addDevDependencies(['husky'])
-      await this.exec(pm.BIN, ['husky', 'install'])
+      await pm.addDevDependencies(['husky'])
+      await cmd.exec(pm.BIN, ['husky', 'install'])
     }, '安装 Husky')
   }
 
   async addCommitLint() {
     return this.loadingTask(async () => {
       await this.addHusky()
-      await this.addDevDependencies([
+      await pm.addDevDependencies([
         '@commitlint/cli',
         '@commitlint/config-conventional',
       ])
-      await this.exec(pm.BIN, [
+      await cmd.exec(pm.BIN, [
         'husky',
         'add',
         '.husky/commit-msg',
@@ -223,13 +229,13 @@ export abstract class Plugin {
   async addEslint() {
     return this.loadingTask(async () => {
       await this.addHusky()
-      await this.addDevDependencies([
+      await pm.addDevDependencies([
         'eslint',
         'eslint-config-prettier',
         '@typescript-eslint/eslint-plugin',
         '@typescript-eslint/parser',
       ])
-      await this.exec(pm.BIN, [
+      await cmd.exec(pm.BIN, [
         'husky',
         'add',
         '.husky/pre-commit',
@@ -257,6 +263,17 @@ export abstract class Plugin {
       return pluginItem[1] ?? {}
     }
     return {}
+  }
+
+  async logInitCmd({ dirName = '.', cmd = `${this.pm.BIN} dev` } = {}) {
+    this.log.success('Init successful. Start develop to run:')
+    this.log.raw(
+      `
+        cd ${dirName}
+        ${cmd}
+      `,
+      { boxen: true },
+    )
   }
 
   filename(...args: Parameters<typeof env.filename>) {

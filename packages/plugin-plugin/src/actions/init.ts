@@ -90,7 +90,7 @@ export default class extends Action {
     const packagePath = path.resolve(this.pwd, packageName)
     const templateName = 'default'
 
-    await this.renderTemplate(templateName, packageName, {
+    this.renderTemplate(templateName, packageName, {
       data: {
         packageName,
         description,
@@ -100,24 +100,14 @@ export default class extends Action {
 
     await this.runTaskContext(
       async () => {
-        isConfirmGit && (await this.loadingTask(this.git.init(), '初始化 git'))
-        await this.loadingTask(this.install(), '安装依赖')
-        ;(isConfirmHusky || isConfirmCommitlint || isConfirmEslint) &&
-          (await this.loadingTask(this.addHusky(), '安装 husky'))
-        isConfirmCommitlint &&
-          (await this.loadingTask(this.addCommitLint(), '添加 commitlint'))
-        isConfirmEslint && (await this.loadingTask(this.addEslint(), '安装 eslint'))
+        isConfirmGit && await this.initGit()
+        await this.install()
+        ;(isConfirmHusky || isConfirmCommitlint || isConfirmEslint) && await this.addHusky()
+        isConfirmCommitlint && await this.addCommitLint()
+        isConfirmEslint && this.addEslint()
       },
       { cwd: packagePath },
     )
-
-    this.log.success('Init successful. Start develop to run:')
-    this.log.raw(
-      `
-      cd ${packageName}
-      ${this.pm.BIN} dev
-  `,
-      { boxen: true },
-    )
+    await this.logInitCmd({ dirName: packageName })
   }
 }
