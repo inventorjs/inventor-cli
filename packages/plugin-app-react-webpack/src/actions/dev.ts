@@ -15,7 +15,7 @@ interface ServerInfo {
   historyApiFallback: DevServerConfig['historyApiFallback']
 }
 
-const PORT = 1990
+const DPORT = 1990
 export default class extends Action {
   description = '启动开发服务器'
   options = []
@@ -34,7 +34,7 @@ export default class extends Action {
 
   async action() {
     const pluginConfig = await this.getPluginConfig()
-    const port = await detectPort(PORT)
+    const port = await detectPort(DPORT)
     const baseConfig = webpackFactory({
       root: this.pwd,
       release: false,
@@ -67,7 +67,7 @@ export default class extends Action {
     })
 
     const devServer = new webpackDevServer({ ...devServerConfig }, compiler)
-    const localAddress = `${devServerConfig?.server}://localhost:${devServerPort}`
+    const localAddress = `${devServerConfig.server}://localhost:${devServerConfig.port}`
     await devServer.startCallback(() =>
       this.logServerInfo({ localAddress, staticPath, historyApiFallback }),
     )
