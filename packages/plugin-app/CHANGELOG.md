@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app
 
+## 3.0.4
+
+### Patch Changes
+
+- 06b3a7d: remove thread loader
+- Updated dependencies [06b3a7d]
+  - @inventorjs/core@3.11.4
+
 ## 3.0.3
 
 ### Patch Changes

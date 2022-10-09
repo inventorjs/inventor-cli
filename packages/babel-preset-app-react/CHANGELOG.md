@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.5.4
+
+### Patch Changes
+
+- 06b3a7d: remove thread loader
+
 ## 1.5.3
 
 ### Patch Changes

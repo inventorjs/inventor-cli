@@ -17,11 +17,10 @@ interface FactoryParams {
   root: string
   release?: boolean
   analyse?: boolean
-  alias?: Record<string, string> | null
-  port: number
+  devServerPort: number
 }
 
-export default ({ root, release = false, analyse = false, alias = null, port }: FactoryParams) => {
+export default ({ root, release = false, analyse = false, devServerPort }: FactoryParams) => {
   function ifRelease<T>(releaseValue: T, developmentValue: T): T {
     return release ? releaseValue : developmentValue
   }
@@ -159,7 +158,7 @@ export default ({ root, release = false, analyse = false, alias = null, port }: 
     },
 
     devServer: {
-      port,
+      port: devServerPort,
       server: 'http',
       hot: true,
       historyApiFallback: true,

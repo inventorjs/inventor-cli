@@ -22,12 +22,11 @@ export default class extends Action {
 
   logServerInfo({ localAddress, staticPath, historyApiFallback }: ServerInfo) {
     this.log.clear()
-    this.log.success(`Development server started`)
     this.log.raw(
       [
-        ['LocalAddress:', this.color.cyan(localAddress) ],
-        ['StaticPath:', this.color.cyan(staticPath) ],
-        ['HistoryApiFallback:', this.color.cyan(historyApiFallback) ],
+        ['LocalAddress:', this.color.cyan(localAddress)],
+        ['StaticPath:', this.color.cyan(staticPath)],
+        ['HistoryApiFallback:', this.color.cyan(historyApiFallback)],
       ],
       { boxen: { title: 'DevServer' } },
     )
@@ -35,12 +34,17 @@ export default class extends Action {
 
   async action() {
     const pluginConfig = await this.getPluginConfig()
-    const port = await detectPort(PORT)
-    const baseConfig = webpackFactory({ root: this.pwd, release: false, port })
+    const devServerPort = await detectPort(PORT)
+    const baseConfig = webpackFactory({
+      root: this.pwd,
+      release: false,
+      devServerPort,
+    })
     const webpackConfig: Configuration =
       pluginConfig?.webpack?.(baseConfig) ?? baseConfig
     const devServerConfig = webpackConfig.devServer ?? {}
-    const { static: staticPath = '', historyApiFallback = false } = devServerConfig
+    const { static: staticPath = '', historyApiFallback = false } =
+      devServerConfig
 
     const compiler = webpack(webpackConfig)
     compiler.hooks.done.tap('done', (stats) => {

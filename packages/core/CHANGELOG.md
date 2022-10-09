@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.4
+
+### Patch Changes
+
+- 06b3a7d: remove thread loader
+
 ## 3.11.3
 
 ### Patch Changes
