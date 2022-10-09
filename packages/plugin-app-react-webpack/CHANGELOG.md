@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.4.3
+
+### Patch Changes
+
+- 2196ec9: change log format
+- Updated dependencies [2196ec9]
+  - @inventorjs/core@3.11.3
+
 ## 1.4.2
 
 ### Patch Changes

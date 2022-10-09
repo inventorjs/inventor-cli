@@ -65,10 +65,6 @@ export default ({ root, release = false, analyse = false, alias = null, port }: 
         {
           test: /\.css$/,
           use: [
-            {
-              loader: require.resolve('thread-loader'),
-              options: { workers: os.cpus().length },
-            },
             MiniCssExtractPlugin.loader,
             {
               loader: require.resolve('css-loader'),

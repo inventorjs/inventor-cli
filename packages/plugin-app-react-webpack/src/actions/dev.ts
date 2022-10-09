@@ -24,12 +24,12 @@ export default class extends Action {
     this.log.clear()
     this.log.success(`Development server started`)
     this.log.raw(
-      `
-        LocalAddress:       ${this.color.cyan(localAddress)} 
-        StaticPath:         ${this.color.cyan(staticPath)}
-        HistoryApiFallback: ${this.color.cyan(historyApiFallback)}
-      `,
-      { boxen: true },
+      [
+        ['LocalAddress:', this.color.cyan(localAddress) ],
+        ['StaticPath:', this.color.cyan(staticPath) ],
+        ['HistoryApiFallback:', this.color.cyan(historyApiFallback) ],
+      ],
+      { boxen: { title: 'DevServer' } },
     )
   }
 

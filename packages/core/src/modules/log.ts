@@ -31,10 +31,11 @@ function log(msg: string, options: Options = {}) {
   }
   if (exOptions?.boxen) {
     const boxenOptions = options.boxen
+    const defaultOptions = { padding: 1, borderColor: 'green' }
     if (boxenOptions === true) {
-      exMsg = boxen(exMsg, { padding: 1, borderColor: 'green' })
+      exMsg = boxen(exMsg, defaultOptions)
     } else {
-      exMsg = boxen(exMsg, boxenOptions)
+      exMsg = boxen(exMsg, { ...defaultOptions, ...boxenOptions })
     }
   }
   console.log(exMsg)

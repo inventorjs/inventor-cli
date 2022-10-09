@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.5.3
+
+### Patch Changes
+
+- 2196ec9: change log format
+
 ## 1.5.2
 
 ### Patch Changes

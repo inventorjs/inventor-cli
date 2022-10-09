@@ -47,7 +47,6 @@ export default class extends Action {
           this.log.error('Compile with warnings.')
           this.log.raw(statJson.warnings.map((item) => item.message).join('\n'))
         }
-        this.log.success(`webpack build assets successfully.`)
         this.log.raw(
           statJson.assets?.map((asset) => {
             const humanSize = this.util.humanSize(asset.size)
@@ -56,7 +55,7 @@ export default class extends Action {
               ? [this.color.cyan(asset.name), this.color.red(`${humanSize}[exceed ${criticalSize}]`)]
               : [this.color.cyan(asset.name), this.color.cyan(humanSize)]
           }),
-          { boxen: true },
+          { boxen: { title: 'Assets' } },
         )
         resolve('')
       })

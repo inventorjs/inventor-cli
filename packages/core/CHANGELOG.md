@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.3
+
+### Patch Changes
+
+- 2196ec9: change log format
+
 ## 3.11.2
 
 ### Patch Changes
