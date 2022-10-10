@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.4.6
+
+### Patch Changes
+
+- f35e809: add warn
+- Updated dependencies [f35e809]
+  - @inventorjs/core@3.11.6
+
 ## 1.4.5
 
 ### Patch Changes

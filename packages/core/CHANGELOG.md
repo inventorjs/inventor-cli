@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.6
+
+### Patch Changes
+
+- f35e809: add warn
+
 ## 3.11.5
 
 ### Patch Changes
