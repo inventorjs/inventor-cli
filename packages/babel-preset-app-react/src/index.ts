@@ -8,34 +8,52 @@ import type { ConfigAPI }  from '@babel/core'
 
 interface Options {
   alias?: Record<string, string>
-  '@babel/preset-env'?: Record<string, unknown> | false
-  '@babel/preset-react'?: Record<string, unknown> | false
+  env?: Record<string, string> | false
+  typescript?: Record<string, string> | false
+  react?: Record<string, string> | false
+  '@babel/plugin-transform-runtime'?: Record<string, unknown> | false
   '@babel/plugin-proposal-decorators'?: Record<string, unknown> | false
   '@babel/plugin-proposal-export-default-from'?: Record<string, unknown> | false
   '@babel/plugin-proposal-export-namespace-from'?: Record<string, unknown> | false
-  '@babel/plugin-transform-runtime'?: Record<string, unknown> | false
-  'react-refresh/babel'?: Record<string, unknown> | false
+}
+
+interface PackageNames extends Options {
+  'react-refresh/babel': void
 }
 
 type Env = 'production' | 'development' | 'test'
+
+const packageMap = {
+  env: '@babel/preset-env' as const,
+  typescript: '@babel/preset-typescript' as const,
+  react: '@babel/preset-react' as const,
+} 
+type PackageMap = typeof packageMap
+type ShortPackageName = keyof PackageMap
 
 export default (api: ConfigAPI, opts: Options = {}, env: Env = 'production') => {
   const isProduction = env === 'production'
   const { alias } = opts
 
-  function ifRequire(pkg: keyof Options | false, options = {}) {
-    if (pkg && opts[pkg] !== false) {
-      return [require(pkg), merge(options, opts?.[pkg] ?? {})]
+  function ifRequire(pkg: keyof PackageNames | false, options = {}) {
+    if (!pkg || opts?.[pkg as keyof Options] === false) return false
+
+    let packageName: Omit<keyof PackageNames, ShortPackageName | 'alias'> | PackageMap[ShortPackageName] = pkg
+
+    if (Object.keys(packageMap).includes(pkg))  {
+      packageName = packageMap[pkg as ShortPackageName]
     }
-    return false
+
+    return [require(packageName as string), merge(options, opts?.[pkg as keyof Options] ?? {})]
   }
 
   api.cache.using(() => env)
 
   return {
     presets: [
-      ifRequire('@babel/preset-env'),
-      ifRequire('@babel/preset-react', { runtime: 'automatic' }),
+      ifRequire('env'),
+      ifRequire('react', { runtime: 'automatic' }),
+      ifRequire('typescript'),
     ],
     plugins: [
       ifRequire('@babel/plugin-proposal-decorators', { legacy: true }),

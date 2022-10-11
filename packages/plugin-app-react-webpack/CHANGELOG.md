@@ -1,5 +1,11 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.4.7
+
+### Patch Changes
+
+- add file-loader
+
 ## 1.4.6
 
 ### Patch Changes

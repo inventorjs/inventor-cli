@@ -2,15 +2,18 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "nodenext",
     "lib": ["esnext"],
-    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "outDir": "lib",
     "declaration": true,
     "esModuleInterop": true,
-    "allowJs": false,
+    "importHelpers": true,
     "strict": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
-  }  
+    "resolveJsonModule": true,
+    "moduleResolution": "nodenext"
+  },
+  "include": ["src/**/*"]
 }

@@ -203,6 +203,9 @@ export abstract class Plugin {
     if (await fs.exists(path.resolve(env.cwd, '.husky'))) return true
 
     return this.loadingTask(async () => {
+      if (!await fs.exists(path.resolve(env.cwd, '.git'))) {
+        await git.init()
+      }
       await pm.addDevDependencies(['husky'])
       await cmd.exec(pm.BIN, ['husky', 'install'])
     }, '安装 Husky')

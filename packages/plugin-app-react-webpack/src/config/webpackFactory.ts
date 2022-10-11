@@ -46,7 +46,7 @@ export default ({ root, release = false, analyse = false, port }: FactoryParams)
     module: {
       rules: [
         {
-          test: /\.jsx?$/,
+          test: /\.(j|t)sx?$/,
           use: [
             {
               loader: require.resolve('thread-loader'),

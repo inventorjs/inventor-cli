@@ -11,23 +11,56 @@ export default class extends Action {
   async action() {
     const anwsers = await this.prompt([
       {
-        name: 'packageName',
-        type: 'text',
-        message: '请输入项目名称',
-        default: 'inventor-app-project',
-      },
-      {
         name: 'type',
         type: 'list',
         message: '请选择应用类型',
-        choices: ['react-webpack-js'],
+        choices: ['library', 'react-vite', 'react-webpack', 'react-webpack-js'],
+      },
+      {
+        name: 'packageName',
+        type: 'text',
+        message: '请输入项目名称',
+        default: ({ type }: { type: string }) =>
+          type === 'library' ? 'inventor-app-lib' : 'inventor-app-project',
+      },
+      {
+        name: 'description',
+        type: 'text',
+        message: '请输入项目描述',
+        default: 'project init from inventor-cli'
+      },
+      {
+        name: 'author',
+        type: 'text',
+        message: '请输入作者名称',
+        default: this.username,
+      },
+      {
+        when: ({ type }: { type: string }) => !['react-webpack-js'].includes(type),
+        type: 'checkbox',
+        name: 'addon',
+        message: '选择要添加的应用附加能力',
+        choices: [
+          { name: 'Husky', value: 'husky' },
+          {
+            name: 'Eslint [husky, lint-staged, pre-commit hook]',
+            value: 'eslint',
+          },
+          { name: 'Commitlint [husky, commit-msg hook]', value: 'commitlint' },
+        ],
       },
     ])
 
-    const { type, packageName } = anwsers
+    const { type, packageName, author, description, addon = [] } = anwsers
 
-    await this.renderTemplate(type, packageName)
-    await this.install({ cwd: path.resolve(this.pwd, packageName) })
+    const cwd = path.resolve(this.pwd, packageName)
+    await this.runTaskContext(async () => {
+      await this.renderTemplate(type, packageName, { data: { packageName, author, description } })
+      await this.install()
+      addon.includes('husky') && await this.addHusky();
+      addon.includes('eslint') && await this.addEslint();
+      addon.includes('commitlint') && await this.addCommitLint();
+    }, { cwd })
     await this.logInitCmd({ dirName: packageName })
   }
 }
