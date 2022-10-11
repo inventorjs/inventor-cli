@@ -36,7 +36,7 @@ export default (api: ConfigAPI, opts: Options = {}, env: Env = 'production') => 
   const { alias } = opts
 
   function ifRequire(pkg: keyof PackageNames | false, options = {}) {
-    if (!pkg || opts?.[pkg as keyof Options] === false) return false
+    if (!pkg || opts[pkg as keyof Options] === false) return false
 
     let packageName: Omit<keyof PackageNames, ShortPackageName | 'alias'> | PackageMap[ShortPackageName] = pkg
 
