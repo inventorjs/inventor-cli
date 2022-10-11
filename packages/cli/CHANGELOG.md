@@ -1,5 +1,15 @@
 # @inventorjs/cli
 
+## 3.0.7
+
+### Patch Changes
+
+- change babel preset
+- Updated dependencies
+  - @inventorjs/core@3.11.7
+  - @inventorjs/plugin-app@3.0.7
+  - @inventorjs/plugin-plugin@3.0.7
+
 ## 3.0.6
 
 ### Patch Changes

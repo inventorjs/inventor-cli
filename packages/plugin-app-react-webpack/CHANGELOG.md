@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.4.8
+
+### Patch Changes
+
+- change babel preset
+- Updated dependencies
+  - @inventorjs/core@3.11.7
+
 ## 1.4.7
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.7
+
+### Patch Changes
+
+- change babel preset
+
 ## 3.11.6
 
 ### Patch Changes

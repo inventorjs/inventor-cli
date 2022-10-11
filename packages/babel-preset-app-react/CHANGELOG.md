@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.5.7
+
+### Patch Changes
+
+- change babel preset
+
 ## 1.5.6
 
 ### Patch Changes
