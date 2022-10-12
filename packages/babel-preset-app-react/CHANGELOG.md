@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.5.8
+
+### Patch Changes
+
+- filter presets
+
 ## 1.5.7
 
 ### Patch Changes
