@@ -54,7 +54,7 @@ export default (api: ConfigAPI, opts: Options = {}, env: Env = 'production') => 
       ifRequire('env'),
       ifRequire('react', { runtime: 'automatic' }),
       ifRequire('typescript'),
-    ],
+    ].filter(Boolean),
     plugins: [
       ifRequire('@babel/plugin-proposal-decorators', { legacy: true }),
       ifRequire('@babel/plugin-proposal-export-default-from'),
