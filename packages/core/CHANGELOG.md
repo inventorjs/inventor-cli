@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.8
+
+### Patch Changes
+
+- add isTTY
+
 ## 3.11.7
 
 ### Patch Changes

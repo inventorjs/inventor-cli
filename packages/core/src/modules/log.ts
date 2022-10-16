@@ -16,7 +16,6 @@ interface Options {
 }
 
 const defaultOptions = { dedent: true }
-
 function log(msg: string, options: Options = {}) {
   let exMsg = msg
   const exOptions = { ...defaultOptions, ...options }
@@ -24,19 +23,32 @@ function log(msg: string, options: Options = {}) {
     exMsg = dedent(exMsg)
   }
   if (exOptions?.art) {
-    const { color, ...figletOptions} = exOptions.art
-    exMsg = figlet.textSync(exMsg, figletOptions) 
+    const { color, ...figletOptions } = exOptions.art
+    exMsg = figlet.textSync(exMsg, figletOptions)
     if (color) {
       exMsg = chalk[color](exMsg)
     }
   }
-  if (exOptions?.boxen && !isTTY()) {
-    const boxenOptions = options.boxen
-    const defaultOptions = { padding: 1, borderColor: 'green' }
-    if (boxenOptions === true) {
-      exMsg = boxen(exMsg, defaultOptions)
+  if (exOptions?.boxen) {
+    if (isTTY()) {
+      const boxenOptions = options.boxen
+      const defaultOptions = { padding: 1, borderColor: 'green' }
+      if (boxenOptions === true) {
+        exMsg = boxen(exMsg, defaultOptions)
+      } else {
+        exMsg = boxen(exMsg, { ...defaultOptions, ...boxenOptions })
+      }
     } else {
-      exMsg = boxen(exMsg, { ...defaultOptions, ...boxenOptions })
+      let strArr = exMsg.split('\n')
+      let maxLength = 0
+      strArr = strArr.reduce((result, str) => {
+        const paddingStr = str.padStart(str.length + 2, ' ').padEnd(str.length + 4, ' ')
+        maxLength = paddingStr.length > maxLength ? paddingStr.length : maxLength
+        return [...result, paddingStr]
+      }, [] as string[])
+      strArr.unshift('-'.repeat(maxLength))
+      strArr.push('-'.repeat(maxLength))
+      exMsg = strArr.join('\n')
     }
   }
   console.log(exMsg)
@@ -55,16 +67,23 @@ function stringify(msg: unknown) {
       return [...result, maxLength]
     }, [] as number[])
 
-    strMsg = msg.reduce((result, item) => {
-      return [
-        ...result,
-        item.map((it: string, index: number) => it.padEnd(maxLengthArr[index], ' ')).join(' '),
-      ]
-    }, []).join('\n')
+    strMsg = msg
+      .reduce((result, item) => {
+        return [
+          ...result,
+          item
+            .map((it: string, index: number) =>
+              it.padEnd(maxLengthArr[index], ' '),
+            )
+            .join(' '),
+        ]
+      }, [])
+      .join('\n')
   } else if (typeof msg === 'object') {
     try {
       strMsg = JSON.stringify(msg)
-    } catch (err) {// continue
+    } catch (err) {
+      // continue
     }
   } else {
     strMsg = String(msg)
@@ -97,7 +116,9 @@ export function warn(msg: unknown, options?: Options) {
 
 export function clear() {
   if (isTTY()) {
-    log(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H') 
+    log(
+      process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H',
+    )
   }
 }
 
