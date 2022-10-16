@@ -96,7 +96,9 @@ export function warn(msg: unknown, options?: Options) {
 }
 
 export function clear() {
-  log(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H') 
+  if (isTTY()) {
+    log(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H') 
+  }
 }
 
 export function raw(msg: unknown, options?: Options) {
