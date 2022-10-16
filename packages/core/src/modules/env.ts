@@ -7,6 +7,10 @@ import { fileURLToPath } from 'node:url'
 
 let cwd  = process.cwd()
 
+export function isTTY() {
+  return process.stdout.isTTY
+}
+
 export function pwd() {
   return process.cwd()
 }

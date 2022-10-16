@@ -7,6 +7,7 @@ import chalk from 'chalk'
 import boxen from 'boxen'
 import dedent from 'dedent'
 import figlet from 'figlet'
+import { isTTY } from './env.js'
 
 interface Options {
   boxen?: BoxenOptions | true
@@ -29,7 +30,7 @@ function log(msg: string, options: Options = {}) {
       exMsg = chalk[color](exMsg)
     }
   }
-  if (exOptions?.boxen) {
+  if (exOptions?.boxen && !isTTY()) {
     const boxenOptions = options.boxen
     const defaultOptions = { padding: 1, borderColor: 'green' }
     if (boxenOptions === true) {

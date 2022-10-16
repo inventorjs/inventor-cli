@@ -238,6 +238,7 @@ export abstract class Plugin {
         'eslint-config-prettier',
         '@typescript-eslint/eslint-plugin',
         '@typescript-eslint/parser',
+        'lint-staged',
       ])
       await cmd.exec(pm.BIN, [
         'husky',
@@ -245,7 +246,22 @@ export abstract class Plugin {
         '.husky/pre-commit',
         `${pm.BIN} lint-staged -c package.json`,
       ])
-      await pm.addPackageJsonFields({ 'lint-staged': { '*.ts': 'eslint' } })
+      await pm.addPackageJsonFields({ 'lint-staged': { '*.ts(x)?': 'eslint' } })
+      await fs.writeFile('.eslintrc', JSON.stringify({
+        "root": true,
+        "env": {
+          "node": true,
+          "browser": true,
+          "es6": true,
+        },
+        "extends": [
+          "eslint:recommended",
+          "plugin:@typescript-eslint/recommended",
+          "prettier"
+        ],
+        "parser": "@typescript-eslint/parser",
+        "plugins": ["@typescript-eslint"]
+      }, null, 2))
     }, '安装 Eslint')
   }
 
