@@ -1,5 +1,12 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 1.4.10
+
+### Patch Changes
+
+- Updated dependencies
+  - @inventorjs/core@3.11.9
+
 ## 1.4.9
 
 ### Patch Changes

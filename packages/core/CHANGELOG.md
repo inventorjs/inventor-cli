@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.9
+
+### Patch Changes
+
+- change box show
+
 ## 3.11.8
 
 ### Patch Changes
