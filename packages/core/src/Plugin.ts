@@ -316,6 +316,10 @@ export abstract class Plugin {
     return env.username()
   }
 
+  get isTTY() {
+    return env.isTTY()
+  }
+
   get log() {
     return log
   }
