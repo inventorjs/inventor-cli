@@ -25,8 +25,8 @@ export async function checkVersion() {
 }
 
 export async function addPackageJsonFields(
+  filePath: string,
   fieldsData: Record<string, unknown>,
-  filePath = cwd,
 ) {
   let packageJson = await getPackageJson(filePath)
   if (!packageJson) return

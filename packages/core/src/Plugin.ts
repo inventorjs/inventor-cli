@@ -225,7 +225,7 @@ export abstract class Plugin {
         '.husky/commit-msg',
         `${pm.BIN} commitlint --edit $1`,
       ])
-      await pm.addPackageJsonFields({
+      await pm.addPackageJsonFields(env.cwd, {
         commitlint: { extends: '@commitlint/config-conventional' },
       })
     }, '安装 Commitlint')
@@ -247,7 +247,7 @@ export abstract class Plugin {
         '.husky/pre-commit',
         `${pm.BIN} lint-staged -c package.json`,
       ])
-      await pm.addPackageJsonFields({ 'lint-staged': { '*.ts(x)?': 'eslint' } })
+      await pm.addPackageJsonFields(env.cwd, { 'lint-staged': { '*.ts(x)?': 'eslint' } })
       await fs.writeFile('.eslintrc', JSON.stringify({
         "root": true,
         "env": {
