@@ -79,10 +79,7 @@ export abstract class Plugin {
   async getPluginName(fromPath = this.#entryPath) {
     const packageName = await this.getPackageName(fromPath)
     if (!packageName) return ''
-    const pluginName = packageName
-      .replace('@inventorjs/plugin-', '')
-      .replace(/^(@[\w-_]+\/)?inventor-plugin-/g, '')
-    return pluginName
+    return util.getPluginName(packageName);
   }
 
   async confirmOverwrites(paths: string[]) {
