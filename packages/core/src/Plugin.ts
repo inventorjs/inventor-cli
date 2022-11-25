@@ -54,6 +54,14 @@ export abstract class Plugin {
   async removeDependencies(...args: Parameters<typeof pm.removeDependencies>) {
     return this.loadingTask(pm.removeDependencies(...args), '移除依赖')
   }
+  async getPackageJson(fromPath = this.#entryPath) {
+    const result = await pm.searchPackageJson(fromPath)
+    if (!result) {
+      return null
+    }
+    return result.content
+  }
+
   async addPackageJsonFields(
     ...args: Parameters<typeof pm.addPackageJsonFields>
   ) {
@@ -61,13 +69,6 @@ export abstract class Plugin {
   }
   async savePackageJson(...args: Parameters<typeof pm.savePackageJson>) {
     return pm.savePackageJson(...args)
-  }
-  async getPackageJson(fromPath = this.#entryPath) {
-    const result = await pm.searchPackageJson(fromPath)
-    if (!result) {
-      return null
-    }
-    return result.content
   }
   async getPackageName(fromPath = this.#entryPath) {
     const packageJson = await this.getPackageJson(fromPath)

@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 1.5.9
+
+### Patch Changes
+
+- fix peer
+
 ## 1.5.8
 
 ### Patch Changes

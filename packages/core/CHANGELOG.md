@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 3.11.10
+
+### Patch Changes
+
+- fix peer
+
 ## 3.11.9
 
 ### Patch Changes

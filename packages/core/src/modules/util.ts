@@ -4,14 +4,6 @@
  */
 import { filesize as fz } from 'filesize'
 
-export function capitalize(str: string) {
-  return str.replace(
-    /^(\w)(\w*)/,
-    (_, firstChar, restChars) =>
-      `${firstChar.toUpperCase()}${restChars.toLowerCase()}`,
-  )
-}
-
 export function getPluginName(packageName: string) {
   const pluginName = packageName
     .replace('@inventorjs/plugin-', '')

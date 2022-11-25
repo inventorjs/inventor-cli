@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app
 
+## 3.0.10
+
+### Patch Changes
+
+- fix peer
+- Updated dependencies
+  - @inventorjs/core@3.11.10
+
 ## 3.0.9
 
 ### Patch Changes
