@@ -53,9 +53,10 @@ export default class extends Action {
 
     const { type, packageName, author, description, addon = [] } = anwsers
 
+    await this.renderTemplate(type, packageName, { data: { packageName, author, description } })
+
     const cwd = path.resolve(this.pwd, packageName)
     await this.runTaskContext(async () => {
-      await this.renderTemplate(type, packageName, { data: { packageName, author, description } })
       await this.install()
       addon.includes('husky') && await this.addHusky();
       addon.includes('eslint') && await this.addEslint();

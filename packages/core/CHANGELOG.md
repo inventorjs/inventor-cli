@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.1
+
+### Patch Changes
+
+- 9afd06f: add version
+
 ## 3.11.10
 
 ### Patch Changes

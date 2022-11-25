@@ -1,5 +1,13 @@
 # @inventorjs/cli-plugin-plugin
 
+## 5.0.1
+
+### Patch Changes
+
+- 9afd06f: add version
+- Updated dependencies [9afd06f]
+  - @inventorjs/core@5.0.1
+
 ## 3.0.10
 
 ### Patch Changes

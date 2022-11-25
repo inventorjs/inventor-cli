@@ -24,7 +24,7 @@ export default class extends Action {
     type Option = 'husky'|'eslint'|'commitlint'
     const { addon } = anwsers as { addon: Option[] }
     
-    this.runTaskContext(async () => {
+    await this.runTaskContext(async () => {
       addon.includes('husky') && await this.addHusky();
       addon.includes('eslint') && await this.addEslint();
       addon.includes('commitlint') && await this.addCommitLint();

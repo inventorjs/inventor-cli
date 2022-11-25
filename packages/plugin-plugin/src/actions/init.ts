@@ -90,7 +90,7 @@ export default class extends Action {
     const packagePath = path.resolve(this.pwd, packageName)
     const templateName = 'default'
 
-    this.renderTemplate(templateName, packageName, {
+    await this.renderTemplate(templateName, packageName, {
       data: {
         packageName,
         description,

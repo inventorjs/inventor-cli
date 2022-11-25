@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 5.0.1
+
+### Patch Changes
+
+- 9afd06f: add version
+
 ## 1.5.9
 
 ### Patch Changes
