@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 5.0.2
+
+### Patch Changes
+
+- add await
+
 ## 5.0.1
 
 ### Patch Changes

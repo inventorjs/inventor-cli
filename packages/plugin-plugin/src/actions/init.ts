@@ -104,7 +104,7 @@ export default class extends Action {
         await this.install()
         ;(isConfirmHusky || isConfirmCommitlint || isConfirmEslint) && await this.addHusky()
         isConfirmCommitlint && await this.addCommitLint()
-        isConfirmEslint && this.addEslint()
+        isConfirmEslint && await this.addEslint()
       },
       { cwd: packagePath },
     )

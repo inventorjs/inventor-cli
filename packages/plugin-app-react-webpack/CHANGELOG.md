@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 5.0.2
+
+### Patch Changes
+
+- add await
+- Updated dependencies
+  - @inventorjs/core@5.0.2
+
 ## 5.0.1
 
 ### Patch Changes
