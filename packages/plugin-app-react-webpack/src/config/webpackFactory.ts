@@ -18,9 +18,10 @@ interface FactoryParams {
   release?: boolean
   analyse?: boolean
   port?: number
+  assets?: string
 }
 
-export default ({ root, release = false, analyse = false, port }: FactoryParams) => {
+export default ({ root, release = false, analyse = false, port, assets = 'assets' }: FactoryParams) => {
   function ifRelease<T>(releaseValue: T, developmentValue: T): T {
     return release ? releaseValue : developmentValue
   }
@@ -32,13 +33,13 @@ export default ({ root, release = false, analyse = false, port }: FactoryParams)
       main: path.resolve(root, 'src/index.jsx'),
     },
     output: {
-      filename: `assets/${ifRelease(
+      filename: `${assets}/${ifRelease(
         '[name].[contenthash:10].js',
         '[name].js',
       )}`,
       path: path.resolve(root, 'dist'),
       publicPath: '/', // webpack-dev-server 只支持 /，否则无法找到入口 index.html
-      chunkFilename: `assets/chunks/${ifRelease(
+      chunkFilename: `${assets}/chunks/${ifRelease(
         '[name].[contenthash:10].js',
         '[name].js',
       )}`,
@@ -98,8 +99,8 @@ export default ({ root, release = false, analyse = false, port }: FactoryParams)
             {
               loader: require.resolve('url-loader'),
               options: {
-                limit: 1,
-                name: 'resources/[name].[contenthash:10].[ext]?[hash]',
+                limit: 8 * 1024,
+                name: `${assets}/resources/[name].[contenthash:10].[ext]?[hash]`,
               },
             },
           ],
@@ -108,7 +109,7 @@ export default ({ root, release = false, analyse = false, port }: FactoryParams)
     },
     plugins: [
       new MiniCssExtractPlugin({
-        filename: ifRelease('[name].[contenthash].css', '[name].css'),
+        filename: ifRelease(`${assets}/[name].[contenthash].css`, '[name].css'),
         chunkFilename: ifRelease(
           '[id].[contenthash].css',
           '[id].css',

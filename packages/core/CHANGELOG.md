@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.3
+
+### Patch Changes
+
+- add await
+
 ## 5.0.2
 
 ### Patch Changes
