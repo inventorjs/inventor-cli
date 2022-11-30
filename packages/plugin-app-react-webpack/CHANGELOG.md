@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 5.0.4
+
+### Patch Changes
+
+- add assets support
+- Updated dependencies
+  - @inventorjs/core@5.0.4
+
 ## 5.0.3
 
 ### Patch Changes

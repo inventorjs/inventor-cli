@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.4
+
+### Patch Changes
+
+- add assets support
+
 ## 5.0.3
 
 ### Patch Changes
