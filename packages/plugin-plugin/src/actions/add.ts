@@ -7,31 +7,37 @@
  export default class extends Action {
    description = '安装插件并注册'
    options = [
-    { option: '-p --plugin <plugin>', description: '插件 npm 包名称@版本' },
-    { option: '-g --global', description: '是否是全局安装' },
+    { option: '--no-global', description: '是否取消全局安装' },
    ]
-   async action(options = {}) {
-    const { plugin, global = false } = options as { plugin: string, global?: boolean }
-    if (!plugin) {
+   async action(options: { global?: boolean } = {}, packages: string[]) {
+    const { global = true } = options as { global?: boolean }
+    if (!packages.length) {
       throw new Error('Please add inventor plugin package name!')
     }
-    const splitIndex = String(plugin).lastIndexOf('@')
-    const packageName = !splitIndex || !~splitIndex ? plugin : plugin.slice(0, splitIndex)
-    const pluginName = this.util.getPluginName(packageName)  
-    if (!pluginName) {
-      throw new Error(`${plugin} is not a valid inventor plugin.`)
-    }
+    const pluginNames = packages.map((pkg) => {
+      const splitIndex = String(pkg).lastIndexOf('@')
+      const packageName = !splitIndex || !~splitIndex ? pkg : pkg.slice(0, splitIndex)
+      const pluginName = this.util.getPluginName(packageName)  
+      if (!pluginName) {
+        throw new Error(`${pkg} is not a valid inventor plugin.`)
+      }
+      return pluginName
+    })
 
-    await this.addDependencies([plugin], { global })
+    await this.addDependencies(packages, { global })
     const configFrom = global ? 'global' : 'local'
     const rcConfig = await this.rc.load(configFrom) ?? { plugins: [] }
-    if (!rcConfig.plugins.find(([p]: [string]) => p === packageName)) {
-      rcConfig.plugins.push([packageName])
-    }
+    packages.forEach((packageName) => {
+      if (!rcConfig.plugins.find(([p]: [string]) => p === packageName)) {
+        rcConfig.plugins.push([packageName])
+      }
+    })
     await this.rc.save(rcConfig, configFrom)
-    this.log.success(`Add ${packageName} successful, Start use to run:`)
+    this.log.success(`Add plugin successfully, run blow show plugin help:`)
     this.log.raw('')
-    this.log.info(`inventor ${pluginName} -h`)
+    pluginNames.forEach((pluginName) => {
+      this.log.info(`inventor ${pluginName} -h`)
+    })
     this.log.raw('')
    }
  }

@@ -120,7 +120,7 @@ async function registerPlugin({ packageName, pluginName }: PluginItem) {
       )
     }
     actionCmd.action(
-      async (options: Record<string, unknown>) => await action.action(options),
+      async (options: Record<string, unknown>) => await action.action(options, cli.args.slice(2)),
     )
   }
 }

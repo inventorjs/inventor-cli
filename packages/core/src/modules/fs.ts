@@ -60,8 +60,7 @@ export async function renderTemplate(
     await fse.ensureDir(path.dirname(destinationFile))
     await renderTemplateFile(templateFile, destinationFile, options)
   }
-  await fse.copy(tmpDestinationDir, destinationDir)
-  await fse.remove(tmpDestinationDir)
+  await fse.move(tmpDestinationDir, destinationDir)
 }
 
 export async function renderTemplateFile(

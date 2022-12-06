@@ -363,7 +363,7 @@ export interface ActionOptions {
 export abstract class Action extends Plugin {
   #plugin: Plugin
   abstract options: ActionOption[]
-  abstract action(options: Record<string, unknown>): Promise<void>
+  abstract action(options: Record<string, unknown>, args: string[]): Promise<void>
 
   constructor({ plugin, entryPath }: { entryPath: string; plugin: Plugin }) {
     super({ entryPath })
