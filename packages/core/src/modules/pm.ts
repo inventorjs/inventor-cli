@@ -3,11 +3,14 @@
  * @author: sunkeysun
  */
 import path from 'node:path'
-import { cwd } from './env.js'
 import { type Options, exec } from './cmd.js'
 import { readFile, writeFile, readdir, stat } from './fs.js'
 import { context } from './env.js'
 import semver from 'semver'
+
+export interface AddOptions extends Options {
+  global?: boolean
+}
 
 export const BIN = 'pnpm'
 const VERSION = '^7.12.0'
@@ -95,35 +98,48 @@ export async function init(options?: Options) {
 }
 
 export async function install(options?: Options) {
-  return execBin(['install'], options)
+  const args = ['install']
+  return execBin(args, options)
 }
 
 export async function addDependencies(
   packageNames: string[],
-  options?: Options,
+  options: AddOptions = {},
 ) {
-  return execBin(['add', ...packageNames], options)
+  const { global = false, ...restOptions } = options;
+  const args = ['add', ...packageNames]
+  !!global && args.push('-g')
+  return execBin(args, restOptions)
 }
 
 export async function addDevDependencies(
   packageNames: string[],
-  options?: Options,
+  options: AddOptions = {},
 ) {
-  return execBin(['add', ...packageNames, '-D'], options)
+  const { global = false, ...restOptions } = options;
+  const args = ['add', ...packageNames, '-D']
+  !!global && args.push('-g')
+  return execBin(args, restOptions)
 }
 
 export async function removeDependencies(
   packageNames: string[],
-  options?: Options,
+  options: AddOptions = {},
 ) {
-  return execBin(['remove', ...packageNames], options)
+  const { global = false, ...restOptions } = options;
+  const args = ['remove', ...packageNames]
+  !!global && args.push('-g')
+  return execBin(args, restOptions)
 }
 
 export async function removeDevDependencies(
   packageNames: string[],
-  options?: Options,
+  options: AddOptions = {},
 ) {
-  return execBin(['remove', ...packageNames, '-D'], options)
+  const { global = false, ...restOptions } = options;
+  const args = ['remove', ...packageNames]
+  !!global && args.push('-g')
+  return execBin(args, restOptions)
 }
 
 async function execBin(args: string[], options: Options = {}) {

@@ -18,7 +18,9 @@ interface ServerInfo {
 const DPORT = 1990
 export default class extends Action {
   description = '启动开发服务器'
-  options = []
+  options = [
+    { option: '-p, --port<port>', description: '指定监听端口' },
+  ]
 
   logServerInfo({ localAddress, staticPath, historyApiFallback }: ServerInfo) {
     this.log.clear()
@@ -32,13 +34,14 @@ export default class extends Action {
     )
   }
 
-  async action() {
+  async action(options: Record<string, unknown>) {
+    const { port = DPORT } = options as { port?: number }
     const pluginConfig = await this.getPluginConfig()
-    const port = await detectPort(DPORT)
+    const validPort = await detectPort(port)
     const baseConfig = webpackFactory({
       root: this.pwd,
       release: false,
-      port,
+      port: validPort,
     })
     const webpackConfig: Configuration =
       pluginConfig?.webpack?.(baseConfig) ?? baseConfig

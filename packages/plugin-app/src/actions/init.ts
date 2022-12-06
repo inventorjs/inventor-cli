@@ -53,7 +53,10 @@ export default class extends Action {
 
     const { type, packageName, author, description, addon = [] } = anwsers
 
-    await this.renderTemplate(type, packageName, { data: { packageName, author, description } })
+    const packageJson = await this.getPackageJson()
+    const cliVersion = packageJson?.version ?? 'latest'
+
+    await this.renderTemplate(type, packageName, { data: { packageName, author, description, cliVersion } })
 
     const cwd = path.resolve(this.pwd, packageName)
     await this.runTaskContext(async () => {

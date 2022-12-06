@@ -318,6 +318,10 @@ export abstract class Plugin {
     return env.isTTY()
   }
 
+  get context() {
+    return env.context()
+  }
+
   get log() {
     return log
   }

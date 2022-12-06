@@ -42,8 +42,11 @@ function log(msg: string, options: Options = {}) {
       let strArr = exMsg.split('\n')
       let maxLength = 0
       strArr = strArr.reduce((result, str) => {
-        const paddingStr = str.padStart(str.length + 2, ' ').padEnd(str.length + 4, ' ')
-        maxLength = paddingStr.length > maxLength ? paddingStr.length : maxLength
+        const paddingStr = str
+          .padStart(str.length + 2, ' ')
+          .padEnd(str.length + 4, ' ')
+        maxLength =
+          paddingStr.length > maxLength ? paddingStr.length : maxLength
         return [...result, paddingStr]
       }, [] as string[])
       strArr.unshift('-'.repeat(maxLength))
@@ -80,10 +83,14 @@ function stringify(msg: unknown) {
       }, [])
       .join('\n')
   } else if (typeof msg === 'object') {
-    try {
-      strMsg = JSON.stringify(msg)
-    } catch (err) {
-      // continue
+    if (msg instanceof Error) {
+      strMsg = msg.message
+    } else {
+      try {
+        strMsg = JSON.stringify(msg)
+      } catch (err) {
+        // continue
+      }
     }
   } else {
     strMsg = String(msg)

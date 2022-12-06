@@ -9,10 +9,13 @@ import webpackFactory from '../config/webpackFactory.js'
 const CRITICAL_SIZE = 1024 * 244
 export default class extends Action {
   description = '构建项目'
-  options = []
-  async action() {
+  options = [
+    { option: '-a, --analyse', description: '开启打包分析', default: false },
+  ]
+  async action(options: Record<string, unknown>) {
+    const { analyse } = options as { analyse: boolean };
     const pluginConfig = await this.getPluginConfig()
-    const baseConfig = webpackFactory({ root: this.pwd, release: true })
+    const baseConfig = webpackFactory({ root: this.pwd, release: true, analyse })
     const webpackConfig: Configuration =
       pluginConfig?.webpack?.(baseConfig) ?? baseConfig
     const compiler = webpack(webpackConfig)
