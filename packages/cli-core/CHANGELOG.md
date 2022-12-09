@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.7
+
+### Patch Changes
+
+- 修改包名称
+
 ## 5.0.5
 
 ### Patch Changes

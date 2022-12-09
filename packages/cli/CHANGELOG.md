@@ -1,5 +1,15 @@
 # @inventorjs/cli
 
+## 5.0.7
+
+### Patch Changes
+
+- 修改包名称
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.7
+  - @inventorjs/inventor-plugin-app@5.0.7
+  - @inventorjs/inventor-plugin-plugin@5.0.7
+
 ## 5.0.5
 
 ### Patch Changes
