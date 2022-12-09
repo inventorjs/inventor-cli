@@ -1,0 +1,23 @@
+{
+  "name": "@inventorjs/inventor-plugin-app",
+  "version": "5.0.6",
+  "description": "前端应用初始化与开发工作流",
+  "main": "lib/index.js",
+  "author": "sunkeysun",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "lib/",
+    "templates/"
+  ],
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "rimraf lib && tsc"
+  },
+  "devDependencies": {
+    "@inventorjs/cli-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@inventorjs/cli-core": "workspace:*"
+  }
+}

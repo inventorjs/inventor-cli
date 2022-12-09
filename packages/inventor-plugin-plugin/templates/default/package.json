@@ -1,0 +1,30 @@
+{
+  "name": "<%- packageName %>",
+  "version": "0.0.1",
+  "description": "<%- description %>",
+  "main": "lib/index.js",
+  "author": "<%- author %>",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@7.12.2",
+  "files": [
+    "lib/",
+    "templates/"
+  ],
+  "scripts": {
+    "clean": "rimraf node_modules lib",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "prepublish": "pnpm build"
+  },
+  "devDependencies": {
+    "@inventorjs/cli-core": "^<%- cliVersion %>",
+    "@types/node": "^18.6.5",
+    "prettier": "^2.7.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.7.4"
+  },
+  "peerDependencies": {
+    "@inventorjs/cli-core": "^<%- cliVersion %>"
+  }
+}

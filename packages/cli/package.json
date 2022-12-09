@@ -20,13 +20,13 @@
     "build": "rimraf lib && tsc && chmod 777 lib/index.js"
   },
   "dependencies": {
-    "@inventorjs/plugin-app": "workspace:*",
-    "@inventorjs/plugin-plugin": "workspace:*"
+    "@inventorjs/inventor-plugin-app": "workspace:*",
+    "@inventorjs/inventor-plugin-plugin": "workspace:*"
   },
   "devDependencies": {
-    "@inventorjs/core": "workspace:*"
+    "@inventorjs/cli-core": "workspace:*"
   },
   "peerDependencies": {
-    "@inventorjs/core": "workspace:^"
+    "@inventorjs/cli-core": "workspace:^"
   }
 }

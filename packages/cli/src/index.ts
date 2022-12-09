@@ -16,7 +16,7 @@ import {
   pm,
   cmd,
   util,
-} from '@inventorjs/core'
+} from '@inventorjs/cli-core'
 
 type PluginConfigItem = [string, unknown?] | string
 type PluginItem = { packageName: string; pluginName: string }
@@ -35,8 +35,8 @@ const cli = new Command(BIN)
   .addHelpCommand(false)
 
 const corePlugins: PluginConfigItem[] = [
-  '@inventorjs/plugin-plugin',
-  '@inventorjs/plugin-app',
+  '@inventorjs/inventor-plugin-plugin',
+  '@inventorjs/inventor-plugin-app',
 ]
 
 function isCorePlugin(packageName: string) {

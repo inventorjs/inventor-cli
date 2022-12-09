@@ -1,0 +1,24 @@
+{
+  "name": "@inventorjs/inventor-plugin-plugin",
+  "version": "5.0.6",
+  "description": "inventor-cli plugin manager",
+  "main": "lib/index.js",
+  "author": "sunkeysun",
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "files": [
+    "lib/",
+    "templates/"
+  ],
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "rimraf lib && tsc"
+  },
+  "devDependencies": {
+    "@inventorjs/cli-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@inventorjs/cli-core": "workspace:*"
+  }
+}
