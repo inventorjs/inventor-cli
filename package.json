@@ -16,10 +16,12 @@
   },
   "scripts": {
     "clean": "rimraf node_modules **/*/node_modules **/*/lib",
-    "dev": "pnpm build && pnpm -r --parallel dev",
+    "dev": "pnpm -r --parallel dev",
+    "predev": "pnpm build",
     "build": "pnpm -r build",
     "change": "changeset",
-    "pub": "pnpm build && changeset version && changeset publish"
+    "pub": "changeset version && changeset publish",
+    "prepub": "pnpm build"
   },
   "devDependencies": {
     "@changesets/cli": "^2.24.3",

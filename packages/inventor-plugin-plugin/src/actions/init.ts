@@ -10,20 +10,21 @@ export default class extends Action {
   options = []
 
   async action() {
-    const descRegex = /^[\sa-z-\u4e00-\u9fa5]{5,30}$/
-    const authorRegex = /^[\s\w-\u4e00-\u9fa5]{1,20}$/
     const answers = await this.prompt([
       {
         type: 'text',
         name: 'packageName',
         message:
-          '请输入插件包名称，必须符合格式"inventor-plugin-[name] 或 @(scope)/inventor-plugin-[name]"',
+          '请输入插件包名称，合法格式"(@scope/)?inventor-plugin-[name]',
         validate: (packageName) => {
-          if (!this.pm.checkName(packageName) || !this.util.getPluginName(packageName)) {
+          if (
+            !this.pm.checkName(packageName) ||
+            !this.util.getPluginName(packageName)
+          ) {
             return '请输入合法的插件包名称'
           }
           return true
-        }
+        },
       },
       {
         type: 'text',
@@ -31,7 +32,9 @@ export default class extends Action {
         message: '请输入插件描述，用于说明插件功能',
         default: 'a powerful inventor plugin',
         validate: (value) =>
-          !descRegex.test(value) ? `请输入合法的插件描述(${descRegex})` : true,
+          !this.regex.desc.test(value)
+            ? `请输入合法的插件描述(${this.regex.desc})`
+            : true,
       },
       {
         type: 'text',
@@ -39,8 +42,8 @@ export default class extends Action {
         message: '请输入插件作者名称',
         default: this.username,
         validate: (value) =>
-          !authorRegex.test(value)
-            ? `请输入合法的插件作者名称(${authorRegex})`
+          !this.regex.author.test(value)
+            ? `请输入合法的插件作者名称(${this.regex.author})`
             : true,
       },
       {
@@ -70,8 +73,7 @@ export default class extends Action {
       {
         type: 'confirm',
         name: 'isConfirm',
-        message: (values) =>
-          `即将创建插件项目"${values.packageName}"是否继续`,
+        message: (values) => `即将创建插件项目"${values.packageName}"是否继续`,
         default: true,
       },
     ])
@@ -85,12 +87,12 @@ export default class extends Action {
       isConfirmHusky,
       isConfirmCommitlint,
     } = answers
-    const packagePath = path.resolve(this.pwd, packageName)
     const templateName = 'default'
     let dirName = packageName
     if (~packageName.indexOf('/')) {
-      ([, dirName] = packageName.split('/'))
+      ;[, dirName] = packageName.split('/')
     }
+    const packagePath = path.resolve(this.pwd, dirName)
 
     const packageJson = await this.getPackageJson()
     const cliVersion = packageJson?.version ?? 'latest'
@@ -106,14 +108,15 @@ export default class extends Action {
 
     await this.runTaskContext(
       async () => {
-        isConfirmGit && await this.initGit()
+        isConfirmGit && (await this.initGit())
         await this.install()
-        ;(isConfirmHusky || isConfirmCommitlint || isConfirmEslint) && await this.addHusky()
-        isConfirmCommitlint && await this.addCommitLint()
-        isConfirmEslint && await this.addEslint()
+        ;(isConfirmHusky || isConfirmCommitlint || isConfirmEslint) &&
+          (await this.addHusky())
+        isConfirmCommitlint && (await this.addCommitLint())
+        isConfirmEslint && (await this.addEslint())
       },
       { cwd: packagePath },
     )
-    await this.logInitCmd({ dirName: packageName })
+    await this.logInitCmd({ dirName })
   }
 }

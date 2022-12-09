@@ -15,6 +15,7 @@ import * as pm from './modules/pm.js'
 import * as cmd from './modules/cmd.js'
 import * as rc from './modules/rc.js'
 import * as util from './modules/util.js'
+import * as regex from './modules/regex.js'
 
 export abstract class Plugin {
   abstract description: string
@@ -348,6 +349,10 @@ export abstract class Plugin {
 
   get util() {
     return util
+  }
+
+  get regex() {
+    return regex
   }
 }
 

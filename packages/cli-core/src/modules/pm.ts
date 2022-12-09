@@ -4,6 +4,7 @@
  */
 import path from 'node:path'
 import { type Options, exec } from './cmd.js'
+import { packageName as packageNameRe } from './regex.js'
 import { readFile, writeFile, readdir, stat } from './fs.js'
 import { context } from './env.js'
 import semver from 'semver'
@@ -16,8 +17,7 @@ export const BIN = 'pnpm'
 const VERSION = '^7.12.0'
 
 export async function checkName(packageName: string) {
-  const regex = /^(?:@[a-z0-9-*~][a-z0-9-*._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/
-  return regex.test(packageName)
+  return packageNameRe.test(packageName)
 }
 
 export async function checkVersion() {
