@@ -79,8 +79,8 @@ export default class extends Action {
       successText: (timeCost) =>
         this.color.green(
           `webpack build assets successfully[timeCost: ${this.color.yellow(
-            timeCost,
-          )}ms]`,
+            `${timeCost}ms`
+          )}]`,
         ),
       failText: (err) =>
         `webpack build assets failed(${this.color.red(

@@ -34,6 +34,7 @@ export default ({ root, release = false, analyse = false, port, assets = 'assets
       main: path.resolve(root, 'src/index.jsx'),
     },
     output: {
+      clean: true,
       filename: `${assets}/${ifRelease(
         '[name].[contenthash:10].js',
         '[name].js',
