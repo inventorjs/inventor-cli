@@ -182,6 +182,18 @@ importers:
     devDependencies:
       '@inventorjs/cli-core': link:../cli-core
 
+  packages/module-scope-webpack-plugin:
+    specifiers:
+      prettier: ^2.7.1
+      rimraf: ^3.0.2
+      tslib: ^2.4.0
+      typescript: ^4.7.4
+    devDependencies:
+      prettier: 2.7.1
+      rimraf: 3.0.2
+      tslib: 2.4.0
+      typescript: 4.7.4
+
 packages:
 
   /@ampproject/remapping/2.2.0:

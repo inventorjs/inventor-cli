@@ -28,6 +28,7 @@ export default ({ root, release = false, analyse = false, port, assets = 'assets
 
   return {
     mode: ifRelease('production', 'development'),
+    devtool: ifRelease('cheap-module-source-map', 'eval-cheap-module-source-map'),
     stats: 'errors-warnings',
     entry: {
       main: path.resolve(root, 'src/index.jsx'),

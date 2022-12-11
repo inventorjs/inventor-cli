@@ -10,15 +10,20 @@ const CRITICAL_SIZE = 1024 * 244
 export default class extends Action {
   description = '构建项目'
   options = [
-    { option: '-a, --analyse', description: '开启打包分析', default: false },
+    { option: '--analyse', description: '开启打包分析', default: false },
   ]
   async action(options: Record<string, unknown>) {
-    const { analyse } = options as { analyse: boolean };
+    const { analyse } = options as { analyse: boolean }
     const pluginConfig = await this.getPluginConfig()
-    const baseConfig = webpackFactory({ root: this.pwd, release: true, analyse })
+    const baseConfig = webpackFactory({
+      root: this.pwd,
+      release: true,
+      analyse,
+    })
     const webpackConfig: Configuration =
       pluginConfig?.webpack?.(baseConfig) ?? baseConfig
     const compiler = webpack(webpackConfig)
+    const startTime = Date.now()
 
     const buildTask = new Promise((resolve, reject) => {
       compiler.run((err, stats) => {
@@ -66,12 +71,17 @@ export default class extends Action {
           }),
           { boxen: { title: 'Assets' } },
         )
-        resolve('')
+        resolve(Date.now() - startTime)
       })
     })
     await this.loadingTask(buildTask, {
       text: 'webpack building assets...',
-      successText: this.color.green('webpack build assets successfully'),
+      successText: (timeCost) =>
+        this.color.green(
+          `webpack build assets successfully[timeCost: ${this.color.yellow(
+            timeCost,
+          )}ms]`,
+        ),
       failText: (err) =>
         `webpack build assets failed(${this.color.red(
           (err as unknown as string[])?.length,
