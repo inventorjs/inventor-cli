@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app
 
+## 5.0.9
+
+### Patch Changes
+
+- fix --port
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.9
+
 ## 5.0.8
 
 ### Patch Changes

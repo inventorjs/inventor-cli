@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.9
+
+### Patch Changes
+
+- fix --port
+
 ## 5.0.8
 
 ### Patch Changes
