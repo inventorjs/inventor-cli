@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.10
+
+### Patch Changes
+
+- change webpack config
+
 ## 5.0.9
 
 ### Patch Changes

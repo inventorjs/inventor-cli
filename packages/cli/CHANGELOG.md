@@ -1,5 +1,15 @@
 # @inventorjs/cli
 
+## 5.0.10
+
+### Patch Changes
+
+- change webpack config
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.10
+  - @inventorjs/inventor-plugin-app@5.0.10
+  - @inventorjs/inventor-plugin-plugin@5.0.10
+
 ## 5.0.9
 
 ### Patch Changes

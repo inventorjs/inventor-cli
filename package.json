@@ -1,8 +1,8 @@
 {
-  "name": "inventor-cli",
+  "name": "@inventorjs/inventorjs",
   "version": "0.0.1",
   "main": "index.js",
-  "repository": "git@github.com:inventorjs/inventor-cli.git",
+  "repository": "git@github.com:inventorjs/inventorjs.git",
   "author": "sunkeysun",
   "license": "MIT",
   "private": true,

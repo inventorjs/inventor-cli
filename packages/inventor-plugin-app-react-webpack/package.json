@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/inventor-plugin-app-react-webpack",
-  "version": "5.0.9",
+  "version": "5.0.10",
   "description": "",
   "main": "lib/index.js",
   "private": false,
