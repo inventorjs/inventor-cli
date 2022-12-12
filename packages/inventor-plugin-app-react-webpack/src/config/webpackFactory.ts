@@ -169,9 +169,6 @@ export default ({ root, release = false, analyse = false, port, assets = 'assets
         'Access-Control-Allow-Origin': '*',
       },
       static: path.resolve(root, 'dist'),
-      watchOptions: {
-        ignored: /node_modules/,
-      },
     },
   }
 }

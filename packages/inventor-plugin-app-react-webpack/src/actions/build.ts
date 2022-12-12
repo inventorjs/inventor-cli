@@ -10,7 +10,7 @@ const CRITICAL_SIZE = 1024 * 244
 export default class extends Action {
   description = '构建项目'
   options = [
-    { option: '--analyse', description: '开启打包分析', default: false },
+    { option: '-a, --analyse', description: '开启打包分析', default: false },
   ]
   async action(options: Record<string, unknown>) {
     const { analyse } = options as { analyse: boolean }

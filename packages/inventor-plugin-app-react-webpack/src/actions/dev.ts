@@ -19,7 +19,7 @@ const DPORT = 1990
 export default class extends Action {
   description = '启动开发服务器'
   options = [
-    { option: '-p, --port<port>', description: '指定监听端口' },
+    { option: '-p, --port <port>', description: '指定监听端口' },
   ]
 
   logServerInfo({ localAddress, staticPath, historyApiFallback }: ServerInfo) {
