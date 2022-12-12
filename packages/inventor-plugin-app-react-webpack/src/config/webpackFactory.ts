@@ -153,7 +153,7 @@ export default ({ root, release = false, analyse = false, port, assets = 'assets
           vendors: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
-            chunks: 'all',
+            chunks: 'initial',
             priority: -10,
           },
         },
