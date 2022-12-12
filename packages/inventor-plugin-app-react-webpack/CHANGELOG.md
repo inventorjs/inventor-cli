@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 5.0.8
+
+### Patch Changes
+
+- add webpack timeCost
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.8
+
 ## 5.0.7
 
 ### Patch Changes

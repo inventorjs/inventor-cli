@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 5.0.8
+
+### Patch Changes
+
+- add webpack timeCost
+
 ## 5.0.5
 
 ### Patch Changes

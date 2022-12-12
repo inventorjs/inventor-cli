@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.8
+
+### Patch Changes
+
+- add webpack timeCost
+
 ## 5.0.7
 
 ### Patch Changes
