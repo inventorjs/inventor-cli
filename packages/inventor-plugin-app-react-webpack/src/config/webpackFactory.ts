@@ -28,7 +28,7 @@ export default ({ root, release = false, analyse = false, port, assets = 'assets
 
   return {
     mode: ifRelease('production', 'development'),
-    devtool: ifRelease('cheap-module-source-map', 'eval-cheap-module-source-map'),
+    devtool: ifRelease(undefined, 'eval-cheap-module-source-map'),
     stats: 'errors-warnings',
     entry: {
       main: path.resolve(root, 'src/index.jsx'),
@@ -169,6 +169,9 @@ export default ({ root, release = false, analyse = false, port, assets = 'assets
         'Access-Control-Allow-Origin': '*',
       },
       static: path.resolve(root, 'dist'),
+      watchOptions: {
+        ignored: /node_modules/,
+      },
     },
   }
 }
