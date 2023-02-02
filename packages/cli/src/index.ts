@@ -152,7 +152,9 @@ function welcome({ cliName }: { cliName: string }) {
 async function run() {
   const [, , pluginName] = process.argv
 
-  welcome({ cliName: BIN })
+  if (env.isTTY()) {
+    welcome({ cliName: BIN })
+  }
 
   try {
     await pm.checkVersion()
@@ -175,11 +177,13 @@ async function run() {
 }
 
 process.on('uncaughtException', (err) => {
-  log.error(`uncaughtException: ${err}`)
+  err && log.error(`uncaughtException: ${err}`)
+  process.exit(1)
 })
 
 process.on('unhandledRejection', (reason) => {
-  log.error(reason as string)
+  reason && log.error(reason)
+  process.exit(1)
 })
 
 await run()
