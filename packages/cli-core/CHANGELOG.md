@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.12
+
+### Patch Changes
+
+- disable defaultVendors
+
 ## 5.0.11
 
 ### Patch Changes

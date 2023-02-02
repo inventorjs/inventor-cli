@@ -145,16 +145,19 @@ export default ({ root, release = false, analyse = false, port, assets = 'assets
       splitChunks: {
         cacheGroups: {
           defaults: false,
-          commont: {
+          defaultVendors: false,
+          common: {
             name: 'common',
             minChunks: 2,
             priority: -20,
+            reuseExistingChunk: true,
           },
           vendors: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             chunks: 'initial',
             priority: -10,
+            reuseExistingChunk: true,
           },
         },
       },

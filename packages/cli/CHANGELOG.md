@@ -1,5 +1,15 @@
 # @inventorjs/cli
 
+## 5.0.12
+
+### Patch Changes
+
+- disable defaultVendors
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.12
+  - @inventorjs/inventor-plugin-app@5.0.12
+  - @inventorjs/inventor-plugin-plugin@5.0.12
+
 ## 5.0.11
 
 ### Patch Changes
