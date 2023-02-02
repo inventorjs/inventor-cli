@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app
 
+## 5.0.11
+
+### Patch Changes
+
+- fix loading error throw
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.11
+
 ## 5.0.10
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.11
+
+### Patch Changes
+
+- fix loading error throw
+
 ## 5.0.10
 
 ### Patch Changes
