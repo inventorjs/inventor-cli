@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app
 
+## 5.0.14
+
+### Patch Changes
+
+- change tempaltes
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.14
+
 ## 5.0.13
 
 ### Patch Changes

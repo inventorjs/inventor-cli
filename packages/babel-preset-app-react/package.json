@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/babel-preset-app-react",
-  "version": "5.0.13",
+  "version": "5.0.14",
   "description": "",
   "main": "lib/index.js",
   "scripts": {

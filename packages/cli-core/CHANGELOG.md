@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.14
+
+### Patch Changes
+
+- change tempaltes
+
 ## 5.0.13
 
 ### Patch Changes
