@@ -5,9 +5,9 @@
 import { Action } from '@inventorjs/cli-core'
 import path from 'path'
 
-export default class extends Action {
+export default class InitAction extends Action {
   description = '初始化前端应用'
-  options = []
+
   async action() {
     const anwsers = await this.prompt([
       {

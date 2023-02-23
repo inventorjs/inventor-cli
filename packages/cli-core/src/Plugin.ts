@@ -18,7 +18,7 @@ import * as util from './modules/util.js'
 import * as regex from './modules/regex.js'
 
 export abstract class Plugin {
-  abstract description: string
+  description = 'Plugin description is not defined!'
   #entryPath: string
   #templatePath: string
   #actionPath: string
@@ -80,7 +80,7 @@ export abstract class Plugin {
   async getPluginName(fromPath = this.#entryPath) {
     const packageName = await this.getPackageName(fromPath)
     if (!packageName) return ''
-    return util.getPluginName(packageName);
+    return util.getPluginName(packageName)
   }
 
   async confirmOverwrites(paths: string[]) {
@@ -202,7 +202,7 @@ export abstract class Plugin {
     if (await fs.exists(path.resolve(env.cwd, '.husky'))) return true
 
     return this.loadingTask(async () => {
-      if (!await fs.exists(path.resolve(env.cwd, '.git'))) {
+      if (!(await fs.exists(path.resolve(env.cwd, '.git')))) {
         await git.init()
       }
       await pm.addDevDependencies(['husky'])
@@ -245,22 +245,31 @@ export abstract class Plugin {
         '.husky/pre-commit',
         `${pm.BIN} lint-staged -c package.json`,
       ])
-      await pm.addPackageJsonFields(env.cwd, { 'lint-staged': { '*.ts(x)?': 'eslint' } })
-      await fs.writeFile('.eslintrc', JSON.stringify({
-        "root": true,
-        "env": {
-          "node": true,
-          "browser": true,
-          "es6": true,
-        },
-        "extends": [
-          "eslint:recommended",
-          "plugin:@typescript-eslint/recommended",
-          "prettier"
-        ],
-        "parser": "@typescript-eslint/parser",
-        "plugins": ["@typescript-eslint"]
-      }, null, 2))
+      await pm.addPackageJsonFields(env.cwd, {
+        'lint-staged': { '*.ts(x)?': 'eslint' },
+      })
+      await fs.writeFile(
+        '.eslintrc',
+        JSON.stringify(
+          {
+            root: true,
+            env: {
+              node: true,
+              browser: true,
+              es6: true,
+            },
+            extends: [
+              'eslint:recommended',
+              'plugin:@typescript-eslint/recommended',
+              'prettier',
+            ],
+            parser: '@typescript-eslint/parser',
+            plugins: ['@typescript-eslint'],
+          },
+          null,
+          2,
+        ),
+      )
     }, '安装 Eslint')
   }
 
@@ -357,20 +366,23 @@ export abstract class Plugin {
 }
 
 export interface ActionOption {
-  option: string
+  flags: string
   description: string
-  default?: unknown
+  defaultValue?: string | boolean | string[]
 }
 
-export interface ActionOptions {
-  [k: string]: unknown
-}
 export abstract class Action extends Plugin {
   #plugin: Plugin
-  abstract options: ActionOption[]
-  abstract action(options: Record<string, unknown>, args: string[]): Promise<void>
+  options: ActionOption[] = []
+  arguments: ActionOption[] = []
+  description = 'Action description is not defined!'
 
-  constructor({ plugin, entryPath }: { entryPath: string; plugin: Plugin }) {
+  abstract action(
+    options: Record<string, unknown>,
+    args: string[],
+  ): Promise<void>
+
+  constructor({ plugin, entryPath }: { plugin: Plugin, entryPath: string }) {
     super({ entryPath })
     this.#plugin = plugin
   }

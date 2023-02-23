@@ -4,9 +4,9 @@
  */
 import { Action } from '@inventorjs/cli-core'
 
-export default class extends Action {
+export default class AddonAction extends Action {
   description = '添加应用附加能力'
-  options = []
+
   async action() {
     const anwsers = await this.prompt([
       {

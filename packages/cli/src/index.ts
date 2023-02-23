@@ -33,6 +33,7 @@ const cli = new Command(BIN)
   .version(packageJson.version)
   .usage('[command] [action]')
   .addHelpCommand(false)
+  .showHelpAfterError(true)
 
 const corePlugins: PluginConfigItem[] = [
   '@inventorjs/inventor-plugin-plugin',
@@ -114,14 +115,34 @@ async function registerPlugin({ packageName, pluginName }: PluginItem) {
     const actionCmd = cmd
       .command(name, { isDefault: name === DEFAULT_ACTION })
       .description(action.description)
-    if (action.options) {
-      action.options.forEach((option: ActionOption) =>
-        actionCmd.option(option.option, option.description),
+
+    if (action.arguments?.length > 0) {
+      action.arguments.forEach((argument: ActionOption) =>
+        actionCmd.argument(
+          argument.flags,
+          argument.description,
+          argument.defaultValue,
+        ),
       )
     }
-    actionCmd.action(
-      async (options: Record<string, unknown>) => await action.action(options, cli.args.slice(2)),
-    )
+
+    if (action.options?.length > 0) {
+      action.options.forEach((option: ActionOption) =>
+        actionCmd.option(option.flags, option.description, option.defaultValue),
+      )
+    }
+
+    let actionCallback = async (options: Record<string, unknown>) =>
+      await action.action(options, cli.args.slice(2))
+
+    if (action.arguments?.length > 0) {
+      actionCallback = async (...args: unknown[]) => {
+        const restArgs = args.slice(0, action.arguments.length) as string[]
+        const options = args[args.length - 2] as Record<string, unknown>
+        await action.action(options, restArgs)
+      }
+    }
+    actionCmd.action(actionCallback)
   }
 }
 

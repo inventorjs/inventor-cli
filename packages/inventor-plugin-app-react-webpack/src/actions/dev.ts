@@ -16,10 +16,10 @@ interface ServerInfo {
 }
 
 const DPORT = 1990
-export default class extends Action {
+export default class DevAction extends Action {
   description = '启动开发服务器'
   options = [
-    { option: '-p, --port <port>', description: '指定监听端口' },
+    { flags: '-p, --port <port>', description: '指定监听端口' },
   ]
 
   logServerInfo({ localAddress, staticPath, historyApiFallback }: ServerInfo) {

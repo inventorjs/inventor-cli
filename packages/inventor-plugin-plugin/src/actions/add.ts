@@ -4,9 +4,15 @@
  */
 import { Action } from '@inventorjs/cli-core'
 
-export default class extends Action {
+export default class AddAction extends Action {
   description = '安装插件并注册'
-  options = [{ option: '--local', description: '是否使用局部安装' }]
+  options = [{ flags: '--local', description: '是否使用局部安装' }]
+
+  arguments = [
+    { flags: '<server>', description: '设置server名称' },
+    { flags: '<sql>', description: '设置sql名称' },
+  ]
+
   async action(options: { local?: boolean } = {}, packages: string[]) {
     const { local } = options
     if (!packages.length) {

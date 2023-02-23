@@ -5,9 +5,9 @@
 import path from 'node:path'
 import { Action } from '@inventorjs/cli-core'
 
-export default class extends Action {
+export default class ActionAction extends Action {
   description = '初始化创建一个插件 action，可快速开发插件 action'
-  options = []
+
   async action() {
     const nameRegex = /^[a-z-]{1,10}$/
     const descRegex = /^[a-z-\u4e00-\u9fa5]{5,20}$/

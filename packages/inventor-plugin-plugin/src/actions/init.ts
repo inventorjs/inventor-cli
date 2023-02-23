@@ -5,9 +5,8 @@
 import path from 'node:path'
 import { Action } from '@inventorjs/cli-core'
 
-export default class extends Action {
+export default class InitAction extends Action {
   description = '初始化创建一个插件项目，可快速开发插件'
-  options = []
 
   async action() {
     const answers = await this.prompt([
