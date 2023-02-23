@@ -8,7 +8,7 @@ import { Action } from '@inventorjs/cli-core'
 export default class InitAction extends Action {
   description = '初始化创建一个插件项目，可快速开发插件'
 
-  async action() {
+  async run() {
     const answers = await this.prompt([
       {
         type: 'text',

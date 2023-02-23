@@ -8,29 +8,26 @@ import { Action } from '@inventorjs/cli-core'
 export default class ActionAction extends Action {
   description = '初始化创建一个插件 action，可快速开发插件 action'
 
-  async action() {
-    const nameRegex = /^[a-z-]{1,10}$/
-    const descRegex = /^[a-z-\u4e00-\u9fa5]{5,20}$/
-    const authorRegex = /^[\w-\u4e00-\u9fa5]{1,}$/
+  async run() {
     const anwsers = await this.prompt([
       {
         name: 'name',
         type: 'text',
         message: '请输入 action 名称，将作为 action 的调用指令',
-        validate: (value) => !nameRegex.test(value) ? `请输入合法的 action 名称(${nameRegex})` : true
+        validate: (value) => !this.regex.actionName.test(value) ? `请输入合法的 action 名称(${this.regex.actionName})` : true
       },
       {
         name: 'description',
         type: 'text',
         message: '请输入 action 描述',
-        validate: (value) => !descRegex.test(value) ? `请输入合法的 action 描述(${descRegex})` : true
+        validate: (value) => !this.regex.desc.test(value) ? `请输入合法的 action 描述(${this.regex.desc})` : true
       },
       {
         name: 'author',
         type: 'text',
         message: '请输入 action 的作者',
         default: this.username,
-        validate: (value) => !authorRegex.test(value) ? `请输入合法的作者名称(${authorRegex})` : true
+        validate: (value) => !this.regex.author.test(value) ? `请输入合法的作者名称(${this.regex.author})` : true
       },
     ])
     const { name } = anwsers

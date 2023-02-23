@@ -19,14 +19,20 @@ import * as regex from './modules/regex.js'
 
 export abstract class Plugin {
   description = 'Plugin description is not defined!'
+  #name: string
   #entryPath: string
   #templatePath: string
   #actionPath: string
 
-  constructor({ entryPath }: { entryPath: string }) {
+  constructor({ name, entryPath }: { name: string, entryPath: string }) {
+    this.#name = name 
     this.#entryPath = entryPath
     this.#templatePath = path.resolve(entryPath, '../../templates')
     this.#actionPath = path.resolve(entryPath, '../actions')
+  }
+
+  get name() {
+    return this.#name
   }
 
   get entryPath() {
@@ -372,28 +378,32 @@ export interface ActionOption {
 }
 
 export interface ActionParams {
+  name: string
   plugin: Plugin
   entryPath: string
 }
 
 export abstract class Action extends Plugin {
   #plugin: Plugin
+  #name: string
+  params: ActionOption[] = []
   options: ActionOption[] = []
-  arguments: ActionOption[] = []
   description = 'Action description is not defined!'
 
-  abstract action(
-    options: Record<string, unknown>,
-    args: string[],
-  ): Promise<void>
-
-  constructor({ plugin, entryPath }: ActionParams) {
-    super({ entryPath })
+  constructor({ name, plugin, entryPath }: ActionParams) {
+    super({ name: plugin.name, entryPath })
     this.#plugin = plugin
+    this.#name = name
   }
+
+  abstract run(params: string[], options: Record<string, unknown>): Promise<void>
 
   get plugin() {
     return this.#plugin
+  }
+
+  get name() {
+    return this.#name
   }
 
   get __Action__() {

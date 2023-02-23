@@ -52,10 +52,12 @@ async function loadActions(plugin: CorePlugin) {
 
   const packageName = await plugin.getPackageName()
   for (const actionFile of actionFiles) {
+    const actionName = path.basename(actionFile)
     try {
       const actionPath = path.resolve(plugin.actionPath, actionFile)
       const { default: Action } = await import(actionPath)
       const action = new Action({
+        name: actionName,
         entryPath: plugin.entryPath,
         plugin,
       }) as CoreAction
@@ -67,9 +69,7 @@ async function loadActions(plugin: CorePlugin) {
       actions.push({ name, action })
     } catch (err) {
       log.error(
-        `plugin[${packageName}] action[${path.basename(
-          actionFile,
-        )}] load error[skipped]: ${(err as Error).message}`,
+        `plugin[${packageName}] action[${actionName}] load error[skipped]: ${(err as Error).message}`,
       )
     }
   }
@@ -94,7 +94,7 @@ async function registerPlugin({ packageName, pluginName }: PluginItem) {
     return
   }
   const entryPath = require.resolve(fullPackageName)
-  const plugin = new Plugin({ entryPath }) as CorePlugin
+  const plugin = new Plugin({ entryPath, name: pluginName }) as CorePlugin
   if (!plugin.__Plugin__) {
     throw new Error('Plugin must extends from core Plugin class!')
   }
@@ -116,8 +116,8 @@ async function registerPlugin({ packageName, pluginName }: PluginItem) {
       .command(name, { isDefault: name === DEFAULT_ACTION })
       .description(action.description)
 
-    if (action.arguments?.length > 0) {
-      action.arguments.forEach((argument: ActionOption) =>
+    if (action.params?.length > 0) {
+      action.params.forEach((argument: ActionOption) =>
         actionCmd.argument(
           argument.flags,
           argument.description,
@@ -133,13 +133,13 @@ async function registerPlugin({ packageName, pluginName }: PluginItem) {
     }
 
     let actionCallback = async (options: Record<string, unknown>) =>
-      await action.action(options, cli.args.slice(2))
+      await action.run(cli.args.slice(2), options)
 
-    if (action.arguments?.length > 0) {
+    if (action.params?.length > 0) {
       actionCallback = async (...args: unknown[]) => {
-        const restArgs = args.slice(0, action.arguments.length) as string[]
+        const params = args.slice(0, action.params.length) as string[]
         const options = args[args.length - 2] as Record<string, unknown>
-        await action.action(options, restArgs)
+        await action.run(params, options)
       }
     }
     actionCmd.action(actionCallback)

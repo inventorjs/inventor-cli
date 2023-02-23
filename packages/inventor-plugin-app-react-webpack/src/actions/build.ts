@@ -13,7 +13,7 @@ export default class BuildAction extends Action {
     { flags: '-a, --analyse', description: '开启打包分析', defaultValue: false },
   ]
 
-  async action(options: Record<string, unknown>) {
+  async run(_params: string[], options: Record<string, unknown>) {
     const { analyse } = options as { analyse: boolean }
     const pluginConfig = await this.getPluginConfig()
     const baseConfig = webpackFactory({

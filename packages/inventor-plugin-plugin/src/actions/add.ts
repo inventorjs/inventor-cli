@@ -8,8 +8,10 @@ export default class AddAction extends Action {
   description = '安装插件并注册'
   options = [{ flags: '--local', description: '是否使用局部安装', defaultValue: false }]
 
-  async action(options: { local?: boolean } = {}, packages: string[]) {
+  async run(params: string[], options: Record<string, unknown>) {
     const { local } = options
+    const packages = params
+
     if (!packages.length) {
       throw new Error('Please add inventor plugin package name!')
     }

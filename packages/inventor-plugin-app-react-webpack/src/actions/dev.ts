@@ -34,7 +34,7 @@ export default class DevAction extends Action {
     )
   }
 
-  async action(options: Record<string, unknown>) {
+  async run(_: string[], options: Record<string, unknown>) {
     const { port = DPORT } = options as { port?: number }
     const pluginConfig = await this.getPluginConfig()
     const validPort = await detectPort(port)

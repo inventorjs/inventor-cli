@@ -7,7 +7,7 @@ import { Action } from '@inventorjs/cli-core'
 export default class <%- actionClassName %> extends Action {
   description = '<%- description %>'
 
-  async action() {
+  async run() {
     const anwsers = await this.prompt([
       {
         name: 'name',

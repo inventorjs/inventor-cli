@@ -7,7 +7,7 @@ import { Action } from '@inventorjs/cli-core'
 export default class AddonAction extends Action {
   description = '添加应用附加能力'
 
-  async action() {
+  async run() {
     const anwsers = await this.prompt([
       {
         type: 'checkbox',

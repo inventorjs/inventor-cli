@@ -8,7 +8,7 @@ import path from 'path'
 export default class InitAction extends Action {
   description = '初始化前端应用'
 
-  async action() {
+  async run() {
     const anwsers = await this.prompt([
       {
         name: 'type',
