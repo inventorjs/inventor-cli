@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 5.0.13
+
+### Patch Changes
+
+- support argument
+
 ## 5.0.12
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/cli-core",
-  "version": "5.0.12",
+  "version": "5.0.13",
   "description": "inventor-cli core",
   "main": "lib/index.js",
   "author": "sunkeysun",

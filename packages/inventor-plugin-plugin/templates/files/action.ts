@@ -4,19 +4,18 @@
  */
 import { Action } from '@inventorjs/cli-core'
 
-export default class extends Action {
+export default class <%- actionClassName %> extends Action {
   description = '<%- description %>'
-  options = []
+
   async action() {
-    const nameRegex = /^\w{3,}$/
     const anwsers = await this.prompt([
       {
         name: 'name',
         type: 'text',
         message: '请输入你的名字',
         validate: (name) =>
-          !nameRegex.test(name)
-            ? `请输入合法的名字(${nameRegex.toString()})`
+          !this.regex.name.test(name)
+            ? `请输入合法的名字(${this.regex.name.toString()})`
             : true,
       },
     ])

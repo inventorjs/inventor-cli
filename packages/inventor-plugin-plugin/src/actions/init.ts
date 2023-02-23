@@ -13,8 +13,7 @@ export default class InitAction extends Action {
       {
         type: 'text',
         name: 'packageName',
-        message:
-          '请输入插件包名称，合法格式"(@scope/)?inventor-plugin-[name]',
+        message: '请输入插件包名称，合法格式"(@scope/)?inventor-plugin-[name]',
         validate: (packageName) => {
           if (
             !this.pm.checkName(packageName) ||
@@ -95,6 +94,7 @@ export default class InitAction extends Action {
 
     const packageJson = await this.getPackageJson()
     const cliVersion = packageJson?.version ?? 'latest'
+    const pluginName = this.util.getPluginName(packageName)
 
     await this.renderTemplate(templateName, dirName, {
       data: {
@@ -102,6 +102,7 @@ export default class InitAction extends Action {
         packageName,
         description,
         author,
+        pluginClassName: this.util.pascalCase(`${pluginName}Plugin`),
       },
     })
 

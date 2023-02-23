@@ -41,7 +41,10 @@ export default class ActionAction extends Action {
       'action.ts',
       actionPath,
       {
-        data: anwsers,
+        data: {
+          ...anwsers,
+          actionPluginName: this.util.pascalCase(`${anwsers.name}Action`),
+        },
       },
     )
     this.log.success(`action 路径：${path.resolve(this.pwd, actionPath)}`)

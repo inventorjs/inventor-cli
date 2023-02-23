@@ -24,3 +24,10 @@ export function humanSize(
 ) {
   return fz(bytes, options)
 }
+
+export function pascalCase(str: string) {
+  return str
+    .split(/[-_]/)
+    .map((seg) => `${seg[0].toUpperCase()}${seg.substring(1)}`)
+    .join('')
+}

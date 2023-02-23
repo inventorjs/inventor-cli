@@ -4,9 +4,9 @@
  */
 import { Action } from '@inventorjs/cli-core'
 
-export default class extends Action {
+export default class InitAction extends Action {
   description = '<%- description %>'
-  options = []
+
   async action() {
     const nameRegex = /^\w{3,}$/
     const anwsers = await this.prompt([
