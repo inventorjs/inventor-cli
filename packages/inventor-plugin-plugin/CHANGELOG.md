@@ -1,5 +1,13 @@
 # @inventorjs/cli-plugin-plugin
 
+## 5.0.15
+
+### Patch Changes
+
+- add defaultValue
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.15
+
 ## 5.0.14
 
 ### Patch Changes

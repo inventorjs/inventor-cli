@@ -371,6 +371,11 @@ export interface ActionOption {
   defaultValue?: string | boolean | string[]
 }
 
+export interface ActionParams {
+  plugin: Plugin
+  entryPath: string
+}
+
 export abstract class Action extends Plugin {
   #plugin: Plugin
   options: ActionOption[] = []
@@ -382,7 +387,7 @@ export abstract class Action extends Plugin {
     args: string[],
   ): Promise<void>
 
-  constructor({ plugin, entryPath }: { plugin: Plugin, entryPath: string }) {
+  constructor({ plugin, entryPath }: ActionParams) {
     super({ entryPath })
     this.#plugin = plugin
   }

@@ -10,7 +10,7 @@ const CRITICAL_SIZE = 1024 * 244
 export default class BuildAction extends Action {
   description = '构建项目'
   options = [
-    { flags: '-a, --analyse', description: '开启打包分析', default: false },
+    { flags: '-a, --analyse', description: '开启打包分析', defaultValue: false },
   ]
 
   async action(options: Record<string, unknown>) {

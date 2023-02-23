@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/cli",
-  "version": "5.0.14",
+  "version": "5.0.15",
   "type": "module",
   "bin": {
     "inventor": "./lib/index.js"
@@ -27,6 +27,6 @@
     "@inventorjs/cli-core": "workspace:*"
   },
   "peerDependencies": {
-    "@inventorjs/cli-core": "workspace:^"
+    "@inventorjs/cli-core": "workspace:*"
   }
 }
