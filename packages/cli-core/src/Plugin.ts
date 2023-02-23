@@ -24,8 +24,8 @@ export abstract class Plugin {
   #templatePath: string
   #actionPath: string
 
-  constructor({ name, entryPath }: { name: string, entryPath: string }) {
-    this.#name = name 
+  constructor({ name, entryPath }: { name: string; entryPath: string }) {
+    this.#name = name
     this.#entryPath = entryPath
     this.#templatePath = path.resolve(entryPath, '../../templates')
     this.#actionPath = path.resolve(entryPath, '../actions')
@@ -294,9 +294,34 @@ export abstract class Plugin {
     })
 
     if (pluginItem && Array.isArray(pluginItem)) {
-      return pluginItem[1] ?? {}
+      return pluginItem[1] ?? null
     }
-    return {}
+    return null
+  }
+
+  async setPluginConfig(config: Record<string, unknown>, from: LoadFrom = 'local') {
+    const rcConfig = (await this.rc.load(from)) ?? { plugins: [] }
+    const packageName = await this.getPackageName()
+    const index = rcConfig.plugins.findIndex((plugin: [string, Record<string, unknown>] | string) => {
+      if (
+        (Array.isArray(plugin) && plugin[0] === packageName) ||
+        (typeof plugin === 'string' && plugin === packageName)
+      ) {
+        return true
+      }
+      return false
+    })
+    let pluginItem = !~index ? [packageName] : rcConfig.plugins[index]
+    pluginItem = !Array.isArray(pluginItem) ? [pluginItem] : pluginItem
+    pluginItem[1] = { ...pluginItem[1], ...config }
+
+    if (!~index) {
+      rcConfig.plugins.push(pluginItem)
+    } else {
+      rcConfig.plugins[index] = pluginItem
+    }
+
+    return await this.rc.save(rcConfig, from)
   }
 
   async logInitCmd({ dirName = '.', cmd = `${this.pm.BIN} dev` } = {}) {
@@ -396,7 +421,10 @@ export abstract class Action extends Plugin {
     this.#name = name
   }
 
-  abstract run(params: string[], options: Record<string, unknown>): Promise<void>
+  abstract run(
+    params: string[],
+    options: Record<string, unknown>,
+  ): Promise<void>
 
   get plugin() {
     return this.#plugin

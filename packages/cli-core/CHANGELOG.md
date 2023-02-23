@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.17
+
+### Patch Changes
+
+- change arguments to params
+
 ## 5.0.16
 
 ### Patch Changes

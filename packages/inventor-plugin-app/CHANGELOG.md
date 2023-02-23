@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app
 
+## 5.0.17
+
+### Patch Changes
+
+- change arguments to params
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.17
+
 ## 5.0.16
 
 ### Patch Changes
