@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/inventor-plugin-app",
-  "version": "5.0.17",
+  "version": "5.0.18",
   "description": "前端应用初始化与开发工作流",
   "main": "lib/index.js",
   "author": "sunkeysun",

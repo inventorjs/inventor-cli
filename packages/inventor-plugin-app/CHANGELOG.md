@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app
 
+## 5.0.18
+
+### Patch Changes
+
+- support set plugin config
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.18
+
 ## 5.0.17
 
 ### Patch Changes

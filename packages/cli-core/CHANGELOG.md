@@ -1,5 +1,11 @@
 # @inventorjs/core
 
+## 5.0.18
+
+### Patch Changes
+
+- support set plugin config
+
 ## 5.0.17
 
 ### Patch Changes
