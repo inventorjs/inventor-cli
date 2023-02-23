@@ -1,5 +1,13 @@
 # @inventorjs/plugin-app-react-webpack
 
+## 5.0.16
+
+### Patch Changes
+
+- output error stack
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.16
+
 ## 5.0.15
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # @inventorjs/cli
 
+## 5.0.16
+
+### Patch Changes
+
+- output error stack
+- Updated dependencies
+  - @inventorjs/cli-core@5.0.16
+  - @inventorjs/inventor-plugin-app@5.0.16
+  - @inventorjs/inventor-plugin-plugin@5.0.16
+
 ## 5.0.15
 
 ### Patch Changes

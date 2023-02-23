@@ -198,7 +198,7 @@ async function run() {
 }
 
 process.on('uncaughtException', (err) => {
-  err && log.error(`uncaughtException: ${err}`)
+  err && log.error(`uncaughtException: ${err}\n${err?.stack ?? ''}`)
   process.exit(1)
 })
 

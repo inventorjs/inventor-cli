@@ -1,5 +1,11 @@
 # @inventorjs/babel-preset-app-react
 
+## 5.0.16
+
+### Patch Changes
+
+- output error stack
+
 ## 5.0.15
 
 ### Patch Changes
