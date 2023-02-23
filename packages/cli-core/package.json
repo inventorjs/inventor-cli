@@ -1,42 +1,42 @@
 {
   "name": "@inventorjs/cli-core",
-  "version": "5.0.18",
+  "version": "5.1.2",
   "description": "inventor-cli core",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "author": "sunkeysun",
   "license": "MIT",
   "type": "module",
   "files": [
-    "lib/"
+    "dist/"
   ],
   "scripts": {
     "dev": "tsc --watch",
-    "build": "rimraf lib && tsc"
+    "build": "rimraf dist && tsc"
   },
   "dependencies": {
-    "boxen": "7.0.0",
-    "chalk": "^5.0.1",
-    "commander": "^9.4.0",
+    "boxen": "^7.0.1",
+    "chalk": "^5.2.0",
+    "commander": "^9.5.0",
     "cosmiconfig": "7.0.1",
-    "dedent": "0.7.0",
+    "dedent": "^0.7.0",
     "ejs": "^3.1.8",
     "execa": "^6.1.0",
     "figlet": "^1.5.2",
     "filesize": "10.0.5",
     "fs-extra": "^10.1.0",
-    "globby": "^13.1.2",
-    "inquirer": "9.1.0",
+    "globby": "^13.1.3",
+    "inquirer": "^9.1.4",
     "ora": "^6.1.2",
-    "semver": "7.3.8"
+    "semver": "^7.3.8"
   },
   "devDependencies": {
-    "@types/dedent": "0.7.0",
-    "@types/ejs": "^3.1.1",
-    "@types/figlet": "^1.5.4",
+    "@types/dedent": "^0.7.0",
+    "@types/ejs": "^3.1.2",
+    "@types/figlet": "^1.5.5",
     "@types/fs-extra": "^9.0.13",
-    "@types/inquirer": "9.0.1",
-    "@types/node": "^18.6.5",
-    "@types/prompts": "^2.0.14",
-    "@types/semver": "7.3.12"
+    "@types/inquirer": "^9.0.3",
+    "@types/node": "^18.14.1",
+    "@types/prompts": "^2.4.2",
+    "@types/semver": "^7.3.13"
   }
 }

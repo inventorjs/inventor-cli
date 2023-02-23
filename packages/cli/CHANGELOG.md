@@ -1,5 +1,38 @@
 # @inventorjs/cli
 
+## 5.1.2
+
+### Patch Changes
+
+- change to 5.1.1
+- Updated dependencies
+  - @inventorjs/inventor-plugin-plugin@5.1.2
+  - @inventorjs/inventor-plugin-app@5.1.2
+  - @inventorjs/cli-core@5.1.2
+
+## 5.1.1
+
+### Patch Changes
+
+- correct version
+- Updated dependencies
+  - @inventorjs/inventor-plugin-plugin@5.1.1
+  - @inventorjs/inventor-plugin-app@5.1.1
+  - @inventorjs/cli-core@5.1.1
+
+## 6.0.0
+
+### Minor Changes
+
+- change dist
+
+### Patch Changes
+
+- Updated dependencies
+  - @inventorjs/inventor-plugin-plugin@6.0.0
+  - @inventorjs/inventor-plugin-app@6.0.0
+  - @inventorjs/cli-core@5.1.0
+
 ## 5.0.18
 
 ### Patch Changes

@@ -1,14 +1,14 @@
 {
   "name": "@inventorjs/cli",
-  "version": "5.0.18",
+  "version": "5.1.2",
   "type": "module",
   "bin": {
-    "inventor": "./lib/index.js"
+    "inventor": "./dist/index.js"
   },
   "author": "sunkeysun",
   "license": "MIT",
   "files": [
-    "lib/"
+    "dist/"
   ],
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
   },
   "scripts": {
     "dev": "tsc --watch",
-    "build": "rimraf lib && tsc && chmod 777 lib/index.js"
+    "build": "rimraf dist && tsc && chmod 777 dist/index.js"
   },
   "dependencies": {
     "@inventorjs/inventor-plugin-app": "workspace:*",

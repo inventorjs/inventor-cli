@@ -4,6 +4,6 @@
     "target": "esnext",
     "rootDir": "src",
     "baseUrl": ".",
-    "outDir": "lib",
+    "outDir": "dist",
   }
 }
