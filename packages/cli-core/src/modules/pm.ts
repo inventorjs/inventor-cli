@@ -23,12 +23,18 @@ export async function checkName(packageName: string) {
 export async function checkVersion() {
   let version = ''
   try {
-    ({ stdout: version } = await exec(BIN, ['-v'], { output: false }) as { stdout: string })
+    ;({ stdout: version } = (await exec(BIN, ['-v'], { output: false })) as {
+      stdout: string
+    })
   } catch (err) {
-    throw new Error(`${BIN}@${VERSION} is required globally. try "corepack prepare ${BIN}@${VERSION} --activate" to fix.`)
+    throw new Error(
+      `${BIN}@${VERSION} is required globally. try "corepack prepare ${BIN}@${VERSION} --activate" to fix.`,
+    )
   }
   if (!semver.satisfies(version, VERSION)) {
-    throw new Error(`pnpm current version[${version}] not satisfy required [${VERSION}].`)
+    throw new Error(
+      `pnpm current version[${version}] not satisfy required [${VERSION}].`,
+    )
   }
 }
 
@@ -77,9 +83,14 @@ export async function searchPackageJson(fromPath: string) {
     const files = await readdir(parentDir)
     const packageJsonFile = files.find((file) => file === 'package.json')
     if (packageJsonFile) {
-      packageJson = await getPackageJson(path.resolve(parentDir, packageJsonFile))
+      packageJson = await getPackageJson(
+        path.resolve(parentDir, packageJsonFile),
+      )
       if (!packageJson) return null
-      return { path: path.resolve(parentDir, packageJsonFile), content: packageJson }
+      return {
+        path: path.resolve(parentDir, packageJsonFile),
+        content: packageJson,
+      }
     }
     parentDir = path.dirname(parentDir)
   }
@@ -111,7 +122,7 @@ export async function addDependencies(
   packageNames: string[],
   options: AddOptions = {},
 ) {
-  const { global = false, ...restOptions } = options;
+  const { global = false, ...restOptions } = options
   const args = ['add', ...packageNames]
   !!global && args.push('-g')
   return execBin(args, restOptions)
@@ -121,7 +132,7 @@ export async function addDevDependencies(
   packageNames: string[],
   options: AddOptions = {},
 ) {
-  const { global = false, ...restOptions } = options;
+  const { global = false, ...restOptions } = options
   const args = ['add', ...packageNames, '-D']
   !!global && args.push('-g')
   return execBin(args, restOptions)
@@ -131,7 +142,7 @@ export async function removeDependencies(
   packageNames: string[],
   options: AddOptions = {},
 ) {
-  const { global = false, ...restOptions } = options;
+  const { global = false, ...restOptions } = options
   const args = ['remove', ...packageNames]
   !!global && args.push('-g')
   return execBin(args, restOptions)
@@ -141,7 +152,7 @@ export async function removeDevDependencies(
   packageNames: string[],
   options: AddOptions = {},
 ) {
-  const { global = false, ...restOptions } = options;
+  const { global = false, ...restOptions } = options
   const args = ['remove', ...packageNames]
   !!global && args.push('-g')
   return execBin(args, restOptions)

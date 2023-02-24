@@ -299,18 +299,23 @@ export abstract class Plugin {
     return null
   }
 
-  async setPluginConfig(config: Record<string, unknown>, from: LoadFrom = 'local') {
+  async setPluginConfig(
+    config: Record<string, unknown>,
+    from: LoadFrom = 'local',
+  ) {
     const rcConfig = (await this.rc.load(from)) ?? { plugins: [] }
     const packageName = await this.getPackageName()
-    const index = rcConfig.plugins.findIndex((plugin: [string, Record<string, unknown>] | string) => {
-      if (
-        (Array.isArray(plugin) && plugin[0] === packageName) ||
-        (typeof plugin === 'string' && plugin === packageName)
-      ) {
-        return true
-      }
-      return false
-    })
+    const index = rcConfig.plugins.findIndex(
+      (plugin: [string, Record<string, unknown>] | string) => {
+        if (
+          (Array.isArray(plugin) && plugin[0] === packageName) ||
+          (typeof plugin === 'string' && plugin === packageName)
+        ) {
+          return true
+        }
+        return false
+      },
+    )
     let pluginItem = !~index ? [packageName] : rcConfig.plugins[index]
     pluginItem = !Array.isArray(pluginItem) ? [pluginItem] : pluginItem
     pluginItem[1] = { ...pluginItem[1], ...config }
