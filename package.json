@@ -16,17 +16,15 @@
   },
   "scripts": {
     "clean": "rimraf node_modules **/*/node_modules **/*/lib",
-    "dev": "pnpm -r --parallel dev",
-    "predev": "pnpm build",
+    "dev": "pnpm build && pnpm -r --parallel dev",
     "build": "pnpm -r build",
-    "change": "changeset",
-    "pub": "changeset version && changeset publish",
-    "prepub": "pnpm build"
+    "publish:patch": "pnpm build && pnpm -r exec pnpm version patch && pnpm -r publish",
+    "publish:minor": "pnpm build && pnpm -r exec pnpm version minor && pnpm -r publish",
+    "publish:major": "pnpm build && pnpm -r exec pnpm version major && pnpm -r publish"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.26.0",
-    "@commitlint/cli": "17.0.3",
-    "@commitlint/config-conventional": "17.0.3",
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
     "@inventorjs/eslint-config": "0.0.10",
     "@inventorjs/prettier-config": "0.0.10",
     "@types/node": "^18.14.1",
