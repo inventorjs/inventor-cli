@@ -7,7 +7,7 @@ importers:
       '@commitlint/cli': ^17.0.3
       '@commitlint/config-conventional': ^17.0.3
       '@inventorjs/eslint-config': 0.0.10
-      '@inventorjs/prettier-config': 0.0.10
+      '@inventorjs/prettier-config': 0.0.12
       '@types/node': ^18.14.1
       '@typescript-eslint/eslint-plugin': ^5.53.0
       '@typescript-eslint/parser': ^5.53.0
@@ -25,7 +25,7 @@ importers:
       '@commitlint/cli': 17.0.3
       '@commitlint/config-conventional': 17.0.3
       '@inventorjs/eslint-config': 0.0.10_ugxeyxkx5kvwlsw2ms7t3migvu
-      '@inventorjs/prettier-config': 0.0.10_prettier@2.8.4
+      '@inventorjs/prettier-config': 0.0.12_prettier@2.8.4
       '@types/node': 18.14.1
       '@typescript-eslint/eslint-plugin': 5.53.0_ny4s7qc6yg74faf3d6xty2ofzy
       '@typescript-eslint/parser': 5.53.0_7kw3g6rralp5ps6mg3uyzz6azm
@@ -1751,8 +1751,8 @@ packages:
       typescript: 4.9.5
     dev: true
 
-  /@inventorjs/prettier-config/0.0.10_prettier@2.8.4:
-    resolution: {integrity: sha512-X/xtLbplMZbzalu+r9cFlvS6dm1NJ2arAUUiqBk2xj1iVQG+vPhbvu1g6i4OF91dflKDWDsUX14QhEDXaHVDjQ==}
+  /@inventorjs/prettier-config/0.0.12_prettier@2.8.4:
+    resolution: {integrity: sha512-NDtYFXrEUNVNrY9DEXCQ/1hJ4j095hbe2rI5hlBSRVzNu2XKbCRwOzhlAsydWColfCfIIzqSARxDyfLkf4SJkg==}
     peerDependencies:
       prettier: ^2.8.4
     dependencies:
