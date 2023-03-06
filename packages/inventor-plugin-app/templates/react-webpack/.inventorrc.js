@@ -1,5 +1,5 @@
 module.exports = {
   plugins: [
-    ['@inventorjs/plugin-app-react-webpack'],
+    ['@inventorjs/inventor-plugin-app-react-webpack'],
   ],
 }
