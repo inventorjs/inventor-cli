@@ -21,7 +21,13 @@ interface FactoryParams {
   assets?: string
 }
 
-export default ({ root, release = false, analyse = false, port, assets = 'assets' }: FactoryParams) => {
+export default ({
+  root,
+  release = false,
+  analyse = false,
+  port,
+  assets = 'assets',
+}: FactoryParams) => {
   function ifRelease<T>(releaseValue: T, developmentValue: T): T {
     return release ? releaseValue : developmentValue
   }
@@ -31,7 +37,7 @@ export default ({ root, release = false, analyse = false, port, assets = 'assets
     devtool: ifRelease(undefined, 'eval-cheap-module-source-map'),
     stats: 'errors-warnings',
     entry: {
-      main: path.resolve(root, 'src/index.jsx'),
+      main: path.resolve(root, 'src/index'),
     },
     output: {
       clean: true,
@@ -126,7 +132,7 @@ export default ({ root, release = false, analyse = false, port, assets = 'assets
     ].filter(Boolean),
 
     resolve: {
-      extensions: ['.js', '.jsx', '.json'],
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
     },
 
     optimization: {

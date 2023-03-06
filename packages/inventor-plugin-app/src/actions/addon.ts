@@ -15,19 +15,22 @@ export default class AddonAction extends Action {
         message: '选择要添加的应用附加能力',
         choices: [
           { name: 'Husky', value: 'husky' },
-          { name: 'Eslint [husky, lint-staged, pre-commit hook]', value: 'eslint' },
+          {
+            name: 'Eslint [husky, lint-staged, pre-commit hook]',
+            value: 'eslint',
+          },
           { name: 'Commitlint [husky, commit-msg hook]', value: 'commitlint' },
-        ]
+        ],
       },
     ])
 
-    type Option = 'husky'|'eslint'|'commitlint'
+    type Option = 'husky' | 'eslint' | 'commitlint'
     const { addon } = anwsers as { addon: Option[] }
-    
+
     await this.runTaskContext(async () => {
-      addon.includes('husky') && await this.addHusky();
-      addon.includes('eslint') && await this.addEslint();
-      addon.includes('commitlint') && await this.addCommitLint();
+      addon.includes('husky') && (await this.addHusky())
+      addon.includes('eslint') && (await this.addEslint())
+      addon.includes('commitlint') && (await this.addCommitLint())
     })
   }
 }

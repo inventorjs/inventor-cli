@@ -10,7 +10,11 @@ const CRITICAL_SIZE = 1024 * 244
 export default class BuildAction extends Action {
   description = '构建项目'
   options = [
-    { flags: '-a, --analyse', description: '开启打包分析', defaultValue: false },
+    {
+      flags: '-a, --analyse',
+      description: '开启打包分析',
+      defaultValue: false,
+    },
   ]
 
   async run(_params: string[], options: Record<string, unknown>) {
@@ -80,7 +84,7 @@ export default class BuildAction extends Action {
       successText: (timeCost) =>
         this.color.green(
           `webpack build assets successfully[timeCost: ${this.color.yellow(
-            `${timeCost}ms`
+            `${timeCost}ms`,
           )}]`,
         ),
       failText: (err) =>
