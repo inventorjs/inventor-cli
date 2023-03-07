@@ -10,10 +10,11 @@
   "files": [
     "dist/"
   ],
+  "homepage": "https://inventorjs.github.io",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/inventorjs/inventor-cli.git",
-    "directory": "packages/plugin-app-react-webpack"
+    "url": "https://github.com/inventorjs/cli.git",
+    "directory": "packages/inventor-plugin-app-react-webpack"
   },
   "scripts": {
     "dev": "tsc --watch",

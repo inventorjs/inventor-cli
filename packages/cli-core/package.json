@@ -9,6 +9,12 @@
   "files": [
     "dist/"
   ],
+  "homepage": "https://inventorjs.github.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inventorjs/cli.git",
+    "directory": "packages/cli-core"
+  },
   "scripts": {
     "dev": "tsc --watch",
     "build": "rimraf dist && tsc"
