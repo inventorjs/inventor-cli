@@ -42,7 +42,7 @@ export default class DevAction extends Action {
       port: validPort,
     })
     const webpackConfig: Configuration =
-      pluginConfig?.webpack?.(baseConfig) ?? baseConfig
+      pluginConfig?.webpack?.(baseConfig, webpack) ?? baseConfig
     const devServerConfig = webpackConfig.devServer ?? {}
     const { static: staticPath = '', historyApiFallback = false } =
       devServerConfig

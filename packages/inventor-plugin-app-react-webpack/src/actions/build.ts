@@ -26,7 +26,7 @@ export default class BuildAction extends Action {
       analyse,
     })
     const webpackConfig: Configuration =
-      pluginConfig?.webpack?.(baseConfig) ?? baseConfig
+      pluginConfig?.webpack?.(baseConfig, webpack) ?? baseConfig
     const compiler = webpack(webpackConfig)
     const startTime = Date.now()
 
