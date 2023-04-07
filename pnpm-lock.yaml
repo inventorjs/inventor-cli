@@ -90,6 +90,7 @@ importers:
       '@types/node': ^18.14.1
       '@types/prompts': ^2.4.2
       '@types/semver': ^7.3.13
+      ansi-escapes: ^6.1.0
       boxen: ^7.0.1
       chalk: ^5.2.0
       commander: ^9.5.0
@@ -105,6 +106,7 @@ importers:
       ora: ^6.1.2
       semver: ^7.3.8
     dependencies:
+      ansi-escapes: 6.1.0
       boxen: 7.0.1
       chalk: 5.2.0
       commander: 9.5.0
@@ -2462,8 +2464,8 @@ packages:
       type-fest: 0.21.3
     dev: true
 
-  /ansi-escapes/6.0.0:
-    resolution: {integrity: sha512-IG23inYII3dWlU2EyiAiGj6Bwal5GzsgPMwjYGvc1HPE2dgbj4ZB5ToWBKSquKw74nB3TIuOwaI6/jSULzfgrw==}
+  /ansi-escapes/6.1.0:
+    resolution: {integrity: sha512-bQyg9bzRntwR/8b89DOEhGwctcwCrbWW/TuqTQnpqpy5Fz3aovcOTj5i8NJV6AHc8OGNdMaqdxAWww8pz2kiKg==}
     engines: {node: '>=14.16'}
     dependencies:
       type-fest: 3.6.0
@@ -4479,7 +4481,7 @@ packages:
     resolution: {integrity: sha512-9hiJxE5gkK/cM2d1mTEnuurGTAoHebbkX0BYl3h7iEg7FYfuNIom+nDfBCSWtvSnoSrWCeBxqqBZu26xdlJlXA==}
     engines: {node: '>=12.0.0'}
     dependencies:
-      ansi-escapes: 6.0.0
+      ansi-escapes: 6.1.0
       chalk: 5.2.0
       cli-cursor: 4.0.0
       cli-width: 4.0.0

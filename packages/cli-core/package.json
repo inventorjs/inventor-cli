@@ -20,6 +20,7 @@
     "build": "rimraf dist && tsc"
   },
   "dependencies": {
+    "ansi-escapes": "^6.1.0",
     "boxen": "^7.0.1",
     "chalk": "^5.2.0",
     "commander": "^9.5.0",
