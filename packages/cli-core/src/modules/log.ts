@@ -7,6 +7,7 @@ import chalk from 'chalk'
 import boxen from 'boxen'
 import dedent from 'dedent'
 import figlet from 'figlet'
+import ansiEscapes from 'ansi-escapes'
 import { isTTY } from './env.js'
 
 interface Options {
@@ -122,11 +123,7 @@ export function warn(msg: unknown, options?: Options) {
 }
 
 export function clear() {
-  if (isTTY()) {
-    log(
-      process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H',
-    )
-  }
+  process.stdout.write(ansiEscapes.clearScreen)
 }
 
 export function raw(msg: unknown, options?: Options) {
