@@ -8,7 +8,6 @@ import fs from 'node:fs/promises'
 import yaml from 'js-yaml'
 import traverse from 'traverse'
 import { Graph } from 'graphlib'
-import { Cam } from '@serverless/utils-china'
 
 export async function isFile(filePath: string) {
   try {
@@ -29,7 +28,7 @@ export async function resolveSlsFile(slsPath: string) {
     'serverless.json',
     'serverless.js',
   ]
-  for (let filename of supportFileNames) {
+  for (const filename of supportFileNames) {
     const filePath = path.join(slsPath, filename)
     if (await isFile(filePath)) {
       const content = await fs.readFile(filePath, 'utf8')
@@ -54,8 +53,14 @@ export async function resolveSlsFile(slsPath: string) {
   return null
 }
 
-export async function isValidInstance(instance?: Record<string, unknown>) {
-  if (!instance || !instance.app || !instance.stage || !instance.name || !instance.component) {
+export function isValidInstance(instance?: Record<string, unknown>) {
+  if (
+    !instance ||
+    !instance.app ||
+    !instance.stage ||
+    !instance.name ||
+    !instance.component
+  ) {
     return false
   }
   return true
@@ -68,9 +73,9 @@ export async function getSlsInstanceList(slsPath: string) {
   }
   const dirs = await fs.readdir(slsPath)
   const instanceList = []
-  for (let dir of dirs) {
+  for (const dir of dirs) {
     const instance = await resolveSlsFile(path.resolve(slsPath, dir))
-    if (!await isValidInstance(instance)) {
+    if (!isValidInstance(instance)) {
       throw new Error(`${dir} is not a valid serverless instance`)
     }
     instanceList.push(instance)
@@ -85,7 +90,7 @@ export async function resolveSlsTemplate(slsPath: string) {
   }
 
   let template: SlsTemplate | null = null
-  for (let instance of instanceList) {
+  for (const instance of instanceList) {
     const { org, app, stage } = instance
     if (!template) {
       template = { org, app, stage, instances: [] }
@@ -96,11 +101,14 @@ export async function resolveSlsTemplate(slsPath: string) {
     }
     template.instances.push(instance)
   }
+  if (!template) return null
+  template = resolveSlsTemplateVariables(template)
+  template = sortSlsTemplateInstances(template)
   return template
 }
 
 export function resolveInstanceVariables(value: string, instance: SlsInstance) {
-  const variableRegex = /\$\{([\w:-]+)\}/g
+  const variableRegex = /\$\{([\w:-{}$]+)\}/g
   let updateValue = value
   value.match(variableRegex)?.forEach((v) => {
     variableRegex.lastIndex = 0
@@ -110,6 +118,7 @@ export function resolveInstanceVariables(value: string, instance: SlsInstance) {
       const envName = valName.split(':')[1] ?? ''
       resolvedValue = process.env[envName] ?? value
     } else if (valName.startsWith('output:')) {
+      console.log(valName, '1111')
       const outputVal = valName.split(':', 2)[1]
       resolvedValue = resolveInstanceVariables(outputVal, instance)
       const depInstnaceName = valName.split(':').at(-1)?.split('.')[1]
@@ -123,15 +132,15 @@ export function resolveInstanceVariables(value: string, instance: SlsInstance) {
         resolvedValue = innerVal as string
       }
     }
-    updateValue = updateValue.replace(`\$\{${valName}\}`, resolvedValue)
+    updateValue = updateValue.replace(`$\{${valName}}`, resolvedValue)
   })
   return updateValue
 }
 
 export function resolveSlsTemplateVariables(template: SlsTemplate) {
-  for (let instanceName in template.instances) {
+  for (const instanceName in template.instances) {
     const instance = template.instances[instanceName]
-    traverse(instance).forEach(function (value) {
+    traverse(instance.inputs).forEach(function (value) {
       if (typeof value === 'string') {
         const updateValue = resolveInstanceVariables(value, instance)
         if (updateValue !== value) {
@@ -160,7 +169,9 @@ export function sortSlsTemplateInstances(template: SlsTemplate) {
       return
     }
     leaves.forEach((instanceName) => {
-      const instance = instances.find((instance) => instance.name === instanceName)
+      const instance = instances.find(
+        (instance) => instance.name === instanceName,
+      )
       if (instance) {
         sortedInstances.push(instance)
       }
@@ -178,7 +189,7 @@ export function getStageRegion(stage = 'prod') {
 }
 
 // export async function getOrgId() {
-//   const userInfoGetter = await new Cam.GetUserInformation() 
+//   const userInfoGetter = await new Cam.GetUserInformation()
 //   const { AppId: orgId } = await userInfoGetter.getUserInformation({
 //     SecretId,
 //     SecretKey,

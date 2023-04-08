@@ -12,6 +12,7 @@
   "packageManager": "pnpm@7.13.2",
   "scripts": {
     "dev": "tsc --watch",
+    "test": "tsc && node dist/index.js",
     "build": "rimraf lib && tsc"
   },
   "devDependencies": {

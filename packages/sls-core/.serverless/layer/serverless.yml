@@ -1,0 +1,10 @@
+app: app
+stage: dev
+name: layerdemo
+component: layer
+
+inputs:
+  region: ap-guangzhou
+  src: ../../node_modules
+  runtimes:
+    - Nodejs16.13
