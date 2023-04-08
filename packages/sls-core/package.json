@@ -1,0 +1,33 @@
+{
+  "name": "@inventorjs/sls-core",
+  "version": "0.0.1",
+  "description": "serverless core",
+  "author": "sunkeysun",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib/"
+  ],
+  "packageManager": "pnpm@7.13.2",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "rimraf lib && tsc"
+  },
+  "devDependencies": {
+    "@types/graphlib": "^2.1.8",
+    "@types/js-yaml": "^4.0.5",
+    "@types/traverse": "^0.6.32",
+    "prettier": "^2.7.1",
+    "rimraf": "^3.0.2",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@serverless/utils-china": "^1.1.7",
+    "graphlib": "^2.1.8",
+    "js-yaml": "^4.1.0",
+    "tencentcloud-sdk-nodejs": "^4.0.575",
+    "traverse": "^0.6.7"
+  }
+}
