@@ -1,9 +1,10 @@
-app: app
+app: scf-starter
 stage: dev
 name: layerdemo
 component: layer
 
 inputs:
+  name: ${name}-${stage}-${app}
   region: ap-guangzhou
   src: ../../node_modules
   runtimes:

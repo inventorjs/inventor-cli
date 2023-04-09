@@ -1,4 +1,4 @@
-app: app
+app: scf-starter
 stage: dev
 name: clsdemo
 component: cls
