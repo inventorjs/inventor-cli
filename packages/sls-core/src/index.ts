@@ -1,7 +1,7 @@
 /**
  * serverless core
  */
-import { resolveSlsTemplate, getStageRegion } from './util.js'
+import { resolveSlsTemplate } from './util.js'
 // import ServerlessUtils from '@serverless/utils-china'
 
 async function run() {

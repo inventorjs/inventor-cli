@@ -7,7 +7,7 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import yaml from 'js-yaml'
 import traverse from 'traverse'
-import { Graph } from 'graphlib'
+import { Graph } from '@dagrejs/graphlib'
 
 export async function isFile(filePath: string) {
   try {
@@ -108,24 +108,17 @@ export async function resolveSlsTemplate(slsPath: string) {
 }
 
 export function resolveInstanceVariables(value: string, instance: SlsInstance) {
-  const variableRegex = /\$\{([\w:-{}$]+)\}/g
+  const variableRegex = /\$\{([\w:\s.-]+)\}/g
+  const outputRegex = /\$\{output:([\w:\s.-]+)\}/g
   let updateValue = value
-  value.match(variableRegex)?.forEach((v) => {
+  updateValue.match(variableRegex)?.forEach((v) => {
     variableRegex.lastIndex = 0
-    const [, valName] = variableRegex.exec(v) ?? []
+    let [, valName] = variableRegex.exec(v) ?? []
+    valName = valName.trim()
     let resolvedValue = v
     if (valName.startsWith('env:')) {
       const envName = valName.split(':')[1] ?? ''
       resolvedValue = process.env[envName] ?? value
-    } else if (valName.startsWith('output:')) {
-      console.log(valName, '1111')
-      const outputVal = valName.split(':', 2)[1]
-      resolvedValue = resolveInstanceVariables(outputVal, instance)
-      const depInstnaceName = valName.split(':').at(-1)?.split('.')[1]
-      if (depInstnaceName) {
-        instance.$deps ??= []
-        instance.$deps.push(depInstnaceName)
-      }
     } else {
       const innerVal = instance[valName as keyof SlsInstance]
       if (innerVal && !isObject(innerVal)) {
@@ -134,6 +127,13 @@ export function resolveInstanceVariables(value: string, instance: SlsInstance) {
     }
     updateValue = updateValue.replace(`$\{${valName}}`, resolvedValue)
   })
+  if (outputRegex.exec(updateValue)) {
+    const depName = updateValue.split(':').at(-1)?.split('.')[0]
+    if (depName && !instance.$deps?.includes?.(depName)) {
+      instance.$deps ??= []
+      instance.$deps.push(depName)
+    }
+  }
   return updateValue
 }
 
@@ -177,6 +177,7 @@ export function sortSlsTemplateInstances(template: SlsTemplate) {
       }
       graph.removeNode(instanceName)
     })
+    traverseGraph()
   }
   traverseGraph()
 
@@ -187,13 +188,3 @@ export function sortSlsTemplateInstances(template: SlsTemplate) {
 export function getStageRegion(stage = 'prod') {
   return stage === 'dev' ? 'ap-shanghai' : 'ap-guangzhou'
 }
-
-// export async function getOrgId() {
-//   const userInfoGetter = await new Cam.GetUserInformation()
-//   const { AppId: orgId } = await userInfoGetter.getUserInformation({
-//     SecretId,
-//     SecretKey,
-//     token,
-//   })
-//   return String(orgId)
-// }
