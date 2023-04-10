@@ -23,10 +23,17 @@ export interface GetCacheFileUrlsParams {
 export interface RunComponentParams {
   instance: SlsInstance
   method: 'deploy' | 'remove'
+  options: {
+    cacheOutdated?: boolean
+  }
 }
 
+export type ListInstancesParams = Partial<
+  Pick<SlsInstance, 'app' | 'stage' | 'name' | 'component'>
+>
+
 export class ApiService {
-  constructor(private readonly config: ApiServiceParams) { }
+  constructor(private readonly config: ApiServiceParams) {}
 
   get sdk() {
     const { appId, secretId, secretKey, token } = this.config
@@ -81,9 +88,6 @@ export class ApiService {
             componentVersion,
           }
         }
-        if (['inputs'].includes(key)) {
-          return { ...result, [key]: val }
-        }
         return result
       },
       { orgName: this.config.appId } as SdkInstance,
@@ -92,11 +96,9 @@ export class ApiService {
     return sdkInstance
   }
 
-  async getCacheFileUrls({
-    appName,
-    stageName,
-    instanceName,
-  }: GetCacheFileUrlsParams) {
+  async getCacheFileUrls(instance: SlsInstance) {
+    const { appName, stageName, instanceName } =
+      this.transformSdkInstance(instance)
     const response = await this.sdk.getCacheFileUrls({
       orgUid: this.config.appId,
       appName,
@@ -106,18 +108,51 @@ export class ApiService {
     return this.processSdkResponse(response)
   }
 
-  async runComponent({ instance, method }: RunComponentParams) {
+  async runComponent({ instance, method, options }: RunComponentParams) {
     const response = await this.sdk.runComponent({
       instance: this.transformSdkInstance(instance),
       method,
+      options,
     })
     return this.processSdkResponse(response)
   }
 
   async getInstance({ instance }: Pick<RunComponentParams, 'instance'>) {
-    const response = await this.sdk.getInstance({
-      instance: this.transformSdkInstance(instance),
-    })
+    const response = await this.sdk.getInstance(
+      this.transformSdkInstance(instance),
+    )
     return this.processSdkResponse(response)
+  }
+
+  async listInstances({
+    app,
+    stage,
+    name,
+    component,
+  }: ListInstancesParams = {}) {
+    const response = await this.sdk.listInstances({
+      orgName: this.config.appId,
+      orgUid: this.config.appId,
+    })
+    const res = this.processSdkResponse(response)
+    const { Response } = res
+    const instances = Response?.instances?.filter?.((instance: SdkInstance) => {
+      let isTrue = true
+      if (app) {
+        isTrue &&= instance.appName === app
+      }
+      if (stage) {
+        isTrue &&= instance.stageName === stage
+      }
+      if (name) {
+        isTrue &&= instance.instanceName === name
+      }
+      if (component) {
+        isTrue &&= instance.componentName === component
+      }
+      return isTrue
+    })
+    Response.instances = instances
+    return res
   }
 }

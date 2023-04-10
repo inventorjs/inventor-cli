@@ -1,13 +1,13 @@
 /**
  * util
  */
-import type { SlsInstance, SlsTemplate } from './types.js'
+import type { SlsAction, SlsInstance } from './types.js'
 
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import yaml from 'js-yaml'
 import traverse from 'traverse'
-import { Graph } from '@dagrejs/graphlib'
+import Graph from 'graph-data-structure'
 
 export async function isFile(filePath: string) {
   try {
@@ -66,123 +66,120 @@ export function isValidInstance(instance?: Record<string, unknown>) {
   return true
 }
 
-export async function getSlsInstanceList(slsPath: string) {
+export async function resolveSlsInstances(slsPath: string, action: SlsAction) {
   const instance = await resolveSlsFile(slsPath)
   if (instance && instance.component) {
     return [instance]
   }
   const dirs = await fs.readdir(slsPath)
-  const instanceList = []
+  const instances = []
+  let commonConfig: Pick<SlsInstance, 'org' | 'app' | 'stage'> | null = null
   for (const dir of dirs) {
     const instance = await resolveSlsFile(path.resolve(slsPath, dir))
-    if (!isValidInstance(instance)) {
+    if (instance && !isValidInstance(instance)) {
       throw new Error(`${dir} is not a valid serverless instance`)
     }
-    instanceList.push(instance)
+    if (instance) {
+      let resolvedInstance = resolveSlsInstanceVariables(instance)
+      resolvedInstance = resolveSlsInstanceSrc(instance, slsPath)
+      const { org, app, stage } = resolvedInstance
+      if (!commonConfig) {
+        commonConfig = { org, app, stage }
+      }
+      const { org: cOrg, app: cApp, stage: cStage } = commonConfig
+      if (cOrg !== org || cApp !== app || cStage !== stage) {
+        throw new Error(`serverless instance's "org" "app" "stage" must equal`)
+      }
+      instances.push(resolvedInstance)
+    }
   }
-  return instanceList
+  sortSlsInstances(instances, action)
+  return instances
 }
 
-export async function resolveSlsTemplate(slsPath: string) {
-  const instanceList = await getSlsInstanceList(slsPath)
-  if (!instanceList.length) {
-    throw new Error(`no serverless instance found at ${slsPath}`)
-  }
-
-  let template: SlsTemplate | null = null
-  for (const instance of instanceList) {
-    const { org, app, stage } = instance
-    if (!template) {
-      template = { org, app, stage, instances: [] }
-    }
-    const { org: tOrg, app: tApp, stage: tStage } = template
-    if (tOrg !== org || tApp !== app || tStage !== stage) {
-      throw new Error(`serverless instance's "org" "app" "stage" must equal`)
-    }
-    template.instances.push(instance)
-  }
-  if (!template) return null
-  template = resolveSlsTemplateVariables(template)
-  template = sortSlsTemplateInstances(template)
-  return template
-}
-
-export function resolveInstanceVariables(value: string, instance: SlsInstance) {
-  const variableRegex = /\$\{([\w:\s.-]+)\}/g
+export function resolveSlsInstanceVariables(instance: SlsInstance) {
+  const envRegex = /\$\{env:([\w:\s.-]+)\}/g
   const outputRegex = /\$\{output:([\w:\s.-]+)\}/g
-  let updateValue = value
-  updateValue.match(variableRegex)?.forEach((v) => {
-    variableRegex.lastIndex = 0
-    let [, valName] = variableRegex.exec(v) ?? []
-    valName = valName.trim()
-    let resolvedValue = v
-    if (valName.startsWith('env:')) {
+  traverse(instance).forEach(function (value) {
+    let updateValue = value
+    if (typeof value !== 'string') return
+    updateValue.match(envRegex)?.forEach((v: string) => {
+      envRegex.lastIndex = 0
+      let [, valName] = envRegex.exec(v) ?? []
+      valName = valName.trim()
+      let resolvedValue = v
       const envName = valName.split(':')[1] ?? ''
       resolvedValue = process.env[envName] ?? value
-    } else {
-      const innerVal = instance[valName as keyof SlsInstance]
-      if (innerVal && !isObject(innerVal)) {
-        resolvedValue = innerVal as string
-      }
-    }
-    updateValue = updateValue.replace(`$\{${valName}}`, resolvedValue)
-  })
-  if (outputRegex.exec(updateValue)) {
-    const depName = updateValue.split(':').at(-1)?.split('.')[0]
-    if (depName && !instance.$deps?.includes?.(depName)) {
-      instance.$deps ??= []
-      instance.$deps.push(depName)
-    }
-  }
-  return updateValue
-}
-
-export function resolveSlsTemplateVariables(template: SlsTemplate) {
-  for (const instanceName in template.instances) {
-    const instance = template.instances[instanceName]
-    traverse(instance.inputs).forEach(function (value) {
-      if (typeof value === 'string') {
-        const updateValue = resolveInstanceVariables(value, instance)
-        if (updateValue !== value) {
-          this.update(updateValue)
-        }
-      }
+      updateValue = updateValue.replace(`$\{${valName}}`, resolvedValue)
     })
-  }
-  return template
+    if (outputRegex.exec(updateValue)) {
+      const depName = updateValue.split(':').at(-1)?.split('.')[0]
+      if (depName && !instance.$deps?.includes?.(depName)) {
+        instance.$deps ??= []
+        instance.$deps.push(depName)
+      }
+    }
+    if (updateValue !== value) {
+      this.update(updateValue)
+    }
+  })
+  return instance
 }
 
-export function sortSlsTemplateInstances(template: SlsTemplate) {
-  const graph = new Graph()
-  const { instances } = template
+export function resolveSlsInstanceSrc(instance: SlsInstance, slsPath: string) {
+  if (typeof instance.inputs.src === 'string') {
+    instance.inputs.src = path.resolve(
+      `${slsPath}/serverless.yml`,
+      instance.inputs.src,
+    )
+  } else if (typeof instance.inputs?.src?.src === 'string') {
+    instance.inputs.src.src = path.resolve(
+      `${slsPath}/serverless.yml`,
+      instance.inputs.src.src,
+    )
+    if (instance.inputs?.src?.excludes?.length) {
+      const { excludes } = instance.inputs?.src ?? {}
+      if (excludes && excludes.length) {
+        instance.inputs.src.excludes = excludes.map((exclude: string) =>
+          path.resolve(instance.inputs.src.src, exclude),
+        )
+      }
+    }
+  }
+  return instance
+}
+
+export function sortSlsInstances(instances: SlsInstance[], action: SlsAction) {
+  const graph = Graph()
 
   instances.forEach((instance) => {
+    graph.addNode(instance.name)
     instance?.$deps?.forEach((depInstanceName) => {
-      graph.setEdge(instance.name, depInstanceName)
+      graph.addEdge(instance.name, depInstanceName)
     })
   })
 
-  const sortedInstances: SlsInstance[] = []
-  function traverseGraph() {
-    const leaves = graph.sinks()
-    if (!leaves?.length) {
-      return
-    }
-    leaves.forEach((instanceName) => {
-      const instance = instances.find(
-        (instance) => instance.name === instanceName,
-      )
-      if (instance) {
-        sortedInstances.push(instance)
-      }
-      graph.removeNode(instanceName)
-    })
-    traverseGraph()
+  if (graph.hasCycle()) {
+    throw new Error(
+      'instance has circular dependencies, please check ${output:...} config',
+    )
   }
-  traverseGraph()
 
-  template.instances = sortedInstances
-  return template
+  let sortedList = graph.topologicalSort()
+  if (!['remove'].includes(action)) {
+    sortedList = sortedList.reverse()
+  }
+  const sortedInstances: SlsInstance[] = []
+  sortedList.forEach((instanceName) => {
+    const instance = instances.find(
+      (instance) => instance.name === instanceName,
+    )
+    if (instance) {
+      sortedInstances.push(instance)
+    }
+  })
+
+  return instances
 }
 
 export function getStageRegion(stage = 'prod') {

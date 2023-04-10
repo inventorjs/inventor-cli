@@ -7,7 +7,10 @@ export interface SlsBaseInfo {
 export interface SlsInstance extends SlsBaseInfo {
   component: string
   name: string
-  inputs: Record<string, unknown>
+  inputs: {
+    src?: any
+    [k: string]: unknown
+  }
   $deps: string[]
 }
 
@@ -15,6 +18,7 @@ export interface SdkInstance extends Pick<SlsInstance, 'inputs'> {
   orgName: string
   appName: string
   stageName: string
+  instanceName: string
   componentName: string
   componentVersion?: string
 }
@@ -22,3 +26,10 @@ export interface SdkInstance extends Pick<SlsInstance, 'inputs'> {
 export interface SlsTemplate extends SlsBaseInfo {
   instances: SlsInstance[]
 }
+
+export type SlsAction = 'deploy' | 'remove' | 'info' | 'dev'
+export type SlsSrc =
+  | string
+  | { src: string; exclude?: string[] }
+  | { bucket: string; object: string }
+export type InstanceStatus = 'active' | 'inactive' | 'deploying' | 'error'
