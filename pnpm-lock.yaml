@@ -194,11 +194,11 @@ importers:
 
   packages/sls-core:
     specifiers:
+      '@dagrejs/graphlib': ^2.1.12
       '@serverless/utils-china': ^1.1.7
-      '@types/graphlib': ^2.1.8
       '@types/js-yaml': ^4.0.5
       '@types/traverse': ^0.6.32
-      graphlib: ^2.1.8
+      '@types/uuid': ^9.0.1
       js-yaml: ^4.1.0
       prettier: ^2.7.1
       rimraf: ^3.0.2
@@ -206,16 +206,18 @@ importers:
       traverse: ^0.6.7
       tslib: ^2.4.0
       typescript: ^4.7.4
+      uuid: ^9.0.0
     dependencies:
+      '@dagrejs/graphlib': 2.1.12
       '@serverless/utils-china': 1.1.7
-      graphlib: 2.1.8
       js-yaml: 4.1.0
       tencentcloud-sdk-nodejs: 4.0.575
       traverse: 0.6.7
+      uuid: 9.0.0
     devDependencies:
-      '@types/graphlib': 2.1.8
       '@types/js-yaml': 4.0.5
       '@types/traverse': 0.6.32
+      '@types/uuid': 9.0.1
       prettier: 2.8.4
       rimraf: 3.0.2
       tslib: 2.5.0
@@ -1723,6 +1725,11 @@ packages:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
 
+  /@dagrejs/graphlib/2.1.12:
+    resolution: {integrity: sha512-yHk2G7ZNzDEHhQTlYtbtEy5PqlIoioCxZUKcrlBgubMvrLmewXqSV3v4rhc8RAt5s8lr8PcWbiovEPuORxe2KA==}
+    engines: {node: '>17.0.0'}
+    dev: false
+
   /@discoveryjs/json-ext/0.5.7:
     resolution: {integrity: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==}
     engines: {node: '>=10.0.0'}
@@ -2143,10 +2150,6 @@ packages:
       '@types/node': 18.14.1
     dev: true
 
-  /@types/graphlib/2.1.8:
-    resolution: {integrity: sha512-8nbbyD3zABRA9ePoBgAl2ym8cIwKQXTfv1gaIRTdY99yEOCaHfmjBeRp+BIemS8NtOqoWK7mfzWxjNrxLK3T5w==}
-    dev: true
-
   /@types/html-minifier-terser/6.1.0:
     resolution: {integrity: sha512-oh/6byDPnL1zeNXFrDXFLyZjkr1MsBG667IM792caf1L2UPOOMf65NFzjUH/ltyfwjAGfs1rsX1eftK0jC/KIg==}
     dev: false
@@ -2279,6 +2282,10 @@ packages:
   /@types/triple-beam/1.3.2:
     resolution: {integrity: sha512-txGIh+0eDFzKGC25zORnswy+br1Ha7hj5cMVwKIU7+s0U2AxxJru/jZSMU6OC9MJWP6+pc/hc6ZjyZShpsyY2g==}
     dev: false
+
+  /@types/uuid/9.0.1:
+    resolution: {integrity: sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==}
+    dev: true
 
   /@types/webpack-bundle-analyzer/4.4.2:
     resolution: {integrity: sha512-uSIQ1SwF+xPlWt7Fcv3bKOKDYoARUI2InoYaluQ1QhM6O7hTwalXG1xrdZ7YHVjYCTInhviTxA5KwajKEE6yWQ==}
@@ -4793,12 +4800,6 @@ packages:
   /grapheme-splitter/1.0.4:
     resolution: {integrity: sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==}
     dev: true
-
-  /graphlib/2.1.8:
-    resolution: {integrity: sha512-jcLLfkpoVGmH7/InMC/1hIvOPSUh38oJtGhvrOFGzioE1DZ+0YW16RgmOJhHiuWTvGiJQ9Z1Ik43JvkRPRvE+A==}
-    dependencies:
-      lodash: 4.17.21
-    dev: false
 
   /gzip-size/6.0.0:
     resolution: {integrity: sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q==}
@@ -7768,6 +7769,11 @@ packages:
 
   /uuid/8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+    dev: false
+
+  /uuid/9.0.0:
+    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
     hasBin: true
     dev: false
 

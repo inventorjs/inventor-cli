@@ -1,0 +1,13 @@
+app: scf-starter
+stage: dev
+name: clsdemo
+component: cls
+
+inputs:
+  region: ap-guangzhou
+  name: ${name}-${stage}-${app}
+  topic: ${name}-${stage}-${app}-topic
+  indexRule:
+    fullText:
+      caseSensitive: true
+      tokenizer: "@&()='\",;:<>[]{}/ \n\t\r"
