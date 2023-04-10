@@ -7,7 +7,7 @@ import { globby } from 'globby'
 import JSZip from 'jszip'
 import axios from 'axios'
 import { ApiService } from './api-service.js'
-import { SlsAction, SlsInstance, SlsSrc, SlsSrcCos, SlsSrcEx } from './types.js'
+import { SlsAction, SlsInstance, SlsSrcCos, SlsSrcEx } from './types.js'
 import { resolveSlsInstances } from './util.js'
 
 export interface SlsParams {
