@@ -7,7 +7,7 @@ import { globby } from 'globby'
 import JSZip from 'jszip'
 import axios from 'axios'
 import { ApiService } from './api-service.js'
-import { SlsAction, SlsInstance } from './types.js'
+import { SlsAction, SlsInstance, SlsSrc, SlsSrcCos, SlsSrcEx } from './types.js'
 import { resolveSlsInstances } from './util.js'
 
 export interface SlsParams {
@@ -31,20 +31,18 @@ export class Sls {
     if (action === 'deploy') {
       const src = instance.inputs.src
       if (src) {
-        if (
-          typeof src === 'string' ||
-          typeof (src as { src: string })?.src === 'string'
-        ) {
+        const srcEx = src as SlsSrcEx
+        const srcCos = src as SlsSrcCos
+        if (typeof src === 'string' || typeof srcEx?.src === 'string') {
           // from local files
           const zip = new JSZip()
-          let realSrc: string = src as string
-          const excludes: string[] =
-            (src as { excludes: string[] })?.excludes ?? []
-          if (typeof (src as { src: string })?.src === 'string') {
-            realSrc = (src as { src: string }).src
+          let realSrc = src as string
+          const exclude = srcEx?.exclude ?? []
+          if (typeof srcEx?.src === 'string') {
+            realSrc = srcEx.src
           }
           const files = await globby(`${realSrc}/**/(.)?*`, {
-            ignore: excludes,
+            ignore: exclude,
           })
           for (const file of files) {
             zip.file(path.relative(realSrc, file), await fs.readFile(file))
@@ -58,8 +56,8 @@ export class Sls {
           await axios.put(changesUploadUrl, buffer)
           instance.inputs.src = srcDownloadUrl
         } else if (
-          typeof (src as { bucket: string }).bucket === 'string' &&
-          typeof (src as { object: string }).object === 'string'
+          typeof srcCos.bucket === 'string' &&
+          typeof srcCos.object === 'string'
         ) {
           // from cos object
           instance.inputs.srcOriginal = src

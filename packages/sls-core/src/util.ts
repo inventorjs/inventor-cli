@@ -1,7 +1,7 @@
 /**
  * util
  */
-import type { SlsAction, SlsInstance } from './types.js'
+import type { SlsAction, SlsInstance, SlsSrcEx } from './types.js'
 
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -127,21 +127,19 @@ export function resolveSlsInstanceVariables(instance: SlsInstance) {
 }
 
 export function resolveSlsInstanceSrc(instance: SlsInstance, slsPath: string) {
+  const srcEx = instance.inputs.src as SlsSrcEx
   if (typeof instance.inputs.src === 'string') {
     instance.inputs.src = path.resolve(
       `${slsPath}/serverless.yml`,
       instance.inputs.src,
     )
-  } else if (typeof instance.inputs?.src?.src === 'string') {
-    instance.inputs.src.src = path.resolve(
-      `${slsPath}/serverless.yml`,
-      instance.inputs.src.src,
-    )
-    if (instance.inputs?.src?.excludes?.length) {
-      const { excludes } = instance.inputs?.src ?? {}
-      if (excludes && excludes.length) {
-        instance.inputs.src.excludes = excludes.map((exclude: string) =>
-          path.resolve(instance.inputs.src.src, exclude),
+  } else if (typeof srcEx?.src === 'string') {
+    srcEx.src = path.resolve(`${slsPath}/serverless.yml`, srcEx.src)
+    if (srcEx?.exclude?.length) {
+      const { exclude } = srcEx
+      if (exclude && exclude.length) {
+        srcEx.exclude = exclude.map((exclude: string) =>
+          path.resolve(srcEx.src, exclude),
         )
       }
     }
