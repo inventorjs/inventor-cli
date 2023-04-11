@@ -5,7 +5,7 @@ import type {
   SlsInstance,
   SlsInstanceSrcEx,
   SlsInstanceSrcCos,
-  Action,
+  SlsAction,
 } from './types/index.js'
 
 import path from 'node:path'
@@ -70,7 +70,7 @@ export class Instance {
     return true
   }
 
-  async resolveSlsInstances(slsPath: string, action: Action) {
+  async resolveSlsInstances(slsPath: string, action: SlsAction) {
     const instance = await this.resolveSlsFile(slsPath)
     if (instance && instance.component) {
       return [instance]
@@ -147,7 +147,7 @@ export class Instance {
     return instance
   }
 
-  sortSlsInstances(instances: SlsInstance[], action: Action) {
+  sortSlsInstances(instances: SlsInstance[], action: SlsAction) {
     const graph = Graph()
 
     instances.forEach((instance) => {
@@ -198,7 +198,7 @@ export class Instance {
     return resultMap
   }
 
-  async processDeployInstance(instance: SlsInstance, action: Action) {
+  async processDeployInstance(instance: SlsInstance, action: SlsAction) {
     if (action !== 'deploy') return instance
     const src = instance.inputs.src
     if (!src) return instance

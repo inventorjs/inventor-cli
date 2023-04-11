@@ -14,7 +14,7 @@ export interface SlsInstance extends SlsInstanceBaseInfo {
   $deps: string[]
 }
 
-export interface TransInstance extends Pick<SlsInstance, 'inputs'> {
+export interface SdkInstance extends Pick<SlsInstance, 'inputs'> {
   orgName: string
   appName: string
   stageName: string
@@ -23,7 +23,7 @@ export interface TransInstance extends Pick<SlsInstance, 'inputs'> {
   componentVersion?: string
 }
 
-export type Action = 'deploy' | 'remove' | 'info' | 'dev'
+export type SlsAction = 'deploy' | 'remove' | 'info' | 'dev'
 export type SlsInstanceSrc = string | SlsInstanceSrcEx | SlsInstanceSrcCos
 export type SlsInstanceSrcEx = {
   src: string
