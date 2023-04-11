@@ -3,7 +3,7 @@
  */
 import ServerlessUtils from '@serverless/utils-china'
 import { v4 as uuid } from 'uuid'
-import { SlsInstance, SdkInstance } from './types/index.js'
+import { SlsInstance, TransInstance } from './types/index.js'
 
 const { Serverless } = ServerlessUtils
 
@@ -60,7 +60,7 @@ export class ApiService {
   }
 
   private transformSdkInstance(instance: SlsInstance) {
-    const sdkInstance = Object.entries(instance).reduce<SdkInstance>(
+    const sdkInstance = Object.entries(instance).reduce<TransInstance>(
       (result, pair) => {
         const [key, val] = pair
         if (key === 'app') {
@@ -94,7 +94,7 @@ export class ApiService {
         }
         return result
       },
-      { orgName: this.config.appId } as SdkInstance,
+      { orgName: this.config.appId } as TransInstance,
     )
 
     return sdkInstance

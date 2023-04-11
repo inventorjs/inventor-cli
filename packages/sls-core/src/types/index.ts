@@ -1,20 +1,20 @@
-export interface InstanceBaseInfo {
+export interface SlsInstanceBaseInfo {
   org: string
   app: string
   stage: string
 }
 
-export interface Instance extends InstanceBaseInfo {
+export interface SlsInstance extends SlsInstanceBaseInfo {
   component: string
   name: string
   inputs: {
-    src?: InstanceSrc
+    src?: SlsInstanceSrc
     [k: string]: unknown
   }
   $deps: string[]
 }
 
-export interface TransInstance extends Pick<Instance, 'inputs'> {
+export interface TransInstance extends Pick<SlsInstance, 'inputs'> {
   orgName: string
   appName: string
   stageName: string
@@ -24,12 +24,12 @@ export interface TransInstance extends Pick<Instance, 'inputs'> {
 }
 
 export type Action = 'deploy' | 'remove' | 'info' | 'dev'
-export type InstanceSrc = string | InstanceSrcEx | InstanceSrcCos
-export type InstanceSrcEx = {
+export type SlsInstanceSrc = string | SlsInstanceSrcEx | SlsInstanceSrcCos
+export type SlsInstanceSrcEx = {
   src: string
   exclude?: string[]
   include?: string[]
 }
-export type InstanceSrcCos = { bucket: string; object: string }
+export type SlsInstanceSrcCos = { bucket: string; object: string }
 
-export type InstanceStatus = 'active' | 'inactive' | 'deploying' | 'error'
+export type SlsInstanceStatus = 'active' | 'inactive' | 'deploying' | 'error'

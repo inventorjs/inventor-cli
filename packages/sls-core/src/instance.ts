@@ -2,10 +2,10 @@
  * instance processer
  */
 import type {
-  Instance,
-  InstanceSrcEx,
+  SlsInstance,
+  SlsInstanceSrcEx,
+  SlsInstanceSrcCos,
   Action,
-  InstanceSrcCos,
 } from './types/index.js'
 
 import path from 'node:path'
@@ -20,7 +20,7 @@ import pLimit from 'p-limit'
 import { isFile, md5sum } from './util.js'
 import { Stats } from 'node:fs'
 
-export class SlsInstance {
+export class Instance {
   async resolveSlsFile(slsPath: string) {
     const supportFileNames = [
       'serverless.yml',
@@ -77,7 +77,7 @@ export class SlsInstance {
     }
     const dirs = await fs.readdir(slsPath)
     const instances = []
-    let commonConfig: Pick<Instance, 'org' | 'app' | 'stage'> | null = null
+    let commonConfig: Pick<SlsInstance, 'org' | 'app' | 'stage'> | null = null
     for (const dir of dirs) {
       const instance = await this.resolveSlsFile(path.resolve(slsPath, dir))
       if (instance && !this.isValidInstance(instance)) {
@@ -103,7 +103,7 @@ export class SlsInstance {
     return instances
   }
 
-  resolveSlsInstanceVariables(instance: Instance) {
+  resolveSlsInstanceVariables(instance: SlsInstance) {
     const envRegex = /\$\{env:([\w:\s.-]+)\}/g
     const outputRegex = /\$\{output:([\w:\s.-]+)\}/g
     traverse(instance).forEach(function (value) {
@@ -132,8 +132,8 @@ export class SlsInstance {
     return instance
   }
 
-  resolveSlsInstanceSrc(instance: Instance, slsPath: string) {
-    const srcEx = instance.inputs.src as InstanceSrcEx
+  resolveSlsInstanceSrc(instance: SlsInstance, slsPath: string) {
+    const srcEx = instance.inputs.src as SlsInstanceSrcEx
     if (typeof instance.inputs.src === 'string') {
       instance.inputs.srcOriginal = instance.inputs.src
       instance.inputs.src = path.resolve(
@@ -147,7 +147,7 @@ export class SlsInstance {
     return instance
   }
 
-  sortSlsInstances(instances: Instance[], action: Action) {
+  sortSlsInstances(instances: SlsInstance[], action: Action) {
     const graph = Graph()
 
     instances.forEach((instance) => {
@@ -167,7 +167,7 @@ export class SlsInstance {
     if (!['remove'].includes(action)) {
       sortedList = sortedList.reverse()
     }
-    const sortedInstances: Instance[] = []
+    const sortedInstances: SlsInstance[] = []
     sortedList.forEach((instanceName) => {
       const instance = instances.find(
         (instance) => instance.name === instanceName,
@@ -198,12 +198,12 @@ export class SlsInstance {
     return resultMap
   }
 
-  async processDeployInstance(instance: Instance, action: Action) {
+  async processDeployInstance(instance: SlsInstance, action: Action) {
     if (action !== 'deploy') return instance
     const src = instance.inputs.src
     if (!src) return instance
-    const srcEx = src as InstanceSrcEx
-    const srcCos = src as InstanceSrcCos
+    const srcEx = src as SlsInstanceSrcEx
+    const srcCos = src as SlsInstanceSrcCos
     if (typeof src === 'string' || typeof srcEx?.src === 'string') {
       // from local files
       const zip = new JSZip()

@@ -2,7 +2,7 @@
  * core logic
  */
 import { ApiService } from './api-service.js'
-import { SlsInstance } from './instance.js'
+import { Instance } from './instance.js'
 
 export interface SlsParams {
   slsPath: string
@@ -26,8 +26,8 @@ export class Sls {
   }
 
   async deploy(params: DeployParams) {
-    const instance = new SlsInstance(this.apiService)
-    const result = instance.deploy() 
+    const instance = new Instance(this.apiService)
+    const result = instance.deploy()
     // const action = 'deploy'
     // const instances = await resolveSlsInstances(this.config.slsPath, action)
     // if (!instances?.length) {
