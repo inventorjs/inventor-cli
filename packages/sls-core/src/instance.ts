@@ -66,14 +66,14 @@ export class SlsInstance {
     return true
   }
 
-  async resolveSlsInstances(slsPath: string, action: SlsAction) {
+  async resolveSlsInstances(slsPath: string, action: Action) {
     const instance = await this.resolveSlsFile(slsPath)
     if (instance && instance.component) {
       return [instance]
     }
     const dirs = await fs.readdir(slsPath)
     const instances = []
-    let commonConfig: Pick<SlsInstance, 'org' | 'app' | 'stage'> | null = null
+    let commonConfig: Pick<Instance, 'org' | 'app' | 'stage'> | null = null
     for (const dir of dirs) {
       const instance = await this.resolveSlsFile(path.resolve(slsPath, dir))
       if (instance && !this.isValidInstance(instance)) {
@@ -99,7 +99,7 @@ export class SlsInstance {
     return instances
   }
 
-  resolveSlsInstanceVariables(instance: SlsInstance) {
+  resolveSlsInstanceVariables(instance: Instance) {
     const envRegex = /\$\{env:([\w:\s.-]+)\}/g
     const outputRegex = /\$\{output:([\w:\s.-]+)\}/g
     traverse(instance).forEach(function (value) {
@@ -128,8 +128,8 @@ export class SlsInstance {
     return instance
   }
 
-  resolveSlsInstanceSrc(instance: SlsInstance, slsPath: string) {
-    const srcEx = instance.inputs.src as SlsSrcEx
+  resolveSlsInstanceSrc(instance: Instance, slsPath: string) {
+    const srcEx = instance.inputs.src as InstanceSrcEx
     if (typeof instance.inputs.src === 'string') {
       instance.inputs.srcOriginal = instance.inputs.src
       instance.inputs.src = path.resolve(
@@ -143,7 +143,7 @@ export class SlsInstance {
     return instance
   }
 
-  sortSlsInstances(instances: SlsInstance[], action: SlsAction) {
+  sortSlsInstances(instances: Instance[], action: Action) {
     const graph = Graph()
 
     instances.forEach((instance) => {
@@ -163,7 +163,7 @@ export class SlsInstance {
     if (!['remove'].includes(action)) {
       sortedList = sortedList.reverse()
     }
-    const sortedInstances: SlsInstance[] = []
+    const sortedInstances: Instance[] = []
     sortedList.forEach((instanceName) => {
       const instance = instances.find(
         (instance) => instance.name === instanceName,
@@ -194,12 +194,12 @@ export class SlsInstance {
     return resultMap
   }
 
-  async processDeployInstance(instance: SlsInstance, action: SlsAction) {
+  async processDeployInstance(instance: Instance, action: Action) {
     if (action !== 'deploy') return instance
     const src = instance.inputs.src
     if (!src) return instance
-    const srcEx = src as SlsSrcEx
-    const srcCos = src as SlsSrcCos
+    const srcEx = src as InstanceSrcEx
+    const srcCos = src as InstanceSrcCos
     if (typeof src === 'string' || typeof srcEx?.src === 'string') {
       // from local files
       const zip = new JSZip()
