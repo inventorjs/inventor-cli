@@ -3,7 +3,7 @@
  */
 import ServerlessUtils from '@serverless/utils-china'
 import { v4 as uuid } from 'uuid'
-import { SlsInstance, SdkInstance } from './types.js'
+import { SlsInstance, SdkInstance } from './types/index.js'
 
 const { Serverless } = ServerlessUtils
 
@@ -24,7 +24,8 @@ export interface RunComponentParams {
   instance: SlsInstance
   method: 'deploy' | 'remove'
   options: {
-    cacheOutdated?: boolean
+    cacheOutdated?: boolean // 缓存是否过期：增量部署
+    force?: boolean // 强制全量部署
   }
 }
 
@@ -87,6 +88,9 @@ export class ApiService {
             componentName,
             componentVersion,
           }
+        }
+        if (['inputs'].includes(key)) {
+          return { ...result, [key]: val }
         }
         return result
       },

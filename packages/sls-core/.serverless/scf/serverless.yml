@@ -9,7 +9,7 @@ inputs:
   runtime: Nodejs16.13
   type: web
   src:
-    src: ../code
+    src: ../src
   events:
     - apigw:
         parameters:
