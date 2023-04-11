@@ -82,7 +82,7 @@ export class ApiService {
           }
         }
         if (key === 'component') {
-          const [componentName, componentVersion = ''] = val.split('@')
+          const [componentName, componentVersion = ''] = String(val).split('@')
           return {
             ...result,
             componentName,

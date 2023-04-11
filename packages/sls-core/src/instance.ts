@@ -57,9 +57,13 @@ export class SlsInstance {
     if (
       !instance ||
       !instance.app ||
+      typeof instance.app !== 'string' ||
       !instance.stage ||
+      typeof instance.stage !== 'string' ||
       !instance.name ||
-      !instance.component
+      typeof instance.name !== 'string' ||
+      !instance.component ||
+      typeof instance.component !== 'string'
     ) {
       return false
     }
