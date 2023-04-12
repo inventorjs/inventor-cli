@@ -14,6 +14,7 @@ async function run() {
     TENCENT_SECRET_KEY = '',
     TENCENT_TOKEN = '',
   } = process.env
+
   const sls = new Sls({
     appId: TENCENT_APP_ID,
     secretId: TENCENT_SECRET_ID,
@@ -22,8 +23,7 @@ async function run() {
     slsPath: path.resolve(process.cwd(), '.serverless'),
   })
 
-  // await sls.deploy()
-  // await sls.info()
+  await sls.deploy()
 }
 
 run()

@@ -94,7 +94,14 @@ export class ApiService {
         }
         return result
       },
-      { orgName: this.config.appId } as SdkInstance,
+      {
+        orgName: this.config.appId,
+        appName: '',
+        stageName: '',
+        componentName: '',
+        instanceName: '',
+        inputs: {},
+      },
     )
 
     return sdkInstance

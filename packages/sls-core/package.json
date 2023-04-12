@@ -28,6 +28,7 @@
   "dependencies": {
     "@serverless/utils-china": "^1.1.7",
     "axios": "^1.3.5",
+    "debug": "^4.3.4",
     "dotenv": "^16.0.3",
     "globby": "^13.1.3",
     "graph-data-structure": "^3.3.0",

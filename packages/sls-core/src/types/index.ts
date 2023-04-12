@@ -12,15 +12,21 @@ export interface SlsInstance extends SlsInstanceBaseInfo {
     [k: string]: unknown
   }
   $deps: string[]
+  $path: string
 }
 
-export interface SdkInstance extends Pick<SlsInstance, 'inputs'> {
+export interface TransInstance extends Pick<SlsInstance, 'inputs'> {
   orgName: string
   appName: string
   stageName: string
   instanceName: string
   componentName: string
   componentVersion?: string
+}
+
+export interface OutputInstance extends TransInstance {
+  instanceStatus: SlsInstance
+  output: Record<string, unknown>
 }
 
 export type SlsAction = 'deploy' | 'remove' | 'info' | 'dev'
