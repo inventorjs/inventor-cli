@@ -3,7 +3,7 @@
  */
 import ServerlessUtils from '@serverless/utils-china'
 import { v4 as uuid } from 'uuid'
-import { SlsInstance, SdkInstance } from './types/index.js'
+import { SlsInstance, TransInstance } from './types/index.js'
 
 const { Serverless } = ServerlessUtils
 
@@ -60,7 +60,7 @@ export class ApiService {
   }
 
   private transformSdkInstance(instance: SlsInstance) {
-    const sdkInstance = Object.entries(instance).reduce<SdkInstance>(
+    const sdkInstance = Object.entries(instance).reduce<TransInstance>(
       (result, pair) => {
         const [key, val] = pair
         if (key === 'app') {
@@ -147,22 +147,24 @@ export class ApiService {
     })
     const res = this.processSdkResponse(response)
     const { Response } = res
-    const instances = Response?.instances?.filter?.((instance: SdkInstance) => {
-      let isTrue = true
-      if (app) {
-        isTrue &&= instance.appName === app
-      }
-      if (stage) {
-        isTrue &&= instance.stageName === stage
-      }
-      if (name) {
-        isTrue &&= instance.instanceName === name
-      }
-      if (component) {
-        isTrue &&= instance.componentName === component
-      }
-      return isTrue
-    })
+    const instances = Response?.instances?.filter?.(
+      (instance: TransInstance) => {
+        let isTrue = true
+        if (app) {
+          isTrue &&= instance.appName === app
+        }
+        if (stage) {
+          isTrue &&= instance.stageName === stage
+        }
+        if (name) {
+          isTrue &&= instance.instanceName === name
+        }
+        if (component) {
+          isTrue &&= instance.componentName === component
+        }
+        return isTrue
+      },
+    )
     Response.instances = instances
     return res
   }
