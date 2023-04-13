@@ -128,7 +128,7 @@ export class ApiService {
     return this.processSdkResponse(response)
   }
 
-  async getInstance({ instance }: Pick<RunComponentParams, 'instance'>) {
+  async getInstance(instance: SlsInstance) {
     const response = await this.sdk.getInstance(
       this.transformSdkInstance(instance),
     )

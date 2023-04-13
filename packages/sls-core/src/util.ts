@@ -7,6 +7,12 @@ import fs from 'node:fs/promises'
 import crypto from 'node:crypto'
 import pLimit from 'p-limit'
 
+interface FileStat {
+  stat: Stats
+  content: Buffer
+  file: string
+}
+
 export function md5sum(payload: Buffer | string) {
   return crypto.createHash('md5').update(payload).digest('hex')
 }
@@ -29,25 +35,27 @@ export function getStageRegion(stage = 'prod') {
 
 export async function getFileStatMap(files: string[]) {
   const limit = pLimit(2048)
-  const tasks = files.map((filePath) =>
+  const tasks = files.map((file) =>
     limit(async () => {
-      const stat = await fs.lstat(filePath)
+      const stat = await fs.lstat(file)
       let content: Buffer | null = null
       if (stat.isSymbolicLink()) {
-        content = Buffer.from(await fs.readlink(filePath))
+        content = Buffer.from(await fs.readlink(file))
+      } else if (stat.isFile()) {
+        content = await fs.readFile(file)
       } else {
-        content = await fs.readFile(filePath)
+        return null
       }
-      return { stat, content }
+      return { stat, content, file }
     }),
   )
-  const resultList = await Promise.all(tasks)
-  const resultMap = resultList.reduce<
-    Record<string, { content: Buffer; stat: Stats }>
-  >(
-    (result, fileData, index) => ({
+  const resultList = (await Promise.all(tasks)).filter(
+    (fileData) => !!fileData,
+  ) as FileStat[]
+  const resultMap = resultList.reduce<Record<string, FileStat>>(
+    (result, fileData) => ({
       ...result,
-      [files[index]]: fileData,
+      [fileData.file]: fileData,
     }),
     {},
   )

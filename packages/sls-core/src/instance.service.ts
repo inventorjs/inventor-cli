@@ -9,7 +9,7 @@ import type {
   SlsAction,
   SlsInstanceBaseInfo,
 } from './types/index.js'
-import type { ApiService } from './api.service.js'
+import { ApiService } from './api.service.js'
 
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -25,17 +25,37 @@ import { isFile, md5sum, getFileStatMap, sleep } from './util.js'
 export interface Options {
   force?: boolean
   maxDeploySize?: number
+  pollTimeout?: number
+  pollInterval?: number
+  followSymbolicLinks?: boolean
+}
+
+export interface SlsConfig {
+  slsPath: string
+  appId: string
+  secretId: string
+  secretKey: string
+  token?: string
 }
 
 export class InstanceService {
-  constructor(
-    private readonly apiService: ApiService,
-    private readonly slsPath: string,
-    private readonly options: Options = {
-      force: false,
-      maxDeploySize: 500 * 1024 * 1024,
-    },
-  ) {}
+  private defaultOptions = {
+    force: true,
+    maxDeploySize: 500 * 1024 * 1024, // 500M
+    pollTimeout: 300 * 1000, // 300s
+    pollInterval: 200, // 200ms
+    followSymbolicLinks: false,
+  }
+
+  private options: Options
+  private slsPath: string
+  private apiService: ApiService
+
+  constructor(config: SlsConfig, options: Options) {
+    this.slsPath = config.slsPath
+    this.options = Object.assign({}, this.defaultOptions, options)
+    this.apiService = new ApiService(config)
+  }
 
   private supportFilenames = [
     'serverless.yml',
@@ -90,19 +110,16 @@ export class InstanceService {
     return true
   }
 
-  async resolve(action: SlsAction, targets: string[] = []) {
+  async resolve(action: SlsAction = 'deploy') {
     const instance = await this.resolveFile(this.slsPath)
     if (instance && this.isValid(instance)) {
       const resolvedInstance = this.resolveVariables(instance)
       return [resolvedInstance]
     }
 
-    let dirs = await fs.readdir(this.slsPath)
+    const dirs = await fs.readdir(this.slsPath)
     const instances = []
     let baseInfo: SlsInstanceBaseInfo | null = null
-    if (targets.length) {
-      dirs = dirs.filter((dir) => targets.includes(dir))
-    }
     for (const dir of dirs) {
       const instancePath = path.resolve(this.slsPath, dir)
       const instance = await this.resolveFile(instancePath)
@@ -263,6 +280,7 @@ export class InstanceService {
   ) {
     const srcLocal = instance.$src.src
     const srcLocalFiles = await this.getSrcLocalFiles(instance)
+
     if (!srcLocal || !srcLocalFiles.length) {
       throw new Error('src files to zip is empty')
     }
@@ -271,8 +289,7 @@ export class InstanceService {
     const zip = new JSZip()
     let totalBytes = 0
     const zipFiles = []
-    for (const file of srcLocalFiles) {
-      const { content, stat } = fileStatMap[file]
+    for (const [file, { content, stat }] of Object.entries(fileStatMap)) {
       const filename = path.relative(srcLocal, file)
       if (mode === 'code') {
         zip.file(filename, content, {
@@ -291,7 +308,6 @@ export class InstanceService {
         mapSrc[filename] = fileHash
       }
     }
-
     return {
       mapSrc,
       totalBytes,
@@ -308,9 +324,13 @@ export class InstanceService {
 
     const srcPath = normalSrc.src
     const exclude = normalSrc?.exclude ?? []
-    const files = await globby(`${srcPath}/**/(.)?*`, {
+    const files = await globby(`${srcPath}/**/*`, {
       ignore: exclude,
+      dot: true,
+      onlyFiles: !this.options.followSymbolicLinks,
+      followSymbolicLinks: this.options.followSymbolicLinks,
     })
+
     const include = normalSrc?.include ?? []
     include.forEach((file) => {
       files.push(path.resolve(srcPath, file))
@@ -336,20 +356,18 @@ export class InstanceService {
     return { instance, cacheOutdated }
   }
 
-  private async pollRunResult(
-    instance: SlsInstance,
-  ): Promise<ResultInstance | null> {
-    // const { pollInterval, pollTimeout } = this.options
-    const pollInterval = 200
-    const pollTimeout = 30 * 1000
+  async pollRunResult(instance: SlsInstance): Promise<ResultInstance | null> {
+    const { pollInterval, pollTimeout } = this.options
+    if (!pollInterval || !pollTimeout) return null
+
     const startTime = Date.now()
     do {
-      const { Response } = await this.apiService.getInstance({ instance })
+      const { Response } = await this.apiService.getInstance(instance)
       const { instanceStatus } = Response.instance
       if (instanceStatus === 'deploying') {
         await sleep(pollInterval)
       } else {
-        return Response.instance
+        return Response
       }
     } while (Date.now() - startTime < pollTimeout)
     return null
@@ -360,19 +378,34 @@ export class InstanceService {
     if (!resolvedInstances.length) {
       throw new Error(`there is no serverless instance to ${action}`)
     }
+
     for (const instance of resolvedInstances) {
       const { instance: deployInstance, cacheOutdated } =
         await this.processDeploySrc(instance)
-      console.log(deployInstance, cacheOutdated, '111')
-      await this.apiService.runComponent({
+      const result = await this.apiService.runComponent({
         instance: deployInstance,
         method: action,
         options: {
+          force: this.options.force,
           cacheOutdated,
         },
       })
-      const result = await this.pollRunResult(instance)
-      return result
+      if (!this.options.pollTimeout || !this.options.pollInterval) {
+        return result
+      }
+      return await this.pollRunResult(instance)
+    }
+  }
+
+  async info() {
+    const resolvedInstances = await this.resolve()
+    if (!resolvedInstances.length) {
+      throw new Error('there is no serverless instance to show')
+    }
+
+    for (const instance of resolvedInstances) {
+      const res = await this.apiService.getInstance(instance)
+      console.log(JSON.stringify(res, null, 2))
     }
   }
 }

@@ -6,8 +6,6 @@ component: layer
 inputs:
   name: ${name}-${stage}-${app}
   region: ap-guangzhou
-  src:
-    bucket: sls-layer-ap-guangzhou-code
-    object: sunkeytest-layer-1680230665.zip
+  src: /tmp/pnpm-t/node_modules
   runtimes:
     - Nodejs16.13

@@ -23,7 +23,8 @@ async function run() {
     slsPath: path.resolve(process.cwd(), '.serverless'),
   })
 
-  await sls.deploy()
+  const result = await sls.deploy()
+  console.log(JSON.stringify(result, null, 2))
 }
 
 run()
