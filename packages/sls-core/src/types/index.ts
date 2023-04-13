@@ -13,6 +13,12 @@ export interface SlsInstance extends SlsInstanceBaseInfo {
   }
   $deps: string[]
   $path: string
+  $src:
+    | SlsInstanceSrcLocal
+    | {
+        src: null
+        srcOriginal?: SlsInstanceSrcCos
+      }
 }
 
 export interface TransInstance extends Pick<SlsInstance, 'inputs'> {
@@ -24,18 +30,23 @@ export interface TransInstance extends Pick<SlsInstance, 'inputs'> {
   componentVersion?: string
 }
 
-export interface OutputInstance extends TransInstance {
-  instanceStatus: SlsInstance
-  output: Record<string, unknown>
+export interface ResultInstance extends TransInstance {
+  instanceStatus: SlsInstanceStatus
+  outputs: Record<string, unknown>
+  inputs: Record<string, unknown>
+  lastAction: string
+  lastActionAt: number
+  updatedAt: number
+  state: Record<string, unknown>
+  deploymentError: string
 }
 
-export type SlsAction = 'deploy' | 'remove' | 'info' | 'dev'
-export type SlsInstanceSrc = string | SlsInstanceSrcEx | SlsInstanceSrcCos
-export type SlsInstanceSrcEx = {
+export type SlsAction = 'deploy' | 'remove'
+export type SlsInstanceSrcLocal = {
   src: string
   exclude?: string[]
   include?: string[]
 }
 export type SlsInstanceSrcCos = { bucket: string; object: string }
-
+export type SlsInstanceSrc = string | SlsInstanceSrcLocal | SlsInstanceSrcCos
 export type SlsInstanceStatus = 'active' | 'inactive' | 'deploying' | 'error'

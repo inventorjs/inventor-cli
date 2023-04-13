@@ -3,8 +3,9 @@
  */
 import type {
   SlsInstance,
-  SlsInstanceSrcEx,
+  SlsInstanceSrcLocal,
   SlsInstanceSrcCos,
+  ResultInstance,
   SlsAction,
   SlsInstanceBaseInfo,
 } from './types/index.js'
@@ -18,6 +19,7 @@ import Graph from 'graph-data-structure'
 import { globby } from 'globby'
 import JSZip from 'jszip'
 import axios from 'axios'
+import { filesize } from 'filesize'
 import { isFile, md5sum, getFileStatMap, sleep } from './util.js'
 
 export interface Options {
@@ -88,16 +90,19 @@ export class InstanceService {
     return true
   }
 
-  async resolve(action: SlsAction) {
+  async resolve(action: SlsAction, targets: string[] = []) {
     const instance = await this.resolveFile(this.slsPath)
     if (instance && this.isValid(instance)) {
       const resolvedInstance = this.resolveVariables(instance)
       return [resolvedInstance]
     }
 
-    const dirs = await fs.readdir(this.slsPath)
+    let dirs = await fs.readdir(this.slsPath)
     const instances = []
     let baseInfo: SlsInstanceBaseInfo | null = null
+    if (targets.length) {
+      dirs = dirs.filter((dir) => targets.includes(dir))
+    }
     for (const dir of dirs) {
       const instancePath = path.resolve(this.slsPath, dir)
       const instance = await this.resolveFile(instancePath)
@@ -149,6 +154,7 @@ export class InstanceService {
         this.update(updateValue)
       }
     })
+    instance.$src = this.getNormalSrc(instance)
     return instance
   }
 
@@ -185,23 +191,10 @@ export class InstanceService {
     return instances
   }
 
-  async uploadSrcChanges(
-    instance: SlsInstance,
-    files: string[],
-    realSrc: string,
-  ) {
+  async uploadSrcFiles(instance: SlsInstance) {
     const { Response } = await this.apiService.getCacheFileUrls(instance)
     const { changesUploadUrl, previousMapDownloadUrl, srcDownloadUrl } =
       Response
-    const fileStatMap = await getFileStatMap(files)
-
-    let totalSize = 0
-    Object.values(fileStatMap).forEach(({ stat }) => (totalSize += stat.size))
-
-    if (this.options.maxDeploySize && totalSize > this.options.maxDeploySize) {
-      throw new Error(`src can't exceed ${this.options.maxDeploySize}`)
-    }
-
     let previousMap: Record<string, string> = {}
     if (!this.options.force) {
       try {
@@ -212,31 +205,25 @@ export class InstanceService {
         //
       }
     }
-    const mapObj: Record<string, string> = {}
-    const zip = new JSZip()
-    let bytes = 0
-    const filesToUpload = []
-    for (const file of files) {
-      const { content, stat } = fileStatMap[file]
-      const fileHash = md5sum(content)
-      const filename = path.relative(realSrc, file)
-      if (!previousMap[filename] || previousMap[filename] !== fileHash) {
-        zip.file(filename, content, {
-          unixPermissions: stat.mode,
-        })
-        filesToUpload.push(filename)
-      }
-      bytes += stat.size
-      mapObj[filename] = fileHash
+    const { mapSrc, zip, totalBytes, zipFiles } = await this.zipSrcLocalFiles(
+      instance,
+      previousMap,
+    )
+    if (this.options.maxDeploySize && totalBytes > this.options.maxDeploySize) {
+      throw new Error(
+        `src file size exceed ${filesize(this.options.maxDeploySize, {
+          base: 2,
+        })} can't deploy`,
+      )
     }
 
     const filesToDelete = Object.keys(previousMap).filter(
-      (filename) => !mapObj[filename],
+      (filename) => !mapSrc[filename],
     )
 
-    const cacheOutdated = !filesToUpload.length && !filesToDelete.length
+    const cacheOutdated = zipFiles.length > 0 || filesToDelete.length > 0
 
-    zip.file('src.map', Buffer.from(JSON.stringify(mapObj)))
+    zip.file('src.map', Buffer.from(JSON.stringify(mapSrc)))
     zip.file('deleted.files', Buffer.from(JSON.stringify(filesToDelete)))
 
     const buffer = await zip.generateAsync({
@@ -246,44 +233,146 @@ export class InstanceService {
 
     await axios.put(changesUploadUrl, buffer)
 
-    return { srcDownloadUrl, bytes, cacheOutdated }
+    return { srcDownloadUrl, totalBytes, cacheOutdated }
   }
 
-  async processDeploySrc(instance: SlsInstance) {
-    let cacheOutdated = false
+  getNormalSrc(instance: SlsInstance) {
     const src = instance.inputs.src
-    if (!src) return { instance, cacheOutdated }
-    const srcEx = src as SlsInstanceSrcEx
+    if (!src) {
+      return { src: null }
+    }
+    const srcLocal = src as SlsInstanceSrcLocal
     const srcCos = src as SlsInstanceSrcCos
-    if (typeof src === 'string' || typeof srcEx?.src === 'string') {
-      // src from local files
-      let realSrc = src as string
-      const exclude = srcEx?.exclude ?? []
-      if (typeof srcEx?.src === 'string') {
-        realSrc = srcEx.src
-      }
-      realSrc = path.resolve(instance.$path, realSrc)
-      const files = await globby(`${realSrc}/**/(.)?*`, {
-        ignore: exclude,
-      })
-      const include = srcEx?.include ?? []
-      include.forEach((file) => {
-        files.push(path.resolve(realSrc, file))
-      })
-      const { srcDownloadUrl, cacheOutdated: innerCacheOutdated } =
-        await this.uploadSrcChanges(instance, files, realSrc)
-
-      cacheOutdated = innerCacheOutdated
-      instance.inputs.src = srcDownloadUrl
+    if (typeof src === 'string') {
+      return { src: path.resolve(instance.$path, src) }
+    } else if (typeof srcLocal.src === 'string') {
+      return { ...srcLocal, src: path.resolve(instance.$path, srcLocal.src) }
     } else if (
       typeof srcCos.bucket === 'string' &&
       typeof srcCos.object === 'string'
     ) {
-      // src from cos object
+      return { src: null, srcOriginal: srcCos }
+    }
+    return { src: null }
+  }
+
+  async zipSrcLocalFiles(
+    instance: SlsInstance,
+    previousMap: Record<string, string>,
+    mode: 'code' | 'serverless' = 'serverless',
+  ) {
+    const srcLocal = instance.$src.src
+    const srcLocalFiles = await this.getSrcLocalFiles(instance)
+    if (!srcLocal || !srcLocalFiles.length) {
+      throw new Error('src files to zip is empty')
+    }
+    const fileStatMap = await getFileStatMap(srcLocalFiles)
+    const mapSrc: Record<string, string> = {}
+    const zip = new JSZip()
+    let totalBytes = 0
+    const zipFiles = []
+    for (const file of srcLocalFiles) {
+      const { content, stat } = fileStatMap[file]
+      const filename = path.relative(srcLocal, file)
+      if (mode === 'code') {
+        zip.file(filename, content, {
+          unixPermissions: stat.mode,
+        })
+        zipFiles.push(filename)
+      } else {
+        const fileHash = md5sum(content)
+        if (!previousMap[filename] || previousMap[filename] !== fileHash) {
+          zip.file(filename, content, {
+            unixPermissions: stat.mode,
+          })
+          zipFiles.push(filename)
+        }
+        totalBytes += stat.size
+        mapSrc[filename] = fileHash
+      }
+    }
+
+    return {
+      mapSrc,
+      totalBytes,
+      zip,
+      zipBuffer:
+        mode === 'code' ? zip.generateAsync({ platform: 'UNIX' }) : null,
+      zipFiles,
+    }
+  }
+
+  async getSrcLocalFiles(instance: SlsInstance) {
+    const normalSrc = instance.$src
+    if (!normalSrc || !normalSrc.src) return []
+
+    const srcPath = normalSrc.src
+    const exclude = normalSrc?.exclude ?? []
+    const files = await globby(`${srcPath}/**/(.)?*`, {
+      ignore: exclude,
+    })
+    const include = normalSrc?.include ?? []
+    include.forEach((file) => {
+      files.push(path.resolve(srcPath, file))
+    })
+    return files
+  }
+
+  async processDeploySrc(instance: SlsInstance) {
+    const normalSrc = instance.$src
+    const normalSrcOriginal = instance.$src as {
+      srcOriginal: SlsInstanceSrcCos
+    }
+    let cacheOutdated = false
+    if (normalSrc.src) {
+      const { srcDownloadUrl, cacheOutdated: innerCacheOutdated } =
+        await this.uploadSrcFiles(instance)
+      cacheOutdated = innerCacheOutdated
+      instance.inputs.src = srcDownloadUrl
+    } else if (normalSrcOriginal.srcOriginal) {
+      instance.inputs.srcOriginal = normalSrcOriginal
       cacheOutdated = true
-      instance.inputs.srcOriginal = src
-      delete instance.inputs.src
     }
     return { instance, cacheOutdated }
+  }
+
+  private async pollRunResult(
+    instance: SlsInstance,
+  ): Promise<ResultInstance | null> {
+    // const { pollInterval, pollTimeout } = this.options
+    const pollInterval = 200
+    const pollTimeout = 30 * 1000
+    const startTime = Date.now()
+    do {
+      const { Response } = await this.apiService.getInstance({ instance })
+      const { instanceStatus } = Response.instance
+      if (instanceStatus === 'deploying') {
+        await sleep(pollInterval)
+      } else {
+        return Response.instance
+      }
+    } while (Date.now() - startTime < pollTimeout)
+    return null
+  }
+
+  async run(action: SlsAction) {
+    const resolvedInstances = await this.resolve(action)
+    if (!resolvedInstances.length) {
+      throw new Error(`there is no serverless instance to ${action}`)
+    }
+    for (const instance of resolvedInstances) {
+      const { instance: deployInstance, cacheOutdated } =
+        await this.processDeploySrc(instance)
+      console.log(deployInstance, cacheOutdated, '111')
+      await this.apiService.runComponent({
+        instance: deployInstance,
+        method: action,
+        options: {
+          cacheOutdated,
+        },
+      })
+      const result = await this.pollRunResult(instance)
+      return result
+    }
   }
 }
