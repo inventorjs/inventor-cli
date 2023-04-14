@@ -30,7 +30,7 @@ export interface RunComponentParams {
 }
 
 export type ListInstancesParams = Partial<
-  Pick<SlsInstance, 'app' | 'stage' | 'name' | 'component'>
+  Partial<Pick<SlsInstance, 'app' | 'stage' | 'name' | 'component'>>
 >
 
 export class ApiService {

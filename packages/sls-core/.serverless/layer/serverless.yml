@@ -1,11 +1,11 @@
 app: scf-starter
 stage: dev
-name: layerdemo
+name: layerdemo-9999
 component: layer
 
 inputs:
   name: ${name}-${stage}-${app}
   region: ap-guangzhou
-  src: /tmp/pnpm-t/node_modules
+  src: /tmp/ppp-test/node_modules
   runtimes:
     - Nodejs16.13

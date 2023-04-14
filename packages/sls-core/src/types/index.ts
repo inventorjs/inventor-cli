@@ -19,6 +19,7 @@ export interface SlsInstance extends SlsInstanceBaseInfo {
         src: null
         srcOriginal?: SlsInstanceSrcCos
       }
+    | null
 }
 
 export interface TransInstance extends Pick<SlsInstance, 'inputs'> {

@@ -3,7 +3,7 @@
  */
 import path from 'node:path'
 import { config as configEnv } from 'dotenv'
-import { Sls } from './core.js'
+import { InstanceService } from './instance.service.js'
 
 configEnv()
 
@@ -15,7 +15,7 @@ async function run() {
     TENCENT_TOKEN = '',
   } = process.env
 
-  const sls = new Sls({
+  const ins = new InstanceService({
     appId: TENCENT_APP_ID,
     secretId: TENCENT_SECRET_ID,
     secretKey: TENCENT_SECRET_KEY,
@@ -23,7 +23,11 @@ async function run() {
     slsPath: path.resolve(process.cwd(), '.serverless'),
   })
 
-  const result = await sls.deploy()
+  const result = await ins.run('deploy', {
+    reportStatus(statusData) {
+      console.log(statusData)
+    },
+  })
   console.log(JSON.stringify(result, null, 2))
 }
 

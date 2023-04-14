@@ -6,6 +6,7 @@ import type { Stats } from 'node:fs'
 import fs from 'node:fs/promises'
 import crypto from 'node:crypto'
 import pLimit from 'p-limit'
+import { filesize as filesizeLib } from 'filesize'
 
 interface FileStat {
   stat: Stats
@@ -68,4 +69,8 @@ export async function sleep(ms: number) {
       resolve('')
     }, ms)
   })
+}
+
+export function filesize(bytes: number) {
+  return filesizeLib(bytes, { base: 2 })
 }
