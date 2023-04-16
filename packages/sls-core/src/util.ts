@@ -8,7 +8,7 @@ import crypto from 'node:crypto'
 import pLimit from 'p-limit'
 import { filesize as filesizeLib } from 'filesize'
 
-interface FileStat {
+export interface FileStat {
   stat: Stats
   content: Buffer
   file: string

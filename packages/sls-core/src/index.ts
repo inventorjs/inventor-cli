@@ -23,7 +23,7 @@ async function run() {
     slsPath: path.resolve(process.cwd(), '.serverless'),
   })
 
-  const result = await ins.run('deploy', {
+  const result = await ins.runAll('deploy', {
     reportStatus(statusData) {
       console.log(statusData)
     },

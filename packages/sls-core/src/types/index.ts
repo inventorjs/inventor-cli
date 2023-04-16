@@ -42,7 +42,15 @@ export interface ResultInstance extends TransInstance {
   deploymentError: string
 }
 
-export type SlsAction = 'deploy' | 'remove'
+export type RunAction = 'deploy' | 'remove'
+export interface ReportStatus {
+  value: string
+  label: string
+  point: 'start' | 'end'
+  instances: SlsInstance[]
+  context?: Record<string, unknown>
+}
+
 export type SlsInstanceSrcLocal = {
   src: string
   exclude?: string[]
