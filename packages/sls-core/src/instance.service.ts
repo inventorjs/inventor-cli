@@ -49,7 +49,7 @@ export interface SlsConfig {
 export class InstanceService {
   private defaultRunOptions: RunOptions = {
     force: false,
-    maxDeploySize: 50 * 1024 * 1024, // 500M
+    maxDeploySize: 500 * 1024 * 1024, // 500M
     pollTimeout: 600 * 1000, // 300s
     pollInterval: 200, // 200ms
     followSymbolicLinks: false,
