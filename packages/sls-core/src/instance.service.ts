@@ -6,7 +6,8 @@ import type {
   SlsInstanceSrcLocal,
   SlsInstanceSrcCos,
   ResultInstance,
-  SlsAction,
+  RunAction,
+  ReportStatus,
   SlsInstanceBaseInfo,
 } from './types/index.js'
 import { ApiService, type ListInstancesParams } from './api.service.js'
@@ -19,6 +20,7 @@ import Graph from 'graph-data-structure'
 import fg from 'fast-glob'
 import JSZip from 'jszip'
 import axios from 'axios'
+import { reportStatus } from './decorators.js'
 import { isFile, md5sum, getFileStatMap, sleep, filesize } from './util.js'
 import { RUN_STATUS } from './constants.js'
 
@@ -39,15 +41,6 @@ export interface SlsConfig {
   secretKey: string
   token?: string
 }
-
-export interface ReportStatus {
-  value: string
-  label: string
-  phase: 'start' | 'end'
-  instances: SlsInstance[]
-  context?: Record<string, unknown>
-}
-
 export class InstanceService {
   private defaultRunOptions: RunOptions = {
     force: false,
@@ -63,18 +56,17 @@ export class InstanceService {
 
   private slsPath: string
   private apiService: ApiService
-
-  constructor(params: SlsConfig) {
-    this.slsPath = params.slsPath
-    this.apiService = new ApiService(params)
-  }
-
   private supportFilenames = [
     'serverless.yml',
     'serverless.yaml',
     'serverless.json',
     'serverless.js',
   ]
+
+  constructor(params: SlsConfig) {
+    this.slsPath = params.slsPath
+    this.apiService = new ApiService(params)
+  }
 
   async resolveFile(instancePath: string) {
     for (const filename of this.supportFilenames) {
@@ -122,7 +114,8 @@ export class InstanceService {
     return true
   }
 
-  async resolve(action: SlsAction, options: RunOptions) {
+  @reportStatus(RUN_STATUS.resolve)
+  async resolve(action: RunAction, options: RunOptions) {
     const instance = await this.resolveFile(this.slsPath)
     if (instance && this.isValid(instance)) {
       const resolvedInstance = this.resolveVariables(instance)
@@ -133,7 +126,7 @@ export class InstanceService {
     if (options.targets.length > 0) {
       dirs = dirs.filter((dir) => options.targets.includes(dir))
     }
-    const instances = []
+    let instances = []
     let baseInfo: SlsInstanceBaseInfo | null = null
     for (const dir of dirs) {
       const instancePath = path.resolve(this.slsPath, dir)
@@ -156,7 +149,7 @@ export class InstanceService {
         instances.push(resolvedInstance)
       }
     }
-    this.topologicalSort(instances, action)
+    instances = this.topologicalSort(instances, action)
     return instances
   }
 
@@ -190,7 +183,7 @@ export class InstanceService {
     return instance
   }
 
-  topologicalSort(instances: SlsInstance[], action: SlsAction) {
+  topologicalSort(instances: SlsInstance[], action: RunAction) {
     const graph = Graph()
 
     instances.forEach((instance) => {
@@ -223,7 +216,7 @@ export class InstanceService {
     return instances
   }
 
-  async uploadSrcFiles(instance: SlsInstance, options: RunOptions) {
+  async updateSrcFiles(instance: SlsInstance, options: RunOptions) {
     const { Response } = await this.apiService.getCacheFileUrls(instance)
     const { changesUploadUrl, previousMapDownloadUrl, srcDownloadUrl } =
       Response
@@ -248,23 +241,7 @@ export class InstanceService {
       )
     }
 
-    this.reportStatus(
-      {
-        ...RUN_STATUS.upload,
-        phase: 'start',
-        instances: [instance],
-      },
-      options,
-    )
     await axios.put(changesUploadUrl, zipBuffer)
-    this.reportStatus(
-      {
-        ...RUN_STATUS.upload,
-        phase: 'end',
-        instances: [instance],
-      },
-      options,
-    )
 
     return { srcDownloadUrl, totalBytes, cacheOutdated: hasChanges }
   }
@@ -289,6 +266,7 @@ export class InstanceService {
     return { src: null }
   }
 
+  @reportStatus(RUN_STATUS.compress)
   async zipSrcLocalChanges(
     instance: SlsInstance,
     previousMap: Record<string, string>,
@@ -297,42 +275,13 @@ export class InstanceService {
     if (!instance.$src) {
       throw new Error('src config not exists')
     }
-    this.reportStatus(
-      {
-        ...RUN_STATUS.readSrc,
-        phase: 'start',
-        instances: [instance],
-      },
-      options,
-    )
     const srcLocal = instance.$src.src
-    const srcLocalFiles = await this.getSrcLocalFiles(instance, options)
+    const fileStatMap = await this.getSrcLocalFileStatMap(instance, options)
 
-    if (!srcLocal || !srcLocalFiles.length) {
+    if (!fileStatMap || !srcLocal) {
       throw new Error('src files to zip is empty')
     }
 
-    const fileStatMap = await getFileStatMap(srcLocalFiles)
-    this.reportStatus(
-      {
-        ...RUN_STATUS.readSrc,
-        phase: 'end',
-        instances: [instance],
-      },
-      options,
-    )
-
-    this.reportStatus(
-      {
-        ...RUN_STATUS.compress,
-        phase: 'start',
-        instances: [instance],
-        context: {
-          srcLocalFileNum: srcLocalFiles.length,
-        },
-      },
-      options,
-    )
     const mapSrc: Record<string, string> = {}
     const zip = new JSZip()
     let totalBytes = 0
@@ -365,18 +314,6 @@ export class InstanceService {
       type: 'nodebuffer',
     })
 
-    this.reportStatus(
-      {
-        ...RUN_STATUS.compress,
-        phase: 'end',
-        instances: [instance],
-        context: {
-          srcLocalFileNum: srcLocalFiles.length,
-        },
-      },
-      options,
-    )
-
     return {
       mapSrc,
       totalBytes,
@@ -386,7 +323,8 @@ export class InstanceService {
     }
   }
 
-  async getSrcLocalFiles(instance: SlsInstance, options: RunOptions) {
+  @reportStatus(RUN_STATUS.readSrc)
+  async getSrcLocalFileStatMap(instance: SlsInstance, options: RunOptions) {
     const normalSrc = instance.$src
     if (!normalSrc || !normalSrc.src) return []
 
@@ -401,7 +339,11 @@ export class InstanceService {
 
     const include = normalSrc?.include ?? []
     include.forEach((file) => files.push(path.resolve(srcPath, file)))
-    return files
+    if (!files.length) return null
+
+    const fileStatMap = await getFileStatMap(files)
+
+    return fileStatMap
   }
 
   async processDeploySrc(instance: SlsInstance, options: RunOptions) {
@@ -415,7 +357,7 @@ export class InstanceService {
     let cacheOutdated = false
     if (normalSrc.src) {
       const { srcDownloadUrl, cacheOutdated: innerCacheOutdated } =
-        await this.uploadSrcFiles(instance, options)
+        await this.updateSrcFiles(instance, options)
       cacheOutdated = innerCacheOutdated
       instance.inputs.src = srcDownloadUrl
     } else if (normalSrcOriginal.srcOriginal) {
@@ -425,6 +367,7 @@ export class InstanceService {
     return { instance, cacheOutdated }
   }
 
+  @reportStatus(RUN_STATUS.poll)
   async pollRunResult(
     instance: SlsInstance,
     options: RunOptions,
@@ -453,110 +396,48 @@ export class InstanceService {
     return runOptions
   }
 
-  reportStatus(statusData: ReportStatus, options: RunOptions) {
-    options.reportStatus(statusData)
+  @reportStatus(RUN_STATUS.run)
+  async run(action: RunAction, instance: SlsInstance, options: RunOptions) {
+    let runInstance = instance
+    let cacheOutdated = false
+    if (action === 'deploy') {
+      ;({ instance: runInstance, cacheOutdated } = await this.processDeploySrc(
+        instance,
+        options,
+      ))
+    }
+    const runResult = await this.apiService.runComponent({
+      instance: runInstance,
+      method: action,
+      options: {
+        force: options.force,
+        cacheOutdated,
+      },
+    })
+    if (!options.pollTimeout || !options.pollInterval) {
+      return runResult.Response
+    }
+    const pollResult = await this.pollRunResult(instance, options)
+    return pollResult
   }
 
-  async run(action: SlsAction, options: Partial<RunOptions> = {}) {
+  async runAll(action: RunAction, options: Partial<RunOptions> = {}) {
     const runOptions = this.getRunOptions(options)
-    this.reportStatus(
-      {
-        ...RUN_STATUS.resolve,
-        phase: 'start',
-        instances: [],
-      },
-      runOptions,
-    )
     const resolvedInstances = await this.resolve(action, runOptions)
-    this.reportStatus(
-      {
-        ...RUN_STATUS.resolve,
-        phase: 'end',
-        instances: [],
-      },
-      runOptions,
-    )
-    if (!resolvedInstances.length) {
+    if (!resolvedInstances?.length) {
       throw new Error(`there is no serverless instance to ${action}`)
     }
 
     const results: Array<ResultInstance | null> = []
     for (const instance of resolvedInstances) {
-      let runInstance = instance
-      let cacheOutdated = false
-      if (action === 'deploy') {
-        ;({ instance: runInstance, cacheOutdated } =
-          await this.processDeploySrc(instance, runOptions))
-      }
-      this.reportStatus(
-        {
-          ...RUN_STATUS[action],
-          phase: 'start',
-          instances: [instance],
-        },
-        runOptions,
-      )
-      const runResult = await this.apiService.runComponent({
-        instance: runInstance,
-        method: action,
-        options: {
-          force: runOptions.force,
-          cacheOutdated,
-        },
-      })
-      this.reportStatus(
-        {
-          ...RUN_STATUS[action],
-          phase: 'end',
-          instances: [instance],
-        },
-        runOptions,
-      )
-      if (!runOptions.pollTimeout || !runOptions.pollInterval) {
-        results.push(runResult.Response)
-        continue
-      }
-      this.reportStatus(
-        {
-          ...RUN_STATUS[action === 'deploy' ? 'pollDeploy' : 'pollRemove'],
-          phase: 'start',
-          instances: [instance],
-        },
-        runOptions,
-      )
-      const pollResult = await this.pollRunResult(instance, runOptions)
-      this.reportStatus(
-        {
-          ...RUN_STATUS[action === 'deploy' ? 'pollDeploy' : 'pollRemove'],
-          phase: 'end',
-          instances: [instance],
-        },
-        runOptions,
-      )
-      results.push(pollResult)
+      results.push(await this.run(action, instance, runOptions))
     }
     return results
   }
 
-  async info(options: Partial<RunOptions> = {}) {
+  async infoAll(options: Partial<RunOptions> = {}) {
     const runOptions = this.getRunOptions(options)
-    this.reportStatus(
-      {
-        ...RUN_STATUS.resolve,
-        phase: 'start',
-        instances: [],
-      },
-      runOptions,
-    )
     const resolvedInstances = await this.resolve('deploy', runOptions)
-    this.reportStatus(
-      {
-        ...RUN_STATUS.resolve,
-        phase: 'end',
-        instances: [],
-      },
-      runOptions,
-    )
     if (!resolvedInstances.length) {
       throw new Error('there is no serverless instance to show')
     }
