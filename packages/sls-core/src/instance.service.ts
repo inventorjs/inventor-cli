@@ -293,7 +293,7 @@ export class InstanceService {
       )
     }
 
-    await this.uploadSrcFiles(changesUploadUrl, zipBuffer, options)
+    await this.uploadSrcFiles(changesUploadUrl, zipBuffer, instance, options)
 
     return { srcDownloadUrl, totalBytes, cacheOutdated: hasChanges }
   }
@@ -302,6 +302,7 @@ export class InstanceService {
   private async uploadSrcFiles(
     uploadUrl: string,
     buffer: Buffer,
+    _instance: SlsInstance,
     _options: RunOptions,
   ) {
     return axios.put(uploadUrl, buffer)
