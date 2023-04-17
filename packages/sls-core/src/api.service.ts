@@ -49,7 +49,7 @@ export class ApiService {
     })
   }
 
-  private processSdkResponse(response: { RequestId: string; Body: string }) {
+  private processResponse(response: { RequestId: string; Body: string }) {
     const requestId = response.RequestId
     const body = JSON.parse(response.Body)
     const data = JSON.parse(body.body)
@@ -59,8 +59,8 @@ export class ApiService {
     }
   }
 
-  private transformSdkInstance(instance: SlsInstance) {
-    const sdkInstance = Object.entries(instance).reduce<TransInstance>(
+  private processInstance(instance: SlsInstance) {
+    const transInstance = Object.entries(instance).reduce<TransInstance>(
       (result, pair) => {
         const [key, val] = pair
         if (key === 'app') {
@@ -104,35 +104,32 @@ export class ApiService {
       },
     )
 
-    return sdkInstance
+    return transInstance
   }
 
   async getCacheFileUrls(instance: SlsInstance) {
-    const { appName, stageName, instanceName } =
-      this.transformSdkInstance(instance)
+    const { appName, stageName, instanceName } = this.processInstance(instance)
     const response = await this.sdk.getCacheFileUrls({
       orgUid: this.config.appId,
       appName,
       stageName,
       instanceName,
     })
-    return this.processSdkResponse(response)
+    return this.processResponse(response)
   }
 
   async runComponent({ instance, method, options }: RunComponentParams) {
     const response = await this.sdk.runComponent({
-      instance: this.transformSdkInstance(instance),
+      instance: this.processInstance(instance),
       method,
       options,
     })
-    return this.processSdkResponse(response)
+    return this.processResponse(response)
   }
 
   async getInstance(instance: SlsInstance) {
-    const response = await this.sdk.getInstance(
-      this.transformSdkInstance(instance),
-    )
-    return this.processSdkResponse(response)
+    const response = await this.sdk.getInstance(this.processInstance(instance))
+    return this.processResponse(response)
   }
 
   async listInstances({
@@ -145,7 +142,7 @@ export class ApiService {
       orgName: this.config.appId,
       orgUid: this.config.appId,
     })
-    const res = this.processSdkResponse(response)
+    const res = this.processResponse(response)
     const { Response } = res
     const instances = Response?.instances?.filter?.(
       (instance: TransInstance) => {

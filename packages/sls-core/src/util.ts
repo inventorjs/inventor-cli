@@ -72,5 +72,5 @@ export async function sleep(ms: number) {
 }
 
 export function filesize(bytes: number) {
-  return filesizeLib(bytes, { base: 2 })
+  return String(filesizeLib(bytes, { base: 2, standard: 'jedec' })).replace(/\s/g, '')
 }

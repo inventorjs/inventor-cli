@@ -1,43 +1,54 @@
 /**
  * decorators
  */
+import { REPORT_END, REPORT_START } from './constants.js'
+import type { RunOptions, SlsInstance } from './types/index.js'
+
 export function reportStatus(statusData: {
   status: string
   statusText: string
 }) {
-  return function (...args: any[]) {
-    const descriptor = args.at(-1)
+  return function (...args: unknown[]) {
+    const descriptor = args.at(-1) as PropertyDescriptor
     const originMehtod = descriptor.value
-    descriptor.value = async function (...args: any[]) {
-      const options = args.find((arg) => typeof arg.reportStatus === 'function')
+    descriptor.value = async function (...args: unknown[]) {
+      const options = args.find(
+        (arg) => typeof (arg as RunOptions)?.reportStatus === 'function',
+      ) as RunOptions
       if (!options) {
         return originMehtod.call(this, ...args)
       }
-      const instance = args.find(
-        (arg) => arg.name && arg.component && arg.stage,
-      )
+      const instance = args.find((arg) => {
+        const instance = arg as SlsInstance
+        return instance.name && instance.component && instance.stage
+      }) as SlsInstance
       const report = options.reportStatus
-      const { status } = statusData
-      performance.mark(`${status}-start`)
+
+      const startTime = Date.now()
       report({
         ...statusData,
-        period: 'start',
+        point: REPORT_START,
         instance,
       })
-      const result = await originMehtod.call(this, ...args)
-      performance.mark(`${status}-end`)
-      const measure = performance.measure(
-        status,
-        `${status}-start`,
-        `${status}-end`,
-      )
+      let result, error
+      try {
+        result = await originMehtod.call(this, ...args)
+      } catch (err) {
+        error = err
+      }
+      const duration = Date.now() - startTime
+
       report({
         ...statusData,
-        period: 'end',
+        point: REPORT_END,
         instance,
-        duration: Math.round(measure.duration ?? 0),
+        duration,
       })
-      return result
+      if (error) {
+        throw error
+      } else {
+        return result
+      }
     }
   }
 }

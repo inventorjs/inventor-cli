@@ -42,13 +42,39 @@ export interface ResultInstance extends TransInstance {
   deploymentError: string
 }
 
+export interface ScfResultInstance extends ResultInstance {
+  state: {
+    function: {
+      ClsTopicId: string
+    }
+  }
+}
+
 export type RunAction = 'deploy' | 'remove'
+
+export interface RunOptions {
+  force: boolean
+  maxDeploySize: number
+  pollTimeout: number
+  pollInterval: number
+  followSymbolicLinks: boolean
+  resolveVar: 'all' | 'env'
+  reportStatus: (d: ReportStatus) => void
+  devServer: {
+    logsPollInterval: number
+    logsQuery: string
+    logsPeriod: number
+    updateDebounceTime: number
+  },
+  targets: string[]
+}
+
 export interface ReportStatus {
-  value: string
-  label: string
+  status: string
+  statusText: string
   point: 'start' | 'end'
-  instances: SlsInstance[]
-  context?: Record<string, unknown>
+  duration?: number
+  instance?: SlsInstance
 }
 
 export type SlsInstanceSrcLocal = {
@@ -58,4 +84,9 @@ export type SlsInstanceSrcLocal = {
 }
 export type SlsInstanceSrcCos = { bucket: string; object: string }
 export type SlsInstanceSrc = string | SlsInstanceSrcLocal | SlsInstanceSrcCos
-export type SlsInstanceStatus = 'active' | 'inactive' | 'deploying' | 'error'
+export type SlsInstanceStatus =
+  | 'active'
+  | 'inactive'
+  | 'deploying'
+  | 'error'
+  | 'removing'

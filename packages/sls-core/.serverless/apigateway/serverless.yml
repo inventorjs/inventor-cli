@@ -1,6 +1,6 @@
 app: scf-starter
 stage: dev
-name: apigwdemo
+name: apigwdemo-1111
 component: apigateway
 
 inputs:

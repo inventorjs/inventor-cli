@@ -1,10 +1,14 @@
 export const RUN_STATUS = {
-  resolve: { status: 'resolve', statusText: '解析配置文件' },
-  readSrc: { status: 'readSrc', statusText: '读取src文件内容' },
-  compress: { status: 'compress', statusText: '压缩变更文件' },
-  upload: { status: 'upload', statusText: '上传压缩包' },
-  deploy: { status: 'deploy', statusText: '部署组件实例' },
-  remove: { status: 'remove', statusText: '删除组件实例' },
-  poll: { status: 'poll', statusText: '轮询实例状态' },
   run: { status: 'run', statusText: '运行组件实例' },
+  poll: { status: 'poll', statusText: '轮询实例信息' },
+  resolve: { status: 'resolve', statusText: '解析配置文件' },
+  processSrc: { status: 'processSrc', statusText: '处理src文件夹' },
+  readSrc: { status: 'readSrc', statusText: '读取src文件夹内容' },
+  compressSrc: { status: 'compressSrc', statusText: '压缩src变更文件' },
+  uploadSrc: { status: 'uploadSrc', statusText: '上传src压缩包' },
 }
+
+export const REPORT_START = 'start'
+export const REPORT_END = 'end'
+
+export const COMPONENT_SCF = 'scf'
