@@ -4,7 +4,7 @@
  */
 import { Action } from '@inventorjs/cli-core'
 
-export default class AddonAction extends Action {
+export default class InitAddonAction extends Action {
   description = '添加应用附加能力'
 
   async run() {

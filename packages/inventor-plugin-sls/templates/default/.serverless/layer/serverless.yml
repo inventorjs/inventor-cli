@@ -1,0 +1,9 @@
+app: koa-test
+stage: dev 
+name: layerdemo
+component: layer
+
+inputs:
+  src: ../../node_modules
+  runtimes:
+    - Nodejs16.13

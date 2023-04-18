@@ -1,4 +1,4 @@
-app: scf-starter
+app: koa-test
 stage: dev 
 name: scfdemo
 component: scf
@@ -9,10 +9,13 @@ inputs:
   runtime: Nodejs16.13
   type: web
   src:
-    src: ../src
+    src: ../../src
   cls:
     logsetId: ${output:${stage}:${app}:clsdemo.logsetId}
     topicId: ${output:${stage}:${app}:clsdemo.topicId}
+  layers:
+    - name: ${output:${stage}:${app}:layerdemo.name}
+      version: ${output:${stage}:${app}:layerdemo.version}
   events:
     - apigw:
         parameters:

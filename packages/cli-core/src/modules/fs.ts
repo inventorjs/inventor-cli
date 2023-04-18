@@ -4,7 +4,7 @@
  */
 import path from 'node:path'
 import fse from 'fs-extra'
-import { globby } from 'globby'
+import fg from 'fast-glob'
 import ejs from 'ejs'
 
 export interface RenderOptions {
@@ -17,7 +17,7 @@ export const writeFile = fse.writeFile
 export const stat = fse.stat
 
 export async function getAllFiles(dirPath: string) {
-  const allFiles = await globby(`${dirPath}/**/(.)?*`, { gitignore: false })
+  const allFiles = await fg(`${dirPath}/**/*`, { dot: true })
   return allFiles
 }
 

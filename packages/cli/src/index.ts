@@ -38,6 +38,7 @@ const cli = new Command(BIN)
 const corePlugins: PluginConfigItem[] = [
   '@inventorjs/inventor-plugin-plugin',
   '@inventorjs/inventor-plugin-app',
+  '@inventorjs/inventor-plugin-sls',
 ]
 
 function isCorePlugin(packageName: string) {

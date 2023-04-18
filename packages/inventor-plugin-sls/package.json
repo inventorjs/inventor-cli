@@ -1,0 +1,28 @@
+{
+  "name": "@inventorjs/inventor-plugin-sls",
+  "version": "0.0.1",
+  "description": "sls plugin",
+  "main": "dist/index.js",
+  "author": "sunkeysun",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@7.12.2",
+  "files": [
+    "dist/",
+    "templates/"
+  ],
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "rimraf dist && tsc"
+  },
+  "dependencies": {
+    "@inventorjs/sls-core": "workspace:*",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "@inventorjs/cli-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@inventorjs/cli-core": "workspace:*"
+  }
+}
