@@ -72,6 +72,7 @@ export interface RunOptions {
     updateDebounceTime: number
   },
   targets: string[]
+  stage?: string
 }
 
 export interface ReportStatus {

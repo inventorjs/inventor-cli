@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/cli",
-  "version": "5.1.11",
+  "version": "5.1.12",
   "type": "module",
   "bin": {
     "inventor": "./dist/index.js"
@@ -22,7 +22,8 @@
   },
   "dependencies": {
     "@inventorjs/inventor-plugin-app": "workspace:*",
-    "@inventorjs/inventor-plugin-plugin": "workspace:*"
+    "@inventorjs/inventor-plugin-plugin": "workspace:*",
+    "@inventorjs/inventor-plugin-sls": "workspace:*"
   },
   "devDependencies": {
     "@inventorjs/cli-core": "workspace:*"
