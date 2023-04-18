@@ -4,13 +4,16 @@ export interface SlsInstanceBaseInfo {
   stage: string
 }
 
-export interface SlsInstance extends SlsInstanceBaseInfo {
+export interface OriginInstance extends SlsInstanceBaseInfo {
   component: string
   name: string
   inputs: {
     src?: SlsInstanceSrc
     [k: string]: unknown
   }
+}
+
+export interface SlsInstance extends OriginInstance {
   $deps: string[]
   $path: string
   $src:
@@ -65,6 +68,7 @@ export interface RunOptions {
     logsPollInterval: number
     logsQuery: string
     logsPeriod: number
+    logWriter: (log: Record<string, unknown>) => void
     updateDebounceTime: number
   },
   targets: string[]
@@ -91,3 +95,11 @@ export type SlsInstanceStatus =
   | 'deploying'
   | 'error'
   | 'removing'
+
+export interface SlsConfig {
+  slsPath: string
+  appId: string
+  secretId: string
+  secretKey: string
+  token?: string
+}

@@ -10,6 +10,8 @@ import type {
   RunOptions,
   SlsInstanceBaseInfo,
   ScfResultInstance,
+  SlsConfig,
+  OriginInstance,
 } from './types/index.js'
 import { scf, cls } from 'tencentcloud-sdk-nodejs'
 import path from 'node:path'
@@ -20,9 +22,8 @@ import Graph from 'graph-data-structure'
 import fg from 'fast-glob'
 import JSZip from 'jszip'
 import axios from 'axios'
-import chokidar from 'chokidar'
-import { Observable, debounceTime, interval } from 'rxjs'
-import { ApiService, type ListInstancesParams } from './api.service.js'
+import { interval } from 'rxjs'
+import { ApiService } from './api.service.js'
 import { reportStatus } from './decorators.js'
 import {
   isFile,
@@ -37,14 +38,6 @@ import { RUN_STATUS, COMPONENT_SCF } from './constants.js'
 
 const ScfClient = scf.v20180416.Client
 const ClsClient = cls.v20201016.Client
-
-export interface SlsConfig {
-  slsPath: string
-  appId: string
-  secretId: string
-  secretKey: string
-  token?: string
-}
 
 export class InstanceService {
   private defaultRunOptions: RunOptions = {
@@ -61,6 +54,7 @@ export class InstanceService {
       logsPollInterval: 1000,
       logsPeriod: 60 * 1000,
       logsQuery: '*',
+      logWriter: (log: Record<string, unknown>) => console.log(JSON.stringify(log)),
       updateDebounceTime: 200,
     },
   }
@@ -99,7 +93,7 @@ export class InstanceService {
     })
   }
 
-  private async resolveFile(instancePath: string) {
+  async resolveFile(instancePath: string) {
     for (const filename of this.supportFilenames) {
       const filePath = path.join(instancePath, filename)
       if (!(await isFile(filePath))) continue
@@ -128,7 +122,7 @@ export class InstanceService {
     return null
   }
 
-  private isValid(instance?: SlsInstance) {
+  isValid(instance?: SlsInstance) {
     if (
       !instance ||
       !instance.app ||
@@ -184,9 +178,10 @@ export class InstanceService {
     return instances
   }
 
-  private resolveVariables(instance: SlsInstance, options: RunOptions) {
+  resolveVariables(instance: OriginInstance, options: RunOptions) {
     const envRegex = /\$\{(env:)?([\w:\s.-]+)\}/g
     const outputRegex = /\$\{output:([\w:\s.-]+)\}/g
+    let resolvedInstance = instance as SlsInstance
     traverse(instance).forEach(function (value) {
       let updateValue = value
       if (typeof value !== 'string') return
@@ -199,24 +194,24 @@ export class InstanceService {
           resolvedValue = process.env[valName] ?? value
           updateValue = updateValue.replace(v, resolvedValue)
         } else if (options.resolveVar === 'all') {
-          let resolvedValue = instance[valName as keyof SlsInstance]
+          let resolvedValue = instance[valName as keyof OriginInstance]
           resolvedValue = !isObject(resolvedValue) ? resolvedValue : v
           updateValue = updateValue.replace(v, resolvedValue)
         }
       })
       if (outputRegex.exec(updateValue)) {
         const depName = updateValue.split(':').at(-1)?.split('.')[0]
-        if (depName && !instance.$deps?.includes?.(depName)) {
-          instance.$deps ??= []
-          instance.$deps.push(depName)
+        if (depName && !resolvedInstance.$deps?.includes?.(depName)) {
+          resolvedInstance.$deps ??= []
+          resolvedInstance.$deps.push(depName)
         }
       }
       if (updateValue !== value) {
         this.update(updateValue)
       }
     })
-    instance.$src = this.getNormalSrc(instance)
-    return instance
+    resolvedInstance.$src = this.getNormalSrc(resolvedInstance)
+    return resolvedInstance
   }
 
   private topologicalSort(instances: SlsInstance[], action: RunAction) {
@@ -252,7 +247,7 @@ export class InstanceService {
     return instances
   }
 
-  private async processSrcFiles(instance: SlsInstance, options: RunOptions) {
+  async processSrcFiles(instance: SlsInstance, options: RunOptions) {
     const { Response } = await this.apiService.getCacheFileUrls(instance)
     const { changesUploadUrl, previousMapDownloadUrl, srcDownloadUrl } =
       Response
@@ -300,7 +295,7 @@ export class InstanceService {
   }
 
   @reportStatus(RUN_STATUS.uploadSrc)
-  private async uploadSrcFiles(
+  async uploadSrcFiles(
     uploadUrl: string,
     buffer: Buffer,
     _instance: SlsInstance,
@@ -330,7 +325,7 @@ export class InstanceService {
   }
 
   @reportStatus(RUN_STATUS.compressSrc)
-  private async zipSrcLocalChanges(
+  async zipSrcLocalChanges(
     fileStatMap: Record<string, FileStat>,
     previousMap: Record<string, string>,
     srcLocal: string,
@@ -378,10 +373,7 @@ export class InstanceService {
   }
 
   @reportStatus(RUN_STATUS.readSrc)
-  private async getSrcLocalFileStatMap(
-    instance: SlsInstance,
-    options: RunOptions,
-  ) {
+  async getSrcLocalFileStatMap(instance: SlsInstance, options: RunOptions) {
     const normalSrc = instance.$src
     if (!normalSrc || !normalSrc.src) return null
 
@@ -403,7 +395,7 @@ export class InstanceService {
     return fileStatMap
   }
 
-  private async processDeploySrc(instance: SlsInstance, options: RunOptions) {
+  async processDeploySrc(instance: SlsInstance, options: RunOptions) {
     const normalSrc = instance.$src
     if (!normalSrc) {
       return { instance, cacheOutdated: false }
@@ -425,7 +417,7 @@ export class InstanceService {
   }
 
   @reportStatus(RUN_STATUS.poll)
-  private async poll(
+  async poll(
     instance: SlsInstance,
     options: RunOptions,
   ): Promise<ResultInstance | null> {
@@ -447,7 +439,7 @@ export class InstanceService {
     throw new Error(`poll instance result timeout over ${options.pollTimeout}s`)
   }
 
-  private getRunOptions(options: Partial<RunOptions>) {
+  getRunOptions(options: Partial<RunOptions>) {
     const runOptions = Object.assign({}, this.defaultRunOptions, options, {
       devServer: Object.assign(
         {},
@@ -469,7 +461,10 @@ export class InstanceService {
     if (action === 'deploy') {
       if (options.deployType === 'config') {
         // use src cache
-      } else if (options.deployType === 'src' && instance.component === COMPONENT_SCF) {
+      } else if (
+        options.deployType === 'src' &&
+        instance.component === COMPONENT_SCF
+      ) {
         return await this.updateFunctionCode(instance, options)
       } else {
         ;({ instance: runInstance, cacheOutdated } =
@@ -495,7 +490,7 @@ export class InstanceService {
     }
   }
 
-  private async runAll(action: RunAction, options: Partial<RunOptions> = {}) {
+  async runAll(action: RunAction, options: Partial<RunOptions> = {}) {
     const runOptions = this.getRunOptions(options)
     const resolvedInstances = await this.resolve(action, runOptions)
     if (!resolvedInstances?.length) {
@@ -510,8 +505,11 @@ export class InstanceService {
   }
 
   @reportStatus(RUN_STATUS.uploadSrc)
-  private async updateFunctionCode(instance: SlsInstance, options: RunOptions) {
-    const scfInstance = this.resolveVariables(instance, { ...options, resolveVar: 'all' })
+  async updateFunctionCode(instance: SlsInstance, options: RunOptions) {
+    const scfInstance = this.resolveVariables(instance, {
+      ...options,
+      resolveVar: 'all',
+    })
     const srcLocal = instance.$src?.src
     const fileStatMap = await this.getSrcLocalFileStatMap(instance, options)
 
@@ -534,7 +532,7 @@ export class InstanceService {
     return this.poll(instance, options)
   }
 
-  private async pollFunctionLogs(instance: SlsInstance, options: RunOptions) {
+  async pollFunctionLogs(instance: SlsInstance, options: RunOptions) {
     const instanceResult = (await this.poll(
       instance,
       options,
@@ -564,88 +562,9 @@ export class InstanceService {
         results = results.slice(md5Index + 1)
       }
       tailMd5 = results?.at(-1)?.$md5 ?? tailMd5
-
-      results?.forEach((item) => console.log(item.LogJson))
-    })
-  }
-
-  private async getScfInstances(options: RunOptions) {
-    const resolvedInstances = await this.resolve('deploy', options)
-    const scfInstances = resolvedInstances?.filter?.(
-      (instance) => instance.component === COMPONENT_SCF,
-    )
-    if (!scfInstances?.length) {
-      throw new Error('there is no scf instance to update')
-    }
-    return scfInstances
-  }
-
-  async deploy(options: Partial<RunOptions> = {}) {
-    return this.runAll('deploy', options)
-  }
-
-  async remove(options: Partial<RunOptions> = {}) {
-    return this.runAll('remove', options)
-  }
-
-  async info(options: Partial<RunOptions> = {}) {
-    const runOptions = this.getRunOptions(options)
-    const resolvedInstances = await this.resolve('deploy', runOptions)
-    if (!resolvedInstances.length) {
-      throw new Error('there is no serverless instance to show')
-    }
-
-    const infoOptions = {
-      ...runOptions,
-      pollInterval: 0,
-      pollTimeout: 0,
-    }
-
-    const infoPromises = resolvedInstances.map((instance) =>
-      this.poll(instance, infoOptions).catch((err) => err),
-    )
-    const resultList = await Promise.all(infoPromises)
-    const infoList = resultList.map((result) =>
-      result instanceof Error ? result : result,
-    ) as Array<ResultInstance | Error>
-
-    return infoList
-  }
-
-  async list(params: ListInstancesParams = {}) {
-    const result = await this.apiService.listInstances(params)
-    return result.Response?.instances
-  }
-
-  async dev(options: Partial<RunOptions> = {}) {
-    const runOptions = this.getRunOptions(options)
-    const scfInstances = await this.getScfInstances(runOptions)
-    for (const instance of scfInstances) {
-      const src = instance.$src?.src
-      if (!src) continue
-      const watcher = chokidar.watch(src)
-      const watch$ = new Observable<{ event: string; file: string }>(
-        (observer) => {
-          watcher.on('all', async (event, file) => {
-            observer.next({ event, file })
-          })
-        },
+      results?.forEach((item) =>
+        options.devServer.logWriter(JSON.parse(item.LogJson)),
       )
-      watch$
-        .pipe(debounceTime(runOptions.devServer.updateDebounceTime))
-        .subscribe(() => {
-          this.updateFunctionCode(instance, runOptions)
-        })
-      this.pollFunctionLogs(instance, runOptions)
-    }
-  }
-
-  async logs(options: Partial<RunOptions> = {}) {
-    const runOptions = this.getRunOptions(options)
-    const scfInstances = await this.getScfInstances(runOptions)
-
-    for (const instance of scfInstances) {
-      this.pollFunctionLogs(instance, runOptions)
-    }
+    })
   }
 }

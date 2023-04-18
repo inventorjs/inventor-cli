@@ -1,5 +1,6 @@
 export * from './instance.service.js'
 export * from './api.service.js'
+export * from './sls.service.js'
 export * from './decorators.js'
 export * from './constants.js'
 export * from './types/index.js'
