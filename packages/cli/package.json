@@ -22,7 +22,8 @@
   },
   "dependencies": {
     "@inventorjs/inventor-plugin-app": "workspace:*",
-    "@inventorjs/inventor-plugin-plugin": "workspace:*"
+    "@inventorjs/inventor-plugin-plugin": "workspace:*",
+    "@inventorjs/inventor-plugin-sls": "workspace:*"
   },
   "devDependencies": {
     "@inventorjs/cli-core": "workspace:*"

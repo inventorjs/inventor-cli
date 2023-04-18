@@ -210,6 +210,9 @@ export class InstanceService {
         this.update(updateValue)
       }
     })
+    if (options.stage) {
+      resolvedInstance.stage = options.stage
+    }
     resolvedInstance.$src = this.getNormalSrc(resolvedInstance)
     return resolvedInstance
   }

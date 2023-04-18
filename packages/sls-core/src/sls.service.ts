@@ -86,6 +86,7 @@ export class SlsService {
         })
       this.instanceService.pollFunctionLogs(instance, runOptions)
     }
+    return new Promise(() => {})
   }
 
   async logs(options: Partial<RunOptions> = {}) {

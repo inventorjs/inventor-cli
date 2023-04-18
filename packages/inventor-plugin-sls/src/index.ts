@@ -5,5 +5,5 @@
  import { Plugin } from '@inventorjs/cli-core'
 
  export default class SlsPlugin extends Plugin {
-   description = 'sls plugin'
+   description = 'serverless 应用工作流'
  }

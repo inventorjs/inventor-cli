@@ -15,6 +15,10 @@
     "dev": "tsc --watch",
     "build": "rimraf dist && tsc"
   },
+  "dependencies": {
+    "@inventorjs/sls-core": "workspace:*",
+    "dotenv": "^16.0.3"
+  },
   "devDependencies": {
     "@inventorjs/cli-core": "workspace:*"
   },
