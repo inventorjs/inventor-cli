@@ -60,6 +60,7 @@ export interface RunOptions {
   followSymbolicLinks: boolean
   resolveVar: 'all' | 'env'
   reportStatus: (d: ReportStatus) => void
+  deployType: 'config' | 'all' | 'src'
   devServer: {
     logsPollInterval: number
     logsQuery: string

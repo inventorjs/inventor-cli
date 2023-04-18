@@ -23,12 +23,14 @@ async function run() {
     slsPath: path.resolve(process.cwd(), '.serverless'),
   })
 
-  const result = await ins.dev({
+  const result = await ins.logs({
+    deployType: 'src',
+    targets: ['scf'],
     reportStatus(statusData) {
       console.log(statusData)
     },
   })
-  // console.log(JSON.stringify(result, null, 2))
+  console.log(JSON.stringify(result, null, 2))
 }
 
 run()

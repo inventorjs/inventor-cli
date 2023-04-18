@@ -56,6 +56,7 @@ export class InstanceService {
     resolveVar: 'env',
     reportStatus: () => {},
     targets: [],
+    deployType: 'all',
     devServer: {
       logsPollInterval: 1000,
       logsPeriod: 60 * 1000,
@@ -466,10 +467,14 @@ export class InstanceService {
     let runInstance = instance
     let cacheOutdated = false
     if (action === 'deploy') {
-      ;({ instance: runInstance, cacheOutdated } = await this.processDeploySrc(
-        instance,
-        options,
-      ))
+      if (options.deployType === 'config') {
+        // use src cache
+      } else if (options.deployType === 'src' && instance.component === COMPONENT_SCF) {
+        return await this.updateFunctionCode(instance, options)
+      } else {
+        ;({ instance: runInstance, cacheOutdated } =
+          await this.processDeploySrc(instance, options))
+      }
     }
     try {
       const runResult = await this.apiService.runComponent({
@@ -506,6 +511,7 @@ export class InstanceService {
 
   @reportStatus(RUN_STATUS.uploadSrc)
   private async updateFunctionCode(instance: SlsInstance, options: RunOptions) {
+    const scfInstance = this.resolveVariables(instance, { ...options, resolveVar: 'all' })
     const srcLocal = instance.$src?.src
     const fileStatMap = await this.getSrcLocalFileStatMap(instance, options)
 
@@ -521,8 +527,8 @@ export class InstanceService {
     )
 
     await this.getScfClient(instance).UpdateFunctionCode({
-      Namespace: (instance.inputs.namespace ?? 'default') as string,
-      FunctionName: instance.inputs.name as string,
+      Namespace: (scfInstance.inputs.namespace ?? 'default') as string,
+      FunctionName: scfInstance.inputs.name as string,
       ZipFile: zipBuffer.toString('base64'),
     })
     return this.poll(instance, options)
@@ -563,6 +569,17 @@ export class InstanceService {
     })
   }
 
+  private async getScfInstances(options: RunOptions) {
+    const resolvedInstances = await this.resolve('deploy', options)
+    const scfInstances = resolvedInstances?.filter?.(
+      (instance) => instance.component === COMPONENT_SCF,
+    )
+    if (!scfInstances?.length) {
+      throw new Error('there is no scf instance to update')
+    }
+    return scfInstances
+  }
+
   async deploy(options: Partial<RunOptions> = {}) {
     return this.runAll('deploy', options)
   }
@@ -600,53 +617,34 @@ export class InstanceService {
     return result.Response?.instances
   }
 
-  async updateCode(options: Partial<RunOptions> = {}) {
-    const runOptions = this.getRunOptions(options)
-    const resolvedInstances = await this.resolve('deploy', {
-      ...runOptions,
-      resolveVar: 'all',
-    })
-    const scfInstances = resolvedInstances?.filter?.(
-      (instance) => instance.component === COMPONENT_SCF,
-    )
-    if (!scfInstances?.length) {
-      throw new Error('there is no scf instance to update')
-    }
-    const results = await Promise.all(
-      scfInstances.map(async (instance) =>
-        this.updateFunctionCode(instance, runOptions).catch((err) => err),
-      ),
-    )
-    return results
-  }
-
   async dev(options: Partial<RunOptions> = {}) {
     const runOptions = this.getRunOptions(options)
-    const resolvedInstances = await this.resolve('deploy', {
-      ...runOptions,
-      resolveVar: 'all',
-    })
-    const scfInstances = resolvedInstances?.filter?.(
-      (instance) => instance.component === COMPONENT_SCF,
-    )
-    if (!scfInstances?.length) {
-      throw new Error('there is no scf instance to dev')
-    }
-
+    const scfInstances = await this.getScfInstances(runOptions)
     for (const instance of scfInstances) {
       const src = instance.$src?.src
       if (!src) continue
       const watcher = chokidar.watch(src)
-      const watch$ = new Observable<{ event: string, file: string }>((observer) => {
-        watcher.on('all', async (event, file) => {
-          observer.next({ event, file })
-        })
-      })
+      const watch$ = new Observable<{ event: string; file: string }>(
+        (observer) => {
+          watcher.on('all', async (event, file) => {
+            observer.next({ event, file })
+          })
+        },
+      )
       watch$
         .pipe(debounceTime(runOptions.devServer.updateDebounceTime))
         .subscribe(() => {
           this.updateFunctionCode(instance, runOptions)
         })
+      this.pollFunctionLogs(instance, runOptions)
+    }
+  }
+
+  async logs(options: Partial<RunOptions> = {}) {
+    const runOptions = this.getRunOptions(options)
+    const scfInstances = await this.getScfInstances(runOptions)
+
+    for (const instance of scfInstances) {
       this.pollFunctionLogs(instance, runOptions)
     }
   }
