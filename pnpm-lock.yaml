@@ -192,6 +192,20 @@ importers:
     devDependencies:
       '@inventorjs/cli-core': link:../cli-core
 
+  packages/inventor-plugin-sls:
+    specifiers:
+      '@inventorjs/cli-core': ^5.1.12
+      '@types/node': ^18.6.5
+      prettier: ^2.7.1
+      rimraf: ^3.0.2
+      typescript: ^4.7.4
+    devDependencies:
+      '@inventorjs/cli-core': link:../cli-core
+      '@types/node': 18.14.1
+      prettier: 2.8.4
+      rimraf: 3.0.2
+      typescript: 4.9.5
+
   packages/sls-core:
     specifiers:
       '@serverless/utils-china': ^1.1.7
