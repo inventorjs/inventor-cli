@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { config as configEnv } from 'dotenv'
 import { SlsService, type ReportStatus } from '@inventorjs/sls-core'
+import { env } from '@inventorjs/cli-core'
 
 interface Ora {
   text: string
@@ -10,7 +11,7 @@ interface Ora {
 export function getSls(basePath: string) {
   const slsPath = path.resolve(process.cwd(), basePath as string)
   configEnv({
-    path: path.resolve(slsPath, '.env'),
+    path: path.resolve(env.pwd(), '.env'),
   })
   const {
     TENCENT_APP_ID = '',
@@ -21,7 +22,7 @@ export function getSls(basePath: string) {
 
   if (!TENCENT_APP_ID && !TENCENT_SECRET_ID && !TENCENT_SECRET_KEY) {
     throw new Error(
-      '"TENCENT_APP_ID" "TENCENT_SECRET_ID" "TENCENT_SECRET_KEY" variables is required!',
+      '"TENCENT_APP_ID" "TENCENT_SECRET_ID" "TENCENT_SECRET_KEY" variables is required in .env file!',
     )
   }
 
