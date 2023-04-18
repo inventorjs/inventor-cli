@@ -1,0 +1,16 @@
+app: scf-starter
+stage: dev
+name: apigwdemo
+component: apigateway
+
+inputs:
+  serviceName: ${name}_${stage}
+  environment: prepub
+  netTypes:
+    - OUTER
+    - INNER
+  endpoints:
+    - path: /
+      method: GET
+      serviceType: MOCK
+      serviceMockReturnMessage: 'mock response content'

@@ -1,0 +1,26 @@
+app: scf-starter
+stage: dev 
+name: scfdemo
+component: scf
+
+inputs:
+  name: ${name}-${stage}-${app}
+  namespace: default
+  runtime: Nodejs16.13
+  type: web
+  src:
+    src: ../src
+  cls:
+    logsetId: ${output:${stage}:${app}:clsdemo.logsetId}
+    topicId: ${output:${stage}:${app}:clsdemo.topicId}
+  events:
+    - apigw:
+        parameters:
+          environment: release
+          endpoints:
+            - path: /
+              serviceId: ${output:${stage}:${app}:apigwdemo.serviceId}
+              method: GET
+              function:
+                isIntegratedResponse: true
+                functionQualifier: $DEFAULT
