@@ -1,6 +1,6 @@
-app: koa-test
-stage: dev 
-name: layerdemo
+app: <%- appName %>
+stage: <%- stageName %>
+name: layer-ins
 component: layer
 
 inputs:

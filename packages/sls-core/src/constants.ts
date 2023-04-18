@@ -12,3 +12,4 @@ export const REPORT_START = 'start'
 export const REPORT_END = 'end'
 
 export const COMPONENT_SCF = 'scf'
+export const COMPONENT_APIGATEWAY = 'apigateway'

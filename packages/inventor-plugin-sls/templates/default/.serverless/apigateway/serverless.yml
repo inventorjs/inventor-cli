@@ -1,10 +1,9 @@
-app: scf-starter
-stage: dev
-name: apigwdemo
+app: <%- appName %>
+stage: <%- stageName %>
+name: apigateway-ins
 component: apigateway
 
 inputs:
-  serviceName: ${name}_${stage}
   environment: prepub
   netTypes:
     - OUTER

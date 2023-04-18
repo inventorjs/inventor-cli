@@ -181,9 +181,9 @@ export abstract class Plugin {
     }
     if (typeof message === 'string' && !message.includes('...')) {
       args.splice(1, 1, `${message}...`)
-      return oraPromise(...args).catch(() => Promise.reject())
+      return oraPromise(...args)
     } else if (typeof message === 'object') {
-      return oraPromise(...args).catch(() => Promise.reject())
+      return oraPromise(...args)
     }
   }
 

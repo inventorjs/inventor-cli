@@ -1,6 +1,6 @@
-app: koa-test
+app: <%- appName %>
 stage: dev 
-name: scfdemo
+name: scf-ins
 component: scf
 
 inputs:
@@ -11,18 +11,18 @@ inputs:
   src:
     src: ../../src
   cls:
-    logsetId: ${output:${stage}:${app}:clsdemo.logsetId}
-    topicId: ${output:${stage}:${app}:clsdemo.topicId}
+    logsetId: ${output:${stage}:${app}:cls-ins.logsetId}
+    topicId: ${output:${stage}:${app}:cls-ins.topicId}
   layers:
-    - name: ${output:${stage}:${app}:layerdemo.name}
-      version: ${output:${stage}:${app}:layerdemo.version}
+    - name: ${output:${stage}:${app}:layer-ins.name}
+      version: ${output:${stage}:${app}:layer-ins.version}
   events:
     - apigw:
         parameters:
           environment: release
           endpoints:
             - path: /
-              serviceId: ${output:${stage}:${app}:apigwdemo.serviceId}
+              serviceId: ${output:${stage}:${app}:apigateway-ins.serviceId}
               method: GET
               function:
                 isIntegratedResponse: true

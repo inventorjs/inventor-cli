@@ -6,6 +6,7 @@ import path from 'node:path'
 import fse from 'fs-extra'
 import fg from 'fast-glob'
 import ejs from 'ejs'
+import { pwd } from './env.js'
 
 export interface RenderOptions {
   data?: Record<string, unknown>
@@ -21,7 +22,10 @@ export async function getAllFiles(dirPath: string) {
   return allFiles
 }
 
-export async function getExistsTemplateFiles(templateDir: string, destinationDir: string) {
+export async function getExistsTemplateFiles(
+  templateDir: string,
+  destinationDir: string,
+) {
   const templateFiles = await getAllFiles(templateDir)
   const existsPaths = []
   for (const templateFile of templateFiles) {
@@ -49,7 +53,10 @@ export async function renderTemplate(
   options: RenderOptions = {},
 ) {
   const templateFiles = await getAllFiles(templateDir)
-  const tmpDestinationDir = path.resolve('/tmp/inventor-templates/', `template-${Date.now()}`)
+  const tmpDestinationDir =
+    destinationDir === pwd()
+      ? destinationDir
+      : path.resolve('/tmp/inventor-templates/', `template-${Date.now()}`)
   await fse.ensureDir(tmpDestinationDir)
 
   for (const templateFile of templateFiles) {
@@ -60,7 +67,9 @@ export async function renderTemplate(
     await fse.ensureDir(path.dirname(destinationFile))
     await renderTemplateFile(templateFile, destinationFile, options)
   }
-  await fse.move(tmpDestinationDir, destinationDir)
+  if (destinationDir !== pwd()) {
+    await fse.move(tmpDestinationDir, destinationDir)
+  }
 }
 
 export async function renderTemplateFile(
@@ -69,7 +78,9 @@ export async function renderTemplateFile(
   options: RenderOptions = {},
 ) {
   const { data = {} } = options
-  const renderContent = await ejs.renderFile(templateFile, data, { async: true })
+  const renderContent = await ejs.renderFile(templateFile, data, {
+    async: true,
+  })
   await fse.ensureDir(path.dirname(destinationFile))
   await fse.writeFile(destinationFile, renderContent)
 }

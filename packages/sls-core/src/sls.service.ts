@@ -50,7 +50,7 @@ export class SlsService {
     }
 
     const infoPromises = resolvedInstances.map((instance) =>
-      this.instanceService.poll(instance, infoOptions).catch((err) => err),
+      this.instanceService.poll(instance, infoOptions).catch((error) => ({ instance, error })),
     )
     const resultList = await Promise.all(infoPromises)
     const infoList = resultList.map((result) =>

@@ -3,7 +3,7 @@
  * @author: sunkeysun
  */
 import { Action } from '@inventorjs/cli-core'
-import { getOptions, getSls } from '../helpers.js'
+import { getOptions, reportStatus, getSls } from '../common.js'
 
 interface Options {
   stage?: string
@@ -22,15 +22,7 @@ export default class DevAction extends Action {
     this.loadingTask((loading) =>
       sls.dev({
         ...options,
-        reportStatus(statusData) {
-          if (statusData.instance) {
-            loading.prefixText = `实例[${statusData.instance?.name}]`
-          }
-          loading.text = statusData.statusText
-          if (statusData.point === 'end') {
-            loading.text = '开发模式监听中'
-          }
-        },
+        reportStatus: (statusData) => reportStatus(loading, statusData, 'dev'),
       }),
     )
   }

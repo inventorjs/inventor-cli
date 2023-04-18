@@ -54,7 +54,8 @@ export class InstanceService {
       logsPollInterval: 1000,
       logsPeriod: 60 * 1000,
       logsQuery: '*',
-      logWriter: (log: Record<string, unknown>) => console.log(JSON.stringify(log)),
+      logWriter: (log: Record<string, unknown>) =>
+        console.log(JSON.stringify(log)),
       updateDebounceTime: 200,
     },
   }
@@ -488,8 +489,8 @@ export class InstanceService {
       }
       const pollResult = await this.poll(instance, options)
       return pollResult
-    } catch (err) {
-      return err
+    } catch (error) {
+      return { instance, error }
     }
   }
 

@@ -14,22 +14,14 @@ interface Options {
 }
 
 export default class DeployAction extends Action {
-  description = '部署应用到云端'
-  options = getOptions([
-    'stage',
-    'targets',
-    'force',
-    'path',
-    'updateConfig',
-    'updateSrc',
-    'json',
-  ])
+  description = '删除云端应用'
+  options = getOptions(['stage', 'targets', 'path', 'json'])
 
   async run(_: string[], options: Options) {
     const { path: basePath } = options
     const sls = getSls(basePath as string)
     const results = await this.loadingTask((loading) =>
-      sls.deploy({
+      sls.remove({
         ...options,
         reportStatus: (statusData) => reportStatus(loading, statusData),
       }),

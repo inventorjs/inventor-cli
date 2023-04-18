@@ -3,7 +3,7 @@
  * @author: sunkeysun
  */
 import { Action } from '@inventorjs/cli-core'
-import { getOptions, getSls } from '../helpers.js'
+import { getOptions, reportStatus, getSls } from '../common.js'
 
 interface Options {
   stage?: string
@@ -21,12 +21,7 @@ export default class InfoAction extends Action {
     const infoList = await this.loadingTask((loading) =>
       sls.info({
         ...options,
-        reportStatus(statusData) {
-          if (statusData.instance) {
-            loading.prefixText = `实例[${statusData.instance.name}]`
-          }
-          loading.text = statusData.statusText
-        },
+        reportStatus: (statusData) => reportStatus(loading, statusData),
       }),
     )
     console.log(infoList)

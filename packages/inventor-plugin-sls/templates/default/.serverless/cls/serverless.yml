@@ -1,6 +1,6 @@
-app: scf-starter
-stage: dev
-name: clsdemo
+app: <%- appName %>
+stage: <%- stageName %>
+name: cls-ins
 component: cls
 
 inputs:
