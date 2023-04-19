@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/inventor-plugin-sls",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "sls plugin",
   "main": "dist/index.js",
   "author": "sunkeysun",

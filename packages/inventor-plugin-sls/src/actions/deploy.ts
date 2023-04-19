@@ -31,7 +31,7 @@ export default class DeployAction extends Action {
     const results = await this.loadingTask((loading) =>
       sls.deploy({
         ...options,
-        reportStatus: (statusData) => reportStatus(loading, statusData),
+        reportStatus: (statusData) => reportStatus(loading, statusData, 'deploy'),
       }),
     )
     console.log(results)
