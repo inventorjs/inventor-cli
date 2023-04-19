@@ -1,5 +1,4 @@
 export interface SlsInstanceBaseInfo {
-  org: string
   app: string
   stage: string
 }
@@ -62,7 +61,7 @@ export interface RunOptions {
   pollInterval: number
   followSymbolicLinks: boolean
   resolveVar: 'all' | 'env'
-  reportStatus: (d: ReportStatus) => void
+  reportStatus: (d: ReportStatus) => Promise<void>
   deployType: 'config' | 'all' | 'src'
   devServer: {
     logsPollInterval: number
@@ -99,7 +98,6 @@ export type SlsInstanceStatus =
 
 export interface SlsConfig {
   slsPath: string
-  appId: string
   secretId: string
   secretKey: string
   token?: string

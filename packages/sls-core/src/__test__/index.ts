@@ -9,14 +9,12 @@ configEnv()
 
 async function run() {
   const {
-    TENCENT_APP_ID = '',
     TENCENT_SECRET_ID = '',
     TENCENT_SECRET_KEY = '',
     TENCENT_TOKEN = '',
   } = process.env
 
   const sls = new SlsService({
-    appId: TENCENT_APP_ID,
     secretId: TENCENT_SECRET_ID,
     secretKey: TENCENT_SECRET_KEY,
     token: TENCENT_TOKEN,
@@ -25,7 +23,7 @@ async function run() {
 
   const result = await sls.dev({
     targets: ['scf'],
-    reportStatus(statusData) {
+    async reportStatus(statusData) {
       console.log(statusData)
     },
   })

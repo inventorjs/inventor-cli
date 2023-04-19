@@ -82,7 +82,7 @@ export class SlsService {
       watch$
         .pipe(debounceTime(runOptions.devServer.updateDebounceTime))
         .subscribe(() => {
-          this.instanceService.updateFunctionCode(instance, runOptions)
+          this.instanceService.run('deploy', instance, runOptions)
         })
       this.instanceService.pollFunctionLogs(instance, runOptions)
     }
@@ -96,5 +96,6 @@ export class SlsService {
     for (const instance of scfInstances) {
       this.instanceService.pollFunctionLogs(instance, runOptions)
     }
+    return new Promise(() => {})
   }
 }

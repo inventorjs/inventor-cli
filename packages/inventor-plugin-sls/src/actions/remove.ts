@@ -23,7 +23,8 @@ export default class DeployAction extends Action {
     const results = await this.loadingTask((loading) =>
       sls.remove({
         ...options,
-        reportStatus: (statusData) => reportStatus(loading, statusData),
+        reportStatus: (statusData) =>
+          reportStatus(loading, statusData, 'remove'),
       }),
     )
     console.log(results)

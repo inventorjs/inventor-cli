@@ -47,7 +47,7 @@ export class InstanceService {
     pollInterval: 200, // 200ms
     followSymbolicLinks: false,
     resolveVar: 'env',
-    reportStatus: () => {},
+    reportStatus: async () => {},
     targets: [],
     deployType: 'all',
     devServer: {
@@ -56,7 +56,7 @@ export class InstanceService {
       logsQuery: '*',
       logWriter: (log: Record<string, unknown>) =>
         console.log(JSON.stringify(log)),
-      updateDebounceTime: 200,
+      updateDebounceTime: 1000,
     },
   }
   private supportFilenames = [
@@ -72,26 +72,8 @@ export class InstanceService {
     this.apiService = new ApiService(config)
   }
 
-  private getScfClient(instance: SlsInstance) {
-    return new ScfClient({
-      credential: {
-        secretId: this.config.secretId,
-        secretKey: this.config.secretKey,
-        token: this.config.token,
-      },
-      region: (instance.inputs.region ?? 'ap-guangzhou') as string,
-    })
-  }
-
-  private getClsClient(instance: SlsInstance) {
-    return new ClsClient({
-      credential: {
-        secretId: this.config.secretId,
-        secretKey: this.config.secretKey,
-        token: this.config.token,
-      },
-      region: (instance.inputs.region ?? 'ap-guangzhou') as string,
-    })
+  private getRegion(instance: SlsInstance) {
+    return (instance.inputs.region ?? 'ap-guangzhou') as string
   }
 
   async resolveFile(instancePath: string) {
@@ -143,6 +125,7 @@ export class InstanceService {
   @reportStatus(RUN_STATUS.resolve)
   async resolve(action: RunAction, options: RunOptions) {
     const instance = await this.resolveFile(this.config.slsPath)
+
     if (instance && this.isValid(instance)) {
       const resolvedInstance = this.resolveVariables(instance, options)
       return [resolvedInstance]
@@ -162,15 +145,13 @@ export class InstanceService {
       }
       if (instance) {
         const resolvedInstance = this.resolveVariables(instance, options)
-        const { org, app, stage } = resolvedInstance
+        const { app, stage } = resolvedInstance
         if (!baseInfo) {
-          baseInfo = { org, app, stage }
+          baseInfo = { app, stage }
         }
-        const { org: cOrg, app: cApp, stage: cStage } = baseInfo
-        if (cOrg !== org || cApp !== app || cStage !== stage) {
-          throw new Error(
-            `serverless instance's "org" "app" "stage" must equal`,
-          )
+        const { app: cApp, stage: cStage } = baseInfo
+        if (cApp !== app || cStage !== stage) {
+          throw new Error(`serverless instance's "app" "stage" must equal`)
         }
         instances.push(resolvedInstance)
       }
@@ -274,17 +255,13 @@ export class InstanceService {
     if (!fileStatMap || !srcLocal) {
       throw new Error('there is no src files to zip')
     }
-    const zipResult = await this.zipSrcLocalChanges(
+    const { zipBuffer, totalBytes, hasChanges } = await this.zipSrcLocalChanges(
       fileStatMap,
       previousMap,
       srcLocal,
       instance,
       options,
     )
-    if (!zipResult) {
-      throw new Error('zip result is empty')
-    }
-    const { zipBuffer, totalBytes, hasChanges } = zipResult
     if (options.maxDeploySize && totalBytes > options.maxDeploySize) {
       throw new Error(
         `src files size exceed ${filesize(
@@ -455,11 +432,7 @@ export class InstanceService {
   }
 
   @reportStatus(RUN_STATUS.run)
-  private async run(
-    action: RunAction,
-    instance: SlsInstance,
-    options: RunOptions,
-  ) {
+  async run(action: RunAction, instance: SlsInstance, options: RunOptions) {
     let runInstance = instance
     let cacheOutdated = false
     if (action === 'deploy') {
@@ -528,11 +501,13 @@ export class InstanceService {
       options,
     )
 
-    await this.getScfClient(instance).UpdateFunctionCode({
-      Namespace: (scfInstance.inputs.namespace ?? 'default') as string,
-      FunctionName: scfInstance.inputs.name as string,
-      ZipFile: zipBuffer.toString('base64'),
-    })
+    await this.apiService
+      .getScfClient(this.getRegion(instance))
+      .UpdateFunctionCode({
+        Namespace: (scfInstance.inputs.namespace ?? 'default') as string,
+        FunctionName: scfInstance.inputs.name as string,
+        ZipFile: zipBuffer.toString('base64'),
+      })
     return this.poll(instance, options)
   }
 
@@ -548,13 +523,15 @@ export class InstanceService {
     let tailMd5 = ''
 
     interval(options.devServer.logsPollInterval).subscribe(async () => {
-      const { Results } = await this.getClsClient(instance).SearchLog({
-        TopicId: topicId,
-        From: Date.now() - options.devServer.logsPeriod,
-        To: Date.now(),
-        Sort: 'asc',
-        Query: options.devServer.logsQuery,
-      })
+      const { Results } = await this.apiService
+        .getClsClient(this.getRegion(instance))
+        .SearchLog({
+          TopicId: topicId,
+          From: Date.now() - options.devServer.logsPeriod,
+          To: Date.now(),
+          Sort: 'asc',
+          Query: options.devServer.logsQuery,
+        })
 
       let results = Results?.map((item) => ({
         ...item,

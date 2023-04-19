@@ -1,5 +1,5 @@
 app: <%- appName %>
-stage: dev 
+stage: <%- stageName %>
 name: scf-ins
 component: scf
 
@@ -19,10 +19,10 @@ inputs:
   events:
     - apigw:
         parameters:
+          serviceId: ${output:${stage}:${app}:apigateway-ins.serviceId}
           environment: release
           endpoints:
             - path: /
-              serviceId: ${output:${stage}:${app}:apigateway-ins.serviceId}
               method: GET
               function:
                 isIntegratedResponse: true

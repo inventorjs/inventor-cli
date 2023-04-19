@@ -23,7 +23,7 @@ export default class DevAction extends Action {
       sls.dev({
         ...options,
         reportStatus: (statusData) => reportStatus(loading, statusData, 'dev'),
-      }),
+      })
     )
   }
 }

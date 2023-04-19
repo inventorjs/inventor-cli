@@ -25,7 +25,7 @@ export function reportStatus(statusData: {
       const report = options.reportStatus
 
       const startTime = Date.now()
-      report({
+      await report({
         ...statusData,
         point: REPORT_START,
         instance,
@@ -38,12 +38,14 @@ export function reportStatus(statusData: {
       }
       const duration = Date.now() - startTime
 
-      report({
+      await report({
         ...statusData,
+        statusText: statusData.statusText,
         point: REPORT_END,
         instance,
         duration,
       })
+
       if (error) {
         throw error
       } else {

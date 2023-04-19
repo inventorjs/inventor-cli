@@ -8,26 +8,32 @@ interface Ora {
   prefixText: string
 }
 
+export function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve('')
+    }, ms)
+  })
+}
+
 export function getSls(basePath: string) {
   const slsPath = path.resolve(process.cwd(), basePath as string)
   configEnv({
     path: path.resolve(env.pwd(), '.env'),
   })
   const {
-    TENCENT_APP_ID = '',
     TENCENT_SECRET_ID = '',
     TENCENT_SECRET_KEY = '',
     TENCENT_TOKEN = '',
   } = process.env
 
-  if (!TENCENT_APP_ID && !TENCENT_SECRET_ID && !TENCENT_SECRET_KEY) {
+  if (!TENCENT_SECRET_ID && !TENCENT_SECRET_KEY) {
     throw new Error(
       '"TENCENT_APP_ID" "TENCENT_SECRET_ID" "TENCENT_SECRET_KEY" variables is required in .env file!',
     )
   }
 
   const sls = new SlsService({
-    appId: TENCENT_APP_ID,
     secretId: TENCENT_SECRET_ID,
     secretKey: TENCENT_SECRET_KEY,
     token: TENCENT_TOKEN,
@@ -46,7 +52,7 @@ export function getOptions(options: string[] = []) {
     },
     {
       name: 'targets',
-      flags: '-t, --targets [...targets]',
+      flags: '-t, --targets [targets...]',
       description: '指定要部署的组件配置目录名称',
     },
     {
@@ -56,19 +62,20 @@ export function getOptions(options: string[] = []) {
     },
     {
       name: 'path',
-      flags: '-p, --path',
+      flags: '-p, --path [path]',
       description: 'serverless 配置根目录',
       defaultValue: '.serverless',
+    },
+    {
+      name: 'period',
+      flags: '--period',
+      description: '拉取日志时间段(单位秒)',
+      defaultValue: '600',
     },
     {
       name: 'updateConfig',
       flags: '--update-config',
       description: '只更新应用配置',
-    },
-    {
-      name: 'updateSrc',
-      flags: '--update-src',
-      description: '只更新应用源代码[只支持scf]',
     },
     { name: 'json', flags: '--json', description: '以 JSON 格式输出结果' },
   ]
@@ -81,20 +88,29 @@ export function getOptions(options: string[] = []) {
   return realOptions
 }
 
-export function reportStatus(
+export async function reportStatus(
   loading: Ora,
   statusData: ReportStatus,
-  action = 'deploy',
+  action: string,
 ) {
-  if (statusData.instance) {
-    const duration =
-      statusData.point === 'end' ? `(${statusData.duration}ms)` : ''
-    loading.prefixText = `实例[${statusData.instance?.name}${duration}]`
+  const { statusText, point, duration, instance } = statusData
+  let prefixText = ''
+  if (instance) {
+    prefixText = `${instance.app} > ${instance.stage} > ${instance.name}(${action})`
   }
-  loading.text = statusData.statusText
+  let text = statusText
+  if (point === 'end') {
+    text += `完成[cost: ${duration}ms]`
+  }
+  loading.prefixText = prefixText
+  loading.text = text
+  if (point === 'end') {
+    await sleep(1000)
+  }
   if (action === 'dev') {
-    setTimeout(() => {
-      loading.text = '远程开发监听中...'
-    }, 1000)
+    loading.text = '远程开发监听中'
+  }
+  if (action === 'log') {
+    loading.text = '远程日志监听中'
   }
 }

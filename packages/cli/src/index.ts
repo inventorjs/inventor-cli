@@ -204,6 +204,7 @@ process.on('uncaughtException', (err) => {
 })
 
 process.on('unhandledRejection', (reason) => {
+  console.log(reason, '000')
   reason && log.error(reason)
   process.exit(1)
 })
