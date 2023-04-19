@@ -1,19 +1,11 @@
 import path from 'node:path'
 import { config as configEnv } from 'dotenv'
-import { SlsService, type ReportStatus } from '@inventorjs/sls-core'
+import { SlsService, util, type ReportStatus } from '@inventorjs/sls-core'
 import { env } from '@inventorjs/cli-core'
 
 interface Ora {
   text: string
   prefixText: string
-}
-
-export function sleep(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve('')
-    }, ms)
-  })
 }
 
 export function getSls(basePath: string) {
@@ -105,7 +97,7 @@ export async function reportStatus(
   loading.prefixText = prefixText
   loading.text = text
   if (point === 'end') {
-    await sleep(1000)
+    await util.sleep(1000)
   }
   if (action === 'dev') {
     loading.text = '远程开发监听中'
