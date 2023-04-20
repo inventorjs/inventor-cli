@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/sls-core",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "serverless core",
   "author": "sunkeysun",
   "license": "MIT",
