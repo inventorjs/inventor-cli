@@ -61,7 +61,7 @@ function log(msg: string, options: Options = {}) {
 
 function stringify(msg: unknown) {
   let strMsg = ''
-  if (Array.isArray(msg) && msg[0]) {
+  if (Array.isArray(msg) && msg.every((msgItem) => Array.isArray(msgItem))) {
     const maxLengthArr = Object.keys(msg[0]).reduce((result, col) => {
       let maxLength = 0
       msg.forEach((item: string[]) => {
