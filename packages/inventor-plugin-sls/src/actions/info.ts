@@ -2,28 +2,25 @@
  * action 入口
  * @author: sunkeysun
  */
-import { Action } from '@inventorjs/cli-core'
-import { getOptions, reportStatus, getSls } from '../common.js'
+import type { ResultInstance } from '@inventorjs/sls-core'
 
-interface Options {
-  stage?: string
-  targets?: string[]
-  path?: string
-}
+import { Action } from '@inventorjs/cli-core'
+import { getOptions, reportStatus, getSls, type BaseOptions, outputResults } from '../common.js'
 
 export default class InfoAction extends Action {
   description = '获取应用详情'
-  options = getOptions(['stage', 'targets', 'path'])
+  options = getOptions()
 
-  async run(_: string[], options: Options) {
-    const { path: basePath } = options
-    const sls = getSls(basePath as string)
-    const infoList = await this.loadingTask((loading) =>
+  async run(_: string[], options: BaseOptions) {
+    const { base } = options
+    const sls = getSls(base)
+    const results = await this.loadingTask((loading) =>
       sls.info({
         ...options,
         reportStatus: (statusData) => reportStatus(loading, statusData, 'info'),
       }),
-    )
-    console.log(infoList)
+    ) as ResultInstance[]
+
+    outputResults(results, options)
   }
 }

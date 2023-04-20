@@ -1,14 +1,40 @@
 import path from 'node:path'
 import { config as configEnv } from 'dotenv'
-import { SlsService, util, type ReportStatus } from '@inventorjs/sls-core'
-import { env } from '@inventorjs/cli-core'
+import {
+  SlsService,
+  util,
+  type ReportStatus,
+  type ResultInstance,
+  type ResultInstanceError,
+} from '@inventorjs/sls-core'
+import { env, log } from '@inventorjs/cli-core'
 
 interface Ora {
   text: string
   prefixText: string
 }
 
-export function getSls(basePath: string) {
+export interface BaseOptions {
+  stage?: string
+  targets?: string[]
+  base?: string
+  json?: boolean
+  verbose?: boolean
+}
+
+export interface Options extends BaseOptions {
+  force?: boolean
+  logsPeriod?: string
+  logsInterval?: string
+  logsQuery?: string
+  updateConfig?: boolean
+  updateSrc?: boolean
+  followSymbolicLinks?: boolean
+}
+
+const defaultBase = '.serverless'
+
+export function getSls(basePath = defaultBase) {
   const slsPath = path.resolve(process.cwd(), basePath as string)
   configEnv({
     path: path.resolve(env.pwd(), '.env'),
@@ -36,6 +62,7 @@ export function getSls(basePath: string) {
 }
 
 export function getOptions(options: string[] = []) {
+  const baseOptions = ['stage', 'targets', 'base', 'json', 'verbose']
   const allOptions = [
     {
       name: 'stage',
@@ -48,31 +75,63 @@ export function getOptions(options: string[] = []) {
       description: '指定要部署的组件配置目录名称',
     },
     {
+      name: 'base',
+      flags: '-b, --base [base]',
+      description: 'serverless 配置根目录',
+      defaultValue: defaultBase,
+    },
+    {
       name: 'force',
       flags: '-f, --force',
-      description: '是否强制部署，跳过缓存和校验',
+      description: '强制部署，跳过缓存和校验',
     },
     {
-      name: 'path',
-      flags: '-p, --path [path]',
-      description: 'serverless 配置根目录',
-      defaultValue: '.serverless',
+      name: 'logsPeriod',
+      flags: '--logs-period [logsPeriod]',
+      description: '拉取日志时间段(单位ms)',
+      defaultValue: String(60 * 1000),
     },
     {
-      name: 'period',
-      flags: '--period',
-      description: '拉取日志时间段(单位秒)',
-      defaultValue: '600',
+      name: 'logsInterval',
+      flags: '--logs-interval [logsInterval]',
+      description: '实时日志轮询周期(单位ms)',
+      defaultValue: String(1 * 1000),
+    },
+    {
+      name: 'logsQuery',
+      flags: '--logs-query [logsQuery]',
+      description: '实时日志过滤条件',
+      defaultValue: '*',
+    },
+    {
+      name: 'followSymbolicLinks',
+      flags: '--follow-symbolic-links',
+      description: '解析软链接为实际文件',
     },
     {
       name: 'updateConfig',
       flags: '--update-config',
       description: '只更新应用配置',
     },
-    { name: 'json', flags: '--json', description: '以 JSON 格式输出结果' },
+    {
+      name: 'updateSrc',
+      flags: '--update-src',
+      description: '只更新 src 文件内容',
+    },
+    {
+      name: 'json',
+      flags: '--json',
+      description: '以 JSON 格式输出结果',
+    },
+    {
+      name: 'verbose',
+      flags: '--verbose',
+      description: '输出详细实例信息',
+    },
   ]
+  const includeOptions = baseOptions.concat(options)
   const realOptions = allOptions
-    .filter((option) => options.includes(option.name))
+    .filter((option) => includeOptions.includes(option.name))
     .map((option) => {
       const { name, ...realOption } = option
       return realOption
@@ -87,8 +146,16 @@ export async function reportStatus(
 ) {
   const { statusText, point, duration, instance } = statusData
   let prefixText = ''
+  let color: keyof typeof log.color = 'cyan'
+  if (action === 'remove') {
+    color = 'red'
+  } else if (action === 'deploy') {
+    color = 'green'
+  }
   if (instance) {
-    prefixText = `${instance.app} > ${instance.stage} > ${instance.name}(${action})`
+    prefixText = `${instance.app} > ${instance.stage} > ${
+      instance.name
+    }(${log.color[color](action)})`
   }
   let text = statusText
   if (point === 'end') {
@@ -102,7 +169,69 @@ export async function reportStatus(
   if (action === 'dev') {
     loading.text = '远程开发监听中'
   }
-  if (action === 'log') {
+  if (action === 'logs') {
     loading.text = '远程日志监听中'
+  }
+}
+
+function getOutput(instance: ResultInstance | ResultInstanceError) {
+  const instanceError = instance as ResultInstanceError
+  const resultInstance = instance as ResultInstance
+  if (instanceError.$error && instanceError.$instance) {
+    return {
+      instance: instanceError.$instance,
+      error: log.color.red(instanceError.$error.message),
+    }
+  }
+  const statusColor: keyof typeof log.color = ['inactive', 'error'].includes(
+    resultInstance.instanceStatus,
+  )
+    ? 'red'
+    : 'cyan'
+  const output = {
+    appName: resultInstance.appName,
+    stageName: resultInstance.stageName,
+    instanceName: resultInstance.instanceName,
+    instanceStatus: log.color[statusColor](resultInstance.instanceStatus),
+  }
+  if (['active', 'error'].includes(resultInstance.instanceStatus)) {
+    Object.assign(output, {
+      componentName: resultInstance.componentName,
+      outputs: resultInstance.outputs,
+    })
+  }
+  if (resultInstance.instanceStatus === 'error') {
+    Object.assign(output, {
+      deploymentError: log.color.red(resultInstance.deploymentError),
+    })
+  }
+  return output
+}
+
+export function outputResults(
+  results: Array<ResultInstance | ResultInstanceError>,
+  options: BaseOptions = {},
+) {
+  if (options.json) {
+    if (options.verbose) {
+      log.clear()
+      log.raw(JSON.stringify(results))
+    } else {
+      log.raw(JSON.stringify(results.map((instance) => getOutput(instance))))
+    }
+  } else {
+    results.forEach((instance, index) => {
+      const instanceError = instance as ResultInstanceError
+      let logFun = log.info
+      if (instanceError.$error) {
+        logFun = log.error
+      }
+      logFun('='.repeat(60) + `[${index + 1}/${results.length}]`)
+      if (options.verbose) {
+        log.prettyJson(instance)
+      } else {
+        log.prettyJson(getOutput(instance))
+      }
+    })
   }
 }

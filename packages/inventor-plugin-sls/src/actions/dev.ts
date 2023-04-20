@@ -3,25 +3,31 @@
  * @author: sunkeysun
  */
 import { Action } from '@inventorjs/cli-core'
-import { getOptions, reportStatus, getSls } from '../common.js'
+import { getOptions, reportStatus, getSls, type Options, BaseOptions } from '../common.js'
 
-interface Options {
-  stage?: string
-  targets?: string[]
-  force?: boolean
-  path?: string
-}
+export type DevOptions = BaseOptions &
+  Pick<Options, 'logsPeriod' | 'logsInterval' | 'logsQuery' | 'followSymbolicLinks'>
 
 export default class DevAction extends Action {
   description = '启动远程开发服务'
-  options = getOptions(['stage', 'targets', 'force', 'path'])
+  options = getOptions([
+    'logsPeriod',
+    'logsInterval',
+    'logsQuery',
+    'followSymbolicLinks',
+  ])
 
-  async run(_: string[], options: Options) {
-    const { path: basePath } = options
-    const sls = getSls(basePath as string)
+  async run(_: string[], options: Required<DevOptions>) {
+    const { base, logsPeriod, logsInterval, logsQuery, ...slsOptions } = options
+    const sls = getSls(base)
     this.loadingTask((loading) =>
       sls.dev({
-        ...options,
+        ...slsOptions,
+        devServer: {
+          logsInterval: +logsInterval,
+          logsPeriod: +logsPeriod,
+          logsQuery,
+        },
         reportStatus: (statusData) => reportStatus(loading, statusData, 'dev'),
       })
     )

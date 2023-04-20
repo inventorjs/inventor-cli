@@ -1,9 +1,10 @@
 /**
  * sls service
  */
-import type { RunOptions, ResultInstance, SlsConfig } from './types/index.js'
-import { ApiService, type ListInstancesParams } from './api.service.js'
+import type { RunOptions, ResultInstance, SlsConfig, PartialRunOptions } from './types/index.js'
+
 import chokidar from 'chokidar'
+import { ApiService, type ListInstancesParams } from './api.service.js'
 import { Observable, debounceTime } from 'rxjs'
 import { COMPONENT_SCF } from './constants.js'
 import { InstanceService } from './instance.service.js'
@@ -28,15 +29,15 @@ export class SlsService {
     return scfInstances
   }
 
-  async deploy(options: Partial<RunOptions> = {}) {
+  async deploy(options: PartialRunOptions = {}) {
     return this.instanceService.runAll('deploy', options)
   }
 
-  async remove(options: Partial<RunOptions> = {}) {
+  async remove(options: PartialRunOptions = {}) {
     return this.instanceService.runAll('remove', options)
   }
 
-  async info(options: Partial<RunOptions> = {}) {
+  async info(options: PartialRunOptions = {}) {
     const runOptions = this.instanceService.getRunOptions(options)
     const resolvedInstances = await this.instanceService.resolve('deploy', runOptions)
     if (!resolvedInstances.length) {
@@ -65,10 +66,14 @@ export class SlsService {
     return result.Response?.instances
   }
 
-  async dev(options: Partial<RunOptions> = {}) {
+  async dev(options: PartialRunOptions = {}) {
     const runOptions = this.instanceService.getRunOptions(options)
     const scfInstances = await this.getScfInstances(runOptions)
     for (const instance of scfInstances) {
+      const instanceResult = await this.instanceService.poll(instance, runOptions)
+      if (instanceResult?.instanceStatus === 'inactive') {
+        throw new Error('instance not exists, please run "deploy" first')
+      }
       const src = instance.$src?.src
       if (!src) continue
       const watcher = chokidar.watch(src)
@@ -82,14 +87,14 @@ export class SlsService {
       watch$
         .pipe(debounceTime(runOptions.devServer.updateDebounceTime))
         .subscribe(() => {
-          this.instanceService.run('deploy', instance, runOptions)
+          this.instanceService.updateFunctionCode(instance, runOptions)
         })
       this.instanceService.pollFunctionLogs(instance, runOptions)
     }
     return new Promise(() => {})
   }
 
-  async logs(options: Partial<RunOptions> = {}) {
+  async logs(options: PartialRunOptions = {}) {
     const runOptions = this.instanceService.getRunOptions(options)
     const scfInstances = await this.getScfInstances(runOptions)
 

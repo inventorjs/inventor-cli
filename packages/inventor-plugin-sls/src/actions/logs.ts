@@ -3,22 +3,18 @@
  * @author: sunkeysun
  */
 import { Action } from '@inventorjs/cli-core'
-import { getOptions, reportStatus, getSls } from '../common.js'
+import { getOptions, reportStatus, getSls, type BaseOptions, type Options } from '../common.js'
 
-interface Options {
-  stage?: string
-  targets?: string[]
-  force?: boolean
-  path?: string
-}
+export type LogsOptions = BaseOptions &
+  Pick<Options, 'logsPeriod' | 'logsInterval' | 'logsQuery'>
 
-export default class DevAction extends Action {
+export default class LogsAction extends Action {
   description = '拉取云函数运行日志'
-  options = getOptions(['stage', 'targets', 'path'])
+  options = getOptions(['logsPeriod', 'logsInterval', 'logsQuery'])
 
-  async run(_: string[], options: Options) {
-    const { path: basePath } = options
-    const sls = getSls(basePath as string)
+  async run(_: string[], options: LogsOptions) {
+    const { base } = options
+    const sls = getSls(base)
     this.loadingTask((loading) =>
       sls.logs({
         ...options,

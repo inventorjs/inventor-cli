@@ -44,6 +44,11 @@ export interface ResultInstance extends TransInstance {
   deploymentError: string
 }
 
+export interface ResultInstanceError {
+  $instance: SlsInstance
+  $error: Error
+}
+
 export interface ScfResultInstance extends ResultInstance {
   state: {
     function: {
@@ -64,7 +69,7 @@ export interface RunOptions {
   reportStatus: (d: ReportStatus) => Promise<void>
   deployType: 'config' | 'all' | 'src'
   devServer: {
-    logsPollInterval: number
+    logsInterval: number
     logsQuery: string
     logsPeriod: number
     logWriter: (log: Record<string, unknown>) => void
@@ -72,6 +77,10 @@ export interface RunOptions {
   },
   targets: string[]
   stage?: string
+}
+
+export interface PartialRunOptions extends Partial<Omit<RunOptions, 'devServer'>> {
+  devServer?: Partial<RunOptions['devServer']>
 }
 
 export interface ReportStatus {

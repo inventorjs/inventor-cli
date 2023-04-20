@@ -2,31 +2,25 @@
  * action 入口
  * @author: sunkeysun
  */
-import { Action } from '@inventorjs/cli-core'
-import { getOptions, reportStatus, getSls } from '../common.js'
+import type { ResultInstance } from '@inventorjs/sls-core'
 
-interface Options {
-  stage?: string
-  targets?: string[]
-  force?: boolean
-  path?: string
-  json?: boolean
-}
+import { Action } from '@inventorjs/cli-core'
+import { getOptions, reportStatus, getSls, type BaseOptions, outputResults } from '../common.js'
 
 export default class DeployAction extends Action {
   description = '删除云端应用'
-  options = getOptions(['stage', 'targets', 'path', 'json'])
+  options = getOptions()
 
-  async run(_: string[], options: Options) {
-    const { path: basePath } = options
-    const sls = getSls(basePath as string)
+  async run(_: string[], options: BaseOptions) {
+    const { base } = options
+    const sls = getSls(base)
     const results = await this.loadingTask((loading) =>
       sls.remove({
         ...options,
         reportStatus: (statusData) =>
           reportStatus(loading, statusData, 'remove'),
       }),
-    )
-    console.log(results)
+    ) as ResultInstance[]
+    outputResults(results, options)
   }
 }

@@ -6,14 +6,15 @@ import type {
   SlsInstanceSrcLocal,
   SlsInstanceSrcCos,
   ResultInstance,
+  ResultInstanceError,
   RunAction,
   RunOptions,
   SlsInstanceBaseInfo,
   ScfResultInstance,
   SlsConfig,
   OriginInstance,
+  PartialRunOptions,
 } from './types/index.js'
-import { scf, cls } from 'tencentcloud-sdk-nodejs'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import yaml from 'js-yaml'
@@ -36,22 +37,19 @@ import {
 } from './util.js'
 import { RUN_STATUS, COMPONENT_SCF } from './constants.js'
 
-const ScfClient = scf.v20180416.Client
-const ClsClient = cls.v20201016.Client
-
 export class InstanceService {
   private defaultRunOptions: RunOptions = {
     force: false,
-    maxDeploySize: 500 * 1024 * 1024, // 500M
-    pollTimeout: 600 * 1000, // 300s
-    pollInterval: 200, // 200ms
+    maxDeploySize: 500 * 1024 * 1024,
+    pollTimeout: 600 * 1000,
+    pollInterval: 200,
     followSymbolicLinks: false,
     resolveVar: 'env',
     reportStatus: async () => {},
     targets: [],
     deployType: 'all',
     devServer: {
-      logsPollInterval: 1000,
+      logsInterval: 1000,
       logsPeriod: 60 * 1000,
       logsQuery: '*',
       logWriter: (log: Record<string, unknown>) =>
@@ -156,7 +154,9 @@ export class InstanceService {
         instances.push(resolvedInstance)
       }
     }
-    instances = this.topologicalSort(instances, action)
+    if (instances.length > 0) {
+      instances = this.topologicalSort(instances, action)
+    }
     return instances
   }
 
@@ -229,7 +229,7 @@ export class InstanceService {
       }
     })
 
-    return instances
+    return sortedInstances
   }
 
   async processSrcFiles(instance: SlsInstance, options: RunOptions) {
@@ -398,10 +398,7 @@ export class InstanceService {
   }
 
   @reportStatus(RUN_STATUS.poll)
-  async poll(
-    instance: SlsInstance,
-    options: RunOptions,
-  ): Promise<ResultInstance | null> {
+  async poll(instance: SlsInstance, options: RunOptions) {
     const { pollInterval, pollTimeout } = options
 
     const startTime = Date.now()
@@ -409,18 +406,18 @@ export class InstanceService {
       const { Response } = await this.apiService.getInstance(instance)
       const { instanceStatus } = Response.instance as ResultInstance
       if (!pollInterval || !pollTimeout) {
-        return Response.instance
+        return Response.instance as ResultInstance
       }
       if (instanceStatus === 'deploying' || instanceStatus === 'removing') {
         await sleep(pollInterval)
       } else {
-        return Response.instance
+        return Response.instance as ResultInstance
       }
     } while (Date.now() - startTime < pollTimeout)
     throw new Error(`poll instance result timeout over ${options.pollTimeout}s`)
   }
 
-  getRunOptions(options: Partial<RunOptions>) {
+  getRunOptions(options: PartialRunOptions) {
     const runOptions = Object.assign({}, this.defaultRunOptions, options, {
       devServer: Object.assign(
         {},
@@ -458,23 +455,29 @@ export class InstanceService {
         },
       })
       if (!options.pollTimeout || !options.pollInterval) {
-        return runResult.Response
+        return runResult.Response as ResultInstance
       }
       const pollResult = await this.poll(instance, options)
       return pollResult
     } catch (error) {
-      return { instance, error }
+      return { $instance: instance, $error: error as Error }
     }
   }
 
-  async runAll(action: RunAction, options: Partial<RunOptions> = {}) {
+  async runAll(action: RunAction, options: PartialRunOptions = {}) {
     const runOptions = this.getRunOptions(options)
-    const resolvedInstances = await this.resolve(action, runOptions)
+    let resolvedInstances = await this.resolve(action, runOptions)
     if (!resolvedInstances?.length) {
       throw new Error(`there is no serverless instance to ${action}`)
     }
 
-    const runResults: Array<ResultInstance | null> = []
+    if (runOptions.deployType === 'src') {
+      resolvedInstances = resolvedInstances.filter(
+        (instance) => !!instance.$src,
+      )
+    }
+
+    const runResults: Array<ResultInstance | ResultInstanceError> = []
     for (const instance of resolvedInstances) {
       runResults.push(await this.run(action, instance, runOptions))
     }
@@ -522,7 +525,7 @@ export class InstanceService {
     const topicId = instanceResult.state.function.ClsTopicId
     let tailMd5 = ''
 
-    interval(options.devServer.logsPollInterval).subscribe(async () => {
+    interval(options.devServer.logsInterval).subscribe(async () => {
       const { Results } = await this.apiService
         .getClsClient(this.getRegion(instance))
         .SearchLog({
