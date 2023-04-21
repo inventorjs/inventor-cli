@@ -66,6 +66,8 @@ export class InstanceService {
 
   private apiService: ApiService
 
+  private scfStatusMap: Record<string, boolean>
+
   constructor(private readonly config: SlsConfig) {
     this.apiService = new ApiService(config)
   }
@@ -237,7 +239,8 @@ export class InstanceService {
     const { changesUploadUrl, previousMapDownloadUrl, srcDownloadUrl } =
       Response
     let previousMap: Record<string, string> = {}
-    if (!options.force) {
+    let { force } = options
+    if (!force) {
       try {
         previousMap = await axios
           .get(previousMapDownloadUrl)
@@ -255,6 +258,13 @@ export class InstanceService {
     if (!fileStatMap || !srcLocal) {
       throw new Error('there is no src files to zip')
     }
+
+    // symbolicLink not support cache
+    if (Object.values(fileStatMap).find(({ stat }) => stat.isSymbolicLink())) {
+      force = true
+      previousMap = {}
+    }
+
     const { zipBuffer, totalBytes, hasChanges } = await this.zipSrcLocalChanges(
       fileStatMap,
       previousMap,
@@ -272,7 +282,7 @@ export class InstanceService {
 
     await this.uploadSrcFiles(changesUploadUrl, zipBuffer, instance, options)
 
-    return { srcDownloadUrl, totalBytes, cacheOutdated: hasChanges }
+    return { srcDownloadUrl, totalBytes, cacheOutdated: hasChanges, force }
   }
 
   @reportStatus(RUN_STATUS.uploadSrc)
@@ -378,23 +388,25 @@ export class InstanceService {
 
   async processDeploySrc(instance: SlsInstance, options: RunOptions) {
     const normalSrc = instance.$src
+    let { force } = options
     if (!normalSrc) {
-      return { instance, cacheOutdated: false }
+      return { instance, cacheOutdated: false, force }
     }
     const normalSrcOriginal = instance.$src as {
       srcOriginal: SlsInstanceSrcCos
     }
     let cacheOutdated = false
     if (normalSrc.src) {
-      const { srcDownloadUrl, cacheOutdated: innerCacheOutdated } =
+      const { srcDownloadUrl, cacheOutdated: innerCacheOutdated, force: innerForce } =
         await this.processSrcFiles(instance, options)
       cacheOutdated = innerCacheOutdated
       instance.inputs.src = srcDownloadUrl
+      force = innerForce
     } else if (normalSrcOriginal.srcOriginal) {
       instance.inputs.srcOriginal = normalSrcOriginal.srcOriginal
       cacheOutdated = true
     }
-    return { instance, cacheOutdated }
+    return { instance, cacheOutdated, force }
   }
 
   @reportStatus(RUN_STATUS.poll)
@@ -432,6 +444,7 @@ export class InstanceService {
   async run(action: RunAction, instance: SlsInstance, options: RunOptions) {
     let runInstance = instance
     let cacheOutdated = false
+    let { force } = options
     if (action === 'deploy') {
       if (options.deployType === 'config') {
         // use src cache
@@ -441,7 +454,7 @@ export class InstanceService {
       ) {
         return await this.updateFunctionCode(instance, options)
       } else {
-        ;({ instance: runInstance, cacheOutdated } =
+        ;({ instance: runInstance, cacheOutdated, force } =
           await this.processDeploySrc(instance, options))
       }
     }
@@ -450,7 +463,7 @@ export class InstanceService {
         instance: runInstance,
         method: action,
         options: {
-          force: options.force,
+          force,
           cacheOutdated,
         },
       })

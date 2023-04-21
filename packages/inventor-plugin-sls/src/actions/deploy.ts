@@ -27,7 +27,6 @@ export default class DeployAction extends Action {
   ])
 
   async run(_: string[], options: DeployOptions) {
-    console.log(options, '111')
     const { base, updateConfig, updateSrc, ...slsOptions } = options
     const sls = getSls(base)
     const results = await this.loadingTask((loading) =>

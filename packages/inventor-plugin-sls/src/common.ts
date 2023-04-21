@@ -234,4 +234,23 @@ export function outputResults(
       }
     })
   }
+  if (!options.json) {
+    let successCount = 0
+    let errorCount = 0
+    results.forEach((instance) => {
+      const instanceError = instance as ResultInstanceError
+      const resultInstance = instance as ResultInstance
+      if (resultInstance.instanceStatus === 'error' || instanceError.$error) {
+        errorCount += 1
+      } else {
+        successCount += 1
+      }
+    })
+
+    log.info(
+      `[ total: ${results.length}, ${log.color.green(
+        `success: ${successCount}`,
+      )}, ${log.color.red(`error: ${errorCount}`)} ]`,
+    )
+  }
 }

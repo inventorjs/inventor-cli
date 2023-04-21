@@ -1,11 +1,16 @@
 /**
  * sls service
  */
-import type { RunOptions, ResultInstance, SlsConfig, PartialRunOptions } from './types/index.js'
+import type {
+  RunOptions,
+  ResultInstance,
+  SlsConfig,
+  PartialRunOptions,
+} from './types/index.js'
 
 import chokidar from 'chokidar'
 import { ApiService, type ListInstancesParams } from './api.service.js'
-import { Observable, debounceTime } from 'rxjs'
+import { Observable, concatMap, debounceTime } from 'rxjs'
 import { COMPONENT_SCF } from './constants.js'
 import { InstanceService } from './instance.service.js'
 
@@ -19,7 +24,10 @@ export class SlsService {
   }
 
   private async getScfInstances(options: RunOptions) {
-    const resolvedInstances = await this.instanceService.resolve('deploy', options)
+    const resolvedInstances = await this.instanceService.resolve(
+      'deploy',
+      options,
+    )
     const scfInstances = resolvedInstances?.filter?.(
       (instance) => instance.component === COMPONENT_SCF,
     )
@@ -39,7 +47,10 @@ export class SlsService {
 
   async info(options: PartialRunOptions = {}) {
     const runOptions = this.instanceService.getRunOptions(options)
-    const resolvedInstances = await this.instanceService.resolve('deploy', runOptions)
+    const resolvedInstances = await this.instanceService.resolve(
+      'deploy',
+      runOptions,
+    )
     if (!resolvedInstances.length) {
       throw new Error('there is no serverless instance to show')
     }
@@ -51,7 +62,9 @@ export class SlsService {
     }
 
     const infoPromises = resolvedInstances.map((instance) =>
-      this.instanceService.poll(instance, infoOptions).catch((error) => ({ instance, error })),
+      this.instanceService
+        .poll(instance, infoOptions)
+        .catch((error) => ({ instance, error })),
     )
     const resultList = await Promise.all(infoPromises)
     const infoList = resultList.map((result) =>
@@ -70,7 +83,10 @@ export class SlsService {
     const runOptions = this.instanceService.getRunOptions(options)
     const scfInstances = await this.getScfInstances(runOptions)
     for (const instance of scfInstances) {
-      const instanceResult = await this.instanceService.poll(instance, runOptions)
+      const instanceResult = await this.instanceService.poll(
+        instance,
+        runOptions,
+      )
       if (instanceResult?.instanceStatus === 'inactive') {
         throw new Error('instance not exists, please run "deploy" first')
       }
@@ -86,9 +102,17 @@ export class SlsService {
       )
       watch$
         .pipe(debounceTime(runOptions.devServer.updateDebounceTime))
-        .subscribe(() => {
-          this.instanceService.updateFunctionCode(instance, runOptions)
-        })
+        .pipe(
+          concatMap(
+            () =>
+              new Observable((observer) => {
+                this.instanceService
+                  .updateFunctionCode(instance, runOptions)
+                  .then(() => observer.complete())
+              }),
+          ),
+        )
+        .subscribe()
       this.instanceService.pollFunctionLogs(instance, runOptions)
     }
     return new Promise(() => {})
