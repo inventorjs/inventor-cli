@@ -66,8 +66,6 @@ export class InstanceService {
 
   private apiService: ApiService
 
-  private scfStatusMap: Record<string, boolean>
-
   constructor(private readonly config: SlsConfig) {
     this.apiService = new ApiService(config)
   }
@@ -397,8 +395,11 @@ export class InstanceService {
     }
     let cacheOutdated = false
     if (normalSrc.src) {
-      const { srcDownloadUrl, cacheOutdated: innerCacheOutdated, force: innerForce } =
-        await this.processSrcFiles(instance, options)
+      const {
+        srcDownloadUrl,
+        cacheOutdated: innerCacheOutdated,
+        force: innerForce,
+      } = await this.processSrcFiles(instance, options)
       cacheOutdated = innerCacheOutdated
       instance.inputs.src = srcDownloadUrl
       force = innerForce
@@ -454,8 +455,11 @@ export class InstanceService {
       ) {
         return await this.updateFunctionCode(instance, options)
       } else {
-        ;({ instance: runInstance, cacheOutdated, force } =
-          await this.processDeploySrc(instance, options))
+        ;({
+          instance: runInstance,
+          cacheOutdated,
+          force,
+        } = await this.processDeploySrc(instance, options))
       }
     }
     try {
@@ -517,13 +521,14 @@ export class InstanceService {
       options,
     )
 
-    await this.apiService
-      .getScfClient(this.getRegion(instance))
-      .UpdateFunctionCode({
+    await this.apiService.updateFunctionCode(
+      {
         Namespace: (scfInstance.inputs.namespace ?? 'default') as string,
         FunctionName: scfInstance.inputs.name as string,
         ZipFile: zipBuffer.toString('base64'),
-      })
+      },
+      this.getRegion(instance),
+    )
     return this.poll(instance, options)
   }
 
@@ -539,15 +544,16 @@ export class InstanceService {
     let tailMd5 = ''
 
     interval(options.devServer.logsInterval).subscribe(async () => {
-      const { Results } = await this.apiService
-        .getClsClient(this.getRegion(instance))
-        .SearchLog({
+      const { Results } = await this.apiService.searchLog(
+        {
           TopicId: topicId,
           From: Date.now() - options.devServer.logsPeriod,
           To: Date.now(),
           Sort: 'asc',
           Query: options.devServer.logsQuery,
-        })
+        },
+        this.getRegion(instance),
+      )
 
       let results = Results?.map((item) => ({
         ...item,

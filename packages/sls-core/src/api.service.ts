@@ -1,10 +1,14 @@
 /**
  * api
  */
+import type { UpdateFunctionCodeRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/scf/v20180416/scf_models.js'
+import type { SearchLogRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/cls/v20201016/cls_models.js'
+
 import type { SlsInstance, TransInstance, SlsConfig } from './types/index.js'
 import { cam, scf, cls } from 'tencentcloud-sdk-nodejs'
 import ServerlessUtils from '@serverless/utils-china'
 import { v4 as uuid } from 'uuid'
+import { ApiError } from './errors.js'
 
 const ScfClient = scf.v20180416.Client
 const ClsClient = cls.v20201016.Client
@@ -27,6 +31,11 @@ export interface RunComponentParams {
   }
 }
 
+export interface SlsSdkResponse {
+  RequestId: string
+  Body: string
+}
+
 export type ListInstancesParams = Partial<
   Partial<Pick<SlsInstance, 'app' | 'stage' | 'name' | 'component'>>
 >
@@ -46,7 +55,18 @@ export class ApiService {
     return endpoint
   }
 
-  async getSlsClient() {
+  private async call<T = SlsSdkResponse>(callFun: () => Promise<T>, apiName: string) {
+    try {
+      return await callFun()
+    } catch (err) {
+      const error = err as Error & { code: string, requestId: string }
+      let errDetail = error.code && error.requestId ? JSON.stringify({code: error.code, requestId: error.requestId }) : ''
+      errDetail = errDetail ? `\n${errDetail}` : ''
+      throw new Error(`[${apiName}]${error.message}${errDetail}`, { cause: error })
+    }
+  }
+
+  private async getSlsClient() {
     const { secretId, secretKey, token } = this.config
     return new Serverless({
       appid: await this.getAppId(),
@@ -75,27 +95,30 @@ export class ApiService {
     }
   }
 
-  getScfClient(region: string) {
+  private getScfClient(region: string) {
     return new ScfClient(this.getCloudSdkConfig('scf', region))
   }
 
-  getClsClient(region: string) {
+  private getClsClient(region: string) {
     return new ClsClient(this.getCloudSdkConfig('cls', region))
   }
 
-  getCamClient() {
+  private getCamClient() {
     return new CamClient(this.getCloudSdkConfig('cam'))
   }
 
   async getAppId() {
     if (!this.appId) {
-      const { AppId } = await this.getCamClient().GetUserAppId()
+      const { AppId } = await this.call<{ AppId?: number }>(
+        () => this.getCamClient().GetUserAppId(),
+        'cam:GetUserAppId',
+      )
       this.appId = String(AppId)
     }
     return this.appId
   }
 
-  private processResponse(response: { RequestId: string; Body: string }) {
+  private processSlsResponse(response: SlsSdkResponse) {
     const requestId = response.RequestId
     const body = JSON.parse(response.Body)
     const data = JSON.parse(body.body)
@@ -105,7 +128,7 @@ export class ApiService {
     }
   }
 
-  private async processInstance(instance: SlsInstance) {
+  private async processSlsInstance(instance: SlsInstance) {
     const transInstance = Object.entries(instance).reduce<TransInstance>(
       (result, pair) => {
         const [key, val] = pair
@@ -154,35 +177,45 @@ export class ApiService {
   }
 
   async getCacheFileUrls(instance: SlsInstance) {
-    const { appName, stageName, instanceName } = await this.processInstance(
+    const { appName, stageName, instanceName } = await this.processSlsInstance(
       instance,
     )
     const slsClient = await this.getSlsClient()
-    const response = await slsClient.getCacheFileUrls({
-      orgUid: this.appId,
-      appName,
-      stageName,
-      instanceName,
-    })
-    return this.processResponse(response)
+    const response = await this.call(
+      () =>
+        slsClient.getCacheFileUrls({
+          orgUid: this.appId,
+          appName,
+          stageName,
+          instanceName,
+        }),
+      'sls:getCacheFileUrls',
+    )
+    return this.processSlsResponse(response)
   }
 
   async runComponent({ instance, method, options }: RunComponentParams) {
     const slsClient = await this.getSlsClient()
-    const response = await slsClient.runComponent({
-      instance: await this.processInstance(instance),
-      method,
-      options,
-    })
-    return this.processResponse(response)
+    const response = await this.call(
+      async () =>
+        slsClient.runComponent({
+          instance: await this.processSlsInstance(instance),
+          method,
+          options,
+        }),
+      'sls:runComponent',
+    )
+    return this.processSlsResponse(response)
   }
 
   async getInstance(instance: SlsInstance) {
     const slsClient = await this.getSlsClient()
-    const response = await slsClient.getInstance(
-      await this.processInstance(instance),
+    const response = await this.call(
+      async () =>
+        slsClient.getInstance(await this.processSlsInstance(instance)),
+      'sls:getInstance',
     )
-    return this.processResponse(response)
+    return this.processSlsResponse(response)
   }
 
   async listInstances({
@@ -193,11 +226,15 @@ export class ApiService {
   }: ListInstancesParams = {}) {
     const slsClient = await this.getSlsClient()
     const appId = await this.getAppId()
-    const response = await slsClient.listInstances({
-      orgName: appId,
-      orgUid: appId,
-    })
-    const res = this.processResponse(response)
+    const response = await this.call(
+      () =>
+        slsClient.listInstances({
+          orgName: appId,
+          orgUid: appId,
+        }),
+      'sls:listInstances',
+    )
+    const res = this.processSlsResponse(response)
     const { Response } = res
     const instances = Response?.instances?.filter?.(
       (instance: TransInstance) => {
@@ -219,5 +256,19 @@ export class ApiService {
     )
     Response.instances = instances
     return res
+  }
+
+  async updateFunctionCode(params: UpdateFunctionCodeRequest, region: string) {
+    return this.call(
+      () => this.getScfClient(region).UpdateFunctionCode(params),
+      'scf:UpdateFunctionCode',
+    )
+  }
+
+  async searchLog(params: SearchLogRequest, region: string) {
+    return this.call(
+      () => this.getClsClient(region).SearchLog(params),
+      'cls:SearchLog',
+    )
   }
 }

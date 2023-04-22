@@ -247,10 +247,10 @@ export function outputResults(
       }
     })
 
-    log.info(
-      `[ total: ${results.length}, ${log.color.green(
+    log.raw(
+      `${'='.repeat(30)}[ total: ${results.length}, ${log.color.green(
         `success: ${successCount}`,
-      )}, ${log.color.red(`error: ${errorCount}`)} ]`,
+      )}, ${log.color.red(`error: ${errorCount}`)} ]${'='.repeat(30)}`,
     )
   }
 }
