@@ -12,11 +12,13 @@ export default class DeployAction extends Action {
   options = getOptions()
 
   async run(_: string[], options: BaseOptions) {
-    const { base } = options
+    const { base, pollTimeout, pollInterval } = options
     const sls = getSls(base)
     const results = await this.loadingTask((loading) =>
       sls.remove({
         ...options,
+        pollTimeout: Number(pollTimeout),
+        pollInterval: Number(pollInterval),
         reportStatus: (statusData) =>
           reportStatus(loading, statusData, 'remove'),
       }),

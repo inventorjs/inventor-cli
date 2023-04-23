@@ -3,9 +3,11 @@
  */
 import type {
   RunOptions,
+  RunAction,
   ResultInstance,
   SlsConfig,
   PartialRunOptions,
+  ResultInstanceError,
 } from './types/index.js'
 
 import chokidar from 'chokidar'
@@ -37,12 +39,26 @@ export class SlsService {
     return scfInstances
   }
 
+  private async run(action: RunAction, options: PartialRunOptions = {}) {
+    const runOptions = this.instanceService.getRunOptions(options)
+    let resolvedInstances = await this.instanceService.resolve(action, runOptions)
+    if (!resolvedInstances?.length) {
+      throw new Error(`there is no serverless instance to ${action}`)
+    }
+
+    const runResults: Array<ResultInstance | ResultInstanceError> = []
+    for (const instance of resolvedInstances) {
+      runResults.push(await this.instanceService.run(action, instance, runOptions))
+    }
+    return runResults
+  }
+
   async deploy(options: PartialRunOptions = {}) {
-    return this.instanceService.runAll('deploy', options)
+    return this.run('deploy', options)
   }
 
   async remove(options: PartialRunOptions = {}) {
-    return this.instanceService.runAll('remove', options)
+    return this.run('remove', options)
   }
 
   async info(options: PartialRunOptions = {}) {
@@ -83,11 +99,16 @@ export class SlsService {
     const runOptions = this.instanceService.getRunOptions(options)
     const scfInstances = await this.getScfInstances(runOptions)
     for (const instance of scfInstances) {
-      const instanceResult = await this.instanceService.poll(
+      const result = await this.instanceService.poll(
         instance,
         runOptions,
       )
-      if (instanceResult?.instanceStatus === 'inactive') {
+      const instanceError = result as ResultInstanceError
+      const resultInstance = result as ResultInstance
+      if (instanceError.$error) {
+        throw instanceError.$error
+      }
+      if (resultInstance?.instanceStatus === 'inactive') {
         throw new Error('instance not exists, please run "deploy" first')
       }
       const src = instance.$src?.src

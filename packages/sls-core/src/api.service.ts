@@ -8,7 +8,6 @@ import type { SlsInstance, TransInstance, SlsConfig } from './types/index.js'
 import { cam, scf, cls } from 'tencentcloud-sdk-nodejs'
 import ServerlessUtils from '@serverless/utils-china'
 import { v4 as uuid } from 'uuid'
-import { ApiError } from './errors.js'
 
 const ScfClient = scf.v20180416.Client
 const ClsClient = cls.v20201016.Client
@@ -47,7 +46,7 @@ export class ApiService {
 
   private getEndPoint(clientType: string) {
     const endParts = [clientType]
-    if (process.env.SERVERLESS_TENCENT_NET_TYPE === 'inner') {
+    if (this.config.netType === 'inner') {
       endParts.push('internal')
     }
     endParts.push('tencentcloudapi.com')
@@ -164,7 +163,7 @@ export class ApiService {
         return result
       },
       {
-        orgName: await this.getAppId(),
+        orgName: 'sunkeysunorg',//await this.getAppId(),
         appName: '',
         stageName: '',
         componentName: '',

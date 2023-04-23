@@ -13,11 +13,13 @@ export default class LogsAction extends Action {
   options = getOptions(['logsPeriod', 'logsInterval', 'logsQuery'])
 
   async run(_: string[], options: LogsOptions) {
-    const { base } = options
+    const { base, pollTimeout, pollInterval } = options
     const sls = getSls(base)
     this.loadingTask((loading) =>
       sls.logs({
         ...options,
+        pollTimeout: Number(pollTimeout),
+        pollInterval: Number(pollInterval),
         reportStatus: (statusData) => reportStatus(loading, statusData, 'logs'),
       }),
     )

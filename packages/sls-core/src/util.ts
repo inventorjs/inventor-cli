@@ -1,12 +1,24 @@
 /**
  * util
  */
-import type { Stats } from 'node:fs'
+import type { Stats, Dirent } from 'node:fs'
 
 import fs from 'node:fs/promises'
 import crypto from 'node:crypto'
 import pLimit from 'p-limit'
 import { filesize as filesizeLib } from 'filesize'
+
+export interface FileEntry {
+  dirent: Dirent
+  name: string
+  path: string
+  stats?: Stats
+}
+
+export interface FileEntryContent extends Omit<FileEntry, 'stats'> {
+  content: Buffer
+  stats: Stats
+}
 
 export interface FileStat {
   stat: Stats
@@ -34,29 +46,29 @@ export function getStageRegion(stage = 'prod') {
   return stage === 'dev' ? 'ap-shanghai' : 'ap-guangzhou'
 }
 
-export async function getFileStatMap(files: string[]) {
+export async function getFileStatMap(files: FileEntry[]) {
   const limit = pLimit(2048)
   const tasks = files.map((file) =>
     limit(async () => {
-      const stat = await fs.lstat(file)
       let content: Buffer | null = null
-      if (stat.isSymbolicLink()) {
-        content = Buffer.from(await fs.readlink(file))
-      } else if (stat.isFile()) {
-        content = await fs.readFile(file)
+      if (file.stats?.isSymbolicLink()) {
+        content = Buffer.from(await fs.readlink(file.path))
+      } else if (file.stats?.isFile()) {
+        content = await fs.readFile(file.path)
       } else {
         return null
       }
-      return { stat, content, file }
+
+      return { ...file, content }
     }),
   )
   const resultList = (await Promise.all(tasks)).filter(
-    (fileData) => !!fileData,
-  ) as FileStat[]
-  const resultMap = resultList.reduce<Record<string, FileStat>>(
-    (result, fileData) => ({
+    (file) => !!file,
+  ) as FileEntryContent[]
+  const resultMap = resultList.reduce<Record<string, FileEntryContent>>(
+    (result, file) => ({
       ...result,
-      [fileData.file]: fileData,
+      [file.path]: file,
     }),
     {},
   )
@@ -72,5 +84,8 @@ export async function sleep(ms: number) {
 }
 
 export function filesize(bytes: number) {
-  return String(filesizeLib(bytes, { base: 2, standard: 'jedec' })).replace(/\s/g, '')
+  return String(filesizeLib(bytes, { base: 2, standard: 'jedec' })).replace(
+    /\s/g,
+    '',
+  )
 }

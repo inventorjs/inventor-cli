@@ -20,6 +20,8 @@ export interface BaseOptions {
   base?: string
   json?: boolean
   verbose?: boolean
+  pollTimeout?: string
+  pollInterval?: string
 }
 
 export interface Options extends BaseOptions {
@@ -28,7 +30,7 @@ export interface Options extends BaseOptions {
   logsInterval?: string
   logsQuery?: string
   updateConfig?: boolean
-  updateSrc?: boolean
+  updateCode?: boolean
   followSymbolicLinks?: boolean
 }
 
@@ -43,11 +45,12 @@ export function getSls(basePath = defaultBase) {
     TENCENT_SECRET_ID = '',
     TENCENT_SECRET_KEY = '',
     TENCENT_TOKEN = '',
+    SERVERLESS_TENCENT_NET_TYPE,
   } = process.env
 
   if (!TENCENT_SECRET_ID && !TENCENT_SECRET_KEY) {
     throw new Error(
-      '"TENCENT_APP_ID" "TENCENT_SECRET_ID" "TENCENT_SECRET_KEY" variables is required in .env file!',
+      '"TENCENT_SECRET_ID" "TENCENT_SECRET_KEY" variables is required in .env file!',
     )
   }
 
@@ -55,6 +58,7 @@ export function getSls(basePath = defaultBase) {
     secretId: TENCENT_SECRET_ID,
     secretKey: TENCENT_SECRET_KEY,
     token: TENCENT_TOKEN,
+    netType: SERVERLESS_TENCENT_NET_TYPE,
     slsPath,
   })
 
@@ -62,7 +66,15 @@ export function getSls(basePath = defaultBase) {
 }
 
 export function getOptions(options: string[] = []) {
-  const baseOptions = ['stage', 'targets', 'base', 'json', 'verbose']
+  const baseOptions = [
+    'stage',
+    'targets',
+    'base',
+    'json',
+    'verbose',
+    'pollTimeout',
+    'pollInterval',
+  ]
   const allOptions = [
     {
       name: 'stage',
@@ -84,6 +96,18 @@ export function getOptions(options: string[] = []) {
       name: 'force',
       flags: '-f, --force',
       description: '强制部署，跳过缓存和校验',
+    },
+    {
+      name: 'pollTimeout',
+      flags: '--poll-timeout [pollTimeout]',
+      description: '组件实例轮询超时时间(单位ms)',
+      defaultValue: String(600 * 1000),
+    },
+    {
+      name: 'pollInterval',
+      flags: '--poll-interval [pollInterval]',
+      description: '组件实例轮询周期(单位ms)',
+      defaultValue: String(200),
     },
     {
       name: 'logsPeriod',
@@ -115,8 +139,8 @@ export function getOptions(options: string[] = []) {
     },
     {
       name: 'updateSrc',
-      flags: '--update-src',
-      description: '只更新 src 文件内容',
+      flags: '--update-code',
+      description: '只更新源代码文件',
     },
     {
       name: 'json',

@@ -6,10 +6,12 @@ export const RUN_STATUS = {
   readSrc: { status: 'readSrc', statusText: '读取src文件夹内容' },
   compressSrc: { status: 'compressSrc', statusText: '压缩src变更文件' },
   uploadSrc: { status: 'uploadSrc', statusText: '上传src压缩包' },
+  updateCode: { status: 'updateCode', statusText: '更新函数代码' },
 }
 
 export const REPORT_START = 'start'
 export const REPORT_END = 'end'
 
 export const COMPONENT_SCF = 'scf'
+export const COMPONENT_MULTI_SCF = 'multi_scf'
 export const COMPONENT_APIGATEWAY = 'apigateway'

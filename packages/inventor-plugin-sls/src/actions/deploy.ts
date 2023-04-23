@@ -15,7 +15,13 @@ import {
 } from '../common.js'
 
 type DeployOptions = BaseOptions &
-  Pick<Options, 'force' | 'updateConfig' | 'updateSrc' | 'followSymbolicLinks'>
+  Pick<
+    Options,
+    | 'force'
+    | 'updateConfig'
+    | 'updateCode'
+    | 'followSymbolicLinks'
+  >
 
 export default class DeployAction extends Action {
   description = '部署应用到云端'
@@ -27,16 +33,25 @@ export default class DeployAction extends Action {
   ])
 
   async run(_: string[], options: DeployOptions) {
-    const { base, updateConfig, updateSrc, ...slsOptions } = options
+    const {
+      base,
+      updateConfig,
+      updateCode,
+      pollTimeout,
+      pollInterval,
+      ...slsOptions
+    } = options
     const sls = getSls(base)
-    const results = await this.loadingTask((loading) =>
+    const results = (await this.loadingTask((loading) =>
       sls.deploy({
         ...slsOptions,
-        deployType: updateSrc ? 'src' : (updateConfig ? 'config' : 'all'),
+        pollTimeout: Number(pollTimeout),
+        pollInterval: Number(pollInterval),
+        deployType: updateCode ? 'code' : updateConfig ? 'config' : 'all',
         reportStatus: (statusData) =>
           reportStatus(loading, statusData, 'deploy'),
       }),
-    ) as ResultInstance[]
+    )) as ResultInstance[]
 
     outputResults(results, options)
   }

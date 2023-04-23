@@ -1,12 +1,12 @@
 /**
- * instance processer
+ * instance processor
  */
 import type {
   SlsInstance,
   SlsInstanceSrcLocal,
   SlsInstanceSrcCos,
   ResultInstance,
-  ResultInstanceError,
+  MultiScfInstance,
   RunAction,
   RunOptions,
   SlsInstanceBaseInfo,
@@ -21,7 +21,7 @@ import yaml from 'js-yaml'
 import traverse from 'traverse'
 import Graph from 'graph-data-structure'
 import fg from 'fast-glob'
-import JSZip from 'jszip'
+import JSZip, { file } from 'jszip'
 import axios from 'axios'
 import { interval } from 'rxjs'
 import { ApiService } from './api.service.js'
@@ -33,9 +33,9 @@ import {
   sleep,
   filesize,
   isObject,
-  type FileStat,
+  type FileEntryContent,
 } from './util.js'
-import { RUN_STATUS, COMPONENT_SCF } from './constants.js'
+import { RUN_STATUS, COMPONENT_SCF, COMPONENT_MULTI_SCF } from './constants.js'
 
 export class InstanceService {
   private defaultRunOptions: RunOptions = {
@@ -72,6 +72,13 @@ export class InstanceService {
 
   private getRegion(instance: SlsInstance) {
     return (instance.inputs.region ?? 'ap-guangzhou') as string
+  }
+
+  private getResultError(instance: SlsInstance, error: Error) {
+    return {
+      $instance: instance,
+      $error: error,
+    }
   }
 
   async resolveFile(instancePath: string) {
@@ -124,7 +131,10 @@ export class InstanceService {
   async resolve(action: RunAction, options: RunOptions) {
     const instance = await this.resolveFile(this.config.slsPath)
 
-    if (instance && this.isValid(instance)) {
+    if (instance) {
+      if (!this.isValid(instance)) {
+        throw new Error('current dir is not a valid serverless instance')
+      }
       const resolvedInstance = this.resolveVariables(instance, options)
       return [resolvedInstance]
     }
@@ -156,6 +166,9 @@ export class InstanceService {
     }
     if (instances.length > 0) {
       instances = this.topologicalSort(instances, action)
+    }
+    if (options.deployType === 'code') {
+      instances = instances.filter((instance) => instance.$src?.src)
     }
     return instances
   }
@@ -258,7 +271,7 @@ export class InstanceService {
     }
 
     // symbolicLink not support cache
-    if (Object.values(fileStatMap).find(({ stat }) => stat.isSymbolicLink())) {
+    if (Object.values(fileStatMap).find(({ stats }) => stats?.isSymbolicLink())) {
       force = true
       previousMap = {}
     }
@@ -315,7 +328,7 @@ export class InstanceService {
 
   @reportStatus(RUN_STATUS.compressSrc)
   async zipSrcLocalChanges(
-    fileStatMap: Record<string, FileStat>,
+    fileStatMap: Record<string, FileEntryContent>,
     previousMap: Record<string, string>,
     srcLocal: string,
     _instance: SlsInstance,
@@ -326,15 +339,15 @@ export class InstanceService {
     let totalBytes = 0
     const zipFiles = []
     const fileStatEntries = Object.entries(fileStatMap)
-    for (const [file, { content, stat }] of fileStatEntries) {
+    for (const [file, { content, stats }] of fileStatEntries) {
       const filename = path.relative(srcLocal, file)
       const fileHash = md5sum(content)
       if (!previousMap[filename] || previousMap[filename] !== fileHash) {
         zip.file(filename, content, {
-          unixPermissions: stat.mode,
+          unixPermissions: stats.mode,
         })
         zipFiles.push(filename)
-        totalBytes += stat.size
+        totalBytes += stats.size
       }
       cacheMap[filename] = fileHash
     }
@@ -368,18 +381,30 @@ export class InstanceService {
 
     const srcPath = normalSrc.src
     const exclude = normalSrc?.exclude ?? []
-    const files = await fg(`${srcPath}/**/*`, {
-      ignore: exclude,
+    const include = normalSrc?.include ?? []
+    const includeFiles = include.map((file) => path.resolve(srcPath, file))
+    const excludeFiles = exclude.map((file) => path.resolve(srcPath, file))
+
+    let globs = [`${srcPath}/**/*`]
+    if (instance.component === COMPONENT_MULTI_SCF) {
+      const multiScfInstance = instance as MultiScfInstance
+      globs = Object.values(multiScfInstance.function).map(
+        (functionConfig) => `${path.join(srcPath, functionConfig.src)}/**/*`,
+      )
+    }
+    globs.push(...includeFiles)
+
+    const fileStats = await fg(globs, {
+      ignore: excludeFiles,
       dot: true,
+      stats: true,
       onlyFiles: options.followSymbolicLinks,
       followSymbolicLinks: options.followSymbolicLinks,
     })
 
-    const include = normalSrc?.include ?? []
-    include.forEach((file) => files.push(path.resolve(srcPath, file)))
-    if (!files.length) return null
+    if (!fileStats.length) return null
 
-    const fileStatMap = await getFileStatMap(files)
+    const fileStatMap = await getFileStatMap(fileStats)
 
     return fileStatMap
   }
@@ -416,15 +441,19 @@ export class InstanceService {
 
     const startTime = Date.now()
     do {
-      const { Response } = await this.apiService.getInstance(instance)
-      const { instanceStatus } = Response.instance as ResultInstance
-      if (!pollInterval || !pollTimeout) {
-        return Response.instance as ResultInstance
-      }
-      if (instanceStatus === 'deploying' || instanceStatus === 'removing') {
-        await sleep(pollInterval)
-      } else {
-        return Response.instance as ResultInstance
+      try {
+        const { Response } = await this.apiService.getInstance(instance)
+        const { instanceStatus } = Response.instance as ResultInstance
+        if (!pollInterval || !pollTimeout) {
+          return Response.instance as ResultInstance
+        }
+        if (instanceStatus === 'deploying' || instanceStatus === 'removing') {
+          await sleep(pollInterval)
+        } else {
+          return Response.instance as ResultInstance
+        }
+      } catch (err) {
+        return this.getResultError(instance, err as Error)
       }
     } while (Date.now() - startTime < pollTimeout)
     throw new Error(`poll instance result timeout over ${options.pollTimeout}s`)
@@ -450,7 +479,7 @@ export class InstanceService {
       if (options.deployType === 'config') {
         // use src cache
       } else if (
-        options.deployType === 'src' &&
+        options.deployType === 'code' &&
         instance.component === COMPONENT_SCF
       ) {
         return await this.updateFunctionCode(instance, options)
@@ -463,7 +492,7 @@ export class InstanceService {
       }
     }
     try {
-      const runResult = await this.apiService.runComponent({
+      await this.apiService.runComponent({
         instance: runInstance,
         method: action,
         options: {
@@ -471,37 +500,14 @@ export class InstanceService {
           cacheOutdated,
         },
       })
-      if (!options.pollTimeout || !options.pollInterval) {
-        return runResult.Response as ResultInstance
-      }
       const pollResult = await this.poll(instance, options)
       return pollResult
     } catch (error) {
-      return { $instance: instance, $error: error as Error }
+      return this.getResultError(instance, error as Error)
     }
   }
 
-  async runAll(action: RunAction, options: PartialRunOptions = {}) {
-    const runOptions = this.getRunOptions(options)
-    let resolvedInstances = await this.resolve(action, runOptions)
-    if (!resolvedInstances?.length) {
-      throw new Error(`there is no serverless instance to ${action}`)
-    }
-
-    if (runOptions.deployType === 'src') {
-      resolvedInstances = resolvedInstances.filter(
-        (instance) => !!instance.$src,
-      )
-    }
-
-    const runResults: Array<ResultInstance | ResultInstanceError> = []
-    for (const instance of resolvedInstances) {
-      runResults.push(await this.run(action, instance, runOptions))
-    }
-    return runResults
-  }
-
-  @reportStatus(RUN_STATUS.uploadSrc)
+  @reportStatus(RUN_STATUS.updateCode)
   async updateFunctionCode(instance: SlsInstance, options: RunOptions) {
     const scfInstance = this.resolveVariables(instance, {
       ...options,

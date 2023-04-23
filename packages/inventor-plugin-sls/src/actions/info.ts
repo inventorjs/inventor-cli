@@ -5,21 +5,29 @@
 import type { ResultInstance } from '@inventorjs/sls-core'
 
 import { Action } from '@inventorjs/cli-core'
-import { getOptions, reportStatus, getSls, type BaseOptions, outputResults } from '../common.js'
+import {
+  getOptions,
+  reportStatus,
+  getSls,
+  type BaseOptions,
+  outputResults,
+} from '../common.js'
 
 export default class InfoAction extends Action {
   description = '获取应用详情'
   options = getOptions()
 
   async run(_: string[], options: BaseOptions) {
-    const { base } = options
+    const { base, pollTimeout, pollInterval } = options
     const sls = getSls(base)
-    const results = await this.loadingTask((loading) =>
+    const results = (await this.loadingTask((loading) =>
       sls.info({
         ...options,
+        pollTimeout: Number(pollTimeout),
+        pollInterval: Number(pollInterval),
         reportStatus: (statusData) => reportStatus(loading, statusData, 'info'),
       }),
-    ) as ResultInstance[]
+    )) as ResultInstance[]
 
     outputResults(results, options)
   }

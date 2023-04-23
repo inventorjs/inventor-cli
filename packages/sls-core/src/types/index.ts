@@ -57,6 +57,12 @@ export interface ScfResultInstance extends ResultInstance {
   }
 }
 
+export interface MultiScfInstance extends SlsInstance {
+  function: Record<string, {
+    src: string
+  }>
+}
+
 export type RunAction = 'deploy' | 'remove'
 
 export interface RunOptions {
@@ -67,7 +73,7 @@ export interface RunOptions {
   followSymbolicLinks: boolean
   resolveVar: 'all' | 'env'
   reportStatus: (d: ReportStatus) => Promise<void>
-  deployType: 'config' | 'all' | 'src'
+  deployType: 'config' | 'all' | 'code'
   devServer: {
     logsInterval: number
     logsQuery: string
@@ -110,4 +116,5 @@ export interface SlsConfig {
   secretId: string
   secretKey: string
   token?: string
+  netType?: string
 }
