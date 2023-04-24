@@ -1,29 +1,17 @@
 /**
  * util
  */
-import type { Stats, Dirent } from 'node:fs'
+import type { Stats } from 'node:fs'
 
 import fs from 'node:fs/promises'
 import crypto from 'node:crypto'
 import pLimit from 'p-limit'
 import { filesize as filesizeLib } from 'filesize'
 
-export interface FileEntry {
-  dirent: Dirent
-  name: string
-  path: string
-  stats?: Stats
-}
-
-export interface FileEntryContent extends Omit<FileEntry, 'stats'> {
-  content: Buffer
+export interface FileStatsContent {
   stats: Stats
-}
-
-export interface FileStat {
-  stat: Stats
+  path: string
   content: Buffer
-  file: string
 }
 
 export function md5sum(payload: Buffer | string) {
@@ -46,33 +34,26 @@ export function getStageRegion(stage = 'prod') {
   return stage === 'dev' ? 'ap-shanghai' : 'ap-guangzhou'
 }
 
-export async function getFileStatMap(files: FileEntry[]) {
-  const limit = pLimit(2048)
+export async function getFilesStatsContent(files: string[]) {
+  const limit = pLimit(10000)
   const tasks = files.map((file) =>
     limit(async () => {
+      const stats = await fs.lstat(file)
       let content: Buffer | null = null
-      if (file.stats?.isSymbolicLink()) {
-        content = Buffer.from(await fs.readlink(file.path))
-      } else if (file.stats?.isFile()) {
-        content = await fs.readFile(file.path)
+      if (stats.isSymbolicLink()) {
+        content = Buffer.from(await fs.readlink(file))
+      } else if (stats.isFile()) {
+        content = await fs.readFile(file)
       } else {
         return null
       }
-
-      return { ...file, content }
+      return { stats, content, path: file }
     }),
   )
-  const resultList = (await Promise.all(tasks)).filter(
-    (file) => !!file,
-  ) as FileEntryContent[]
-  const resultMap = resultList.reduce<Record<string, FileEntryContent>>(
-    (result, file) => ({
-      ...result,
-      [file.path]: file,
-    }),
-    {},
-  )
-  return resultMap
+  const results = (await Promise.all(tasks)).filter(
+    (fileData) => !!fileData,
+  ) as FileStatsContent[]
+  return results
 }
 
 export async function sleep(ms: number) {
@@ -84,8 +65,5 @@ export async function sleep(ms: number) {
 }
 
 export function filesize(bytes: number) {
-  return String(filesizeLib(bytes, { base: 2, standard: 'jedec' })).replace(
-    /\s/g,
-    '',
-  )
+  return String(filesizeLib(bytes, { base: 2, standard: 'jedec' })).replace(/\s/g, '')
 }

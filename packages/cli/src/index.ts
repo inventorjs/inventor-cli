@@ -199,12 +199,16 @@ async function run() {
 }
 
 process.on('uncaughtException', (err) => {
+  log.raw('')
   err && log.error(`uncaughtException: ${err}\n${err?.stack ?? ''}`)
+  log.raw('')
   process.exit(1)
 })
 
 process.on('unhandledRejection', (reason) => {
+  log.raw('')
   reason && log.error(reason)
+  log.raw('')
   process.exit(1)
 })
 

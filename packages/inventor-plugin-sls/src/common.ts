@@ -100,26 +100,26 @@ export function getOptions(options: string[] = []) {
     {
       name: 'pollTimeout',
       flags: '--poll-timeout [pollTimeout]',
-      description: '组件实例轮询超时时间(单位ms)',
-      defaultValue: String(600 * 1000),
+      description: '实例状态轮询超时时间(单位ms)',
+      defaultValue: 600 * 1000,
     },
     {
       name: 'pollInterval',
       flags: '--poll-interval [pollInterval]',
-      description: '组件实例轮询周期(单位ms)',
-      defaultValue: String(200),
+      description: '实例状态轮询周期(单位ms)',
+      defaultValue: 200,
     },
     {
       name: 'logsPeriod',
       flags: '--logs-period [logsPeriod]',
       description: '拉取日志时间段(单位ms)',
-      defaultValue: String(60 * 1000),
+      defaultValue: 60 * 1000,
     },
     {
       name: 'logsInterval',
       flags: '--logs-interval [logsInterval]',
       description: '实时日志轮询周期(单位ms)',
-      defaultValue: String(1 * 1000),
+      defaultValue: 1000,
     },
     {
       name: 'logsQuery',

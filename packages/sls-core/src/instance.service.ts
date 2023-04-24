@@ -21,7 +21,7 @@ import yaml from 'js-yaml'
 import traverse from 'traverse'
 import Graph from 'graph-data-structure'
 import fg from 'fast-glob'
-import JSZip, { file } from 'jszip'
+import JSZip from 'jszip'
 import axios from 'axios'
 import { interval } from 'rxjs'
 import { ApiService } from './api.service.js'
@@ -29,11 +29,11 @@ import { reportStatus } from './decorators.js'
 import {
   isFile,
   md5sum,
-  getFileStatMap,
+  getFilesStatsContent,
   sleep,
   filesize,
   isObject,
-  type FileEntryContent,
+  type FileStatsContent,
 } from './util.js'
 import { RUN_STATUS, COMPONENT_SCF, COMPONENT_MULTI_SCF } from './constants.js'
 
@@ -264,20 +264,20 @@ export class InstanceService {
       throw new Error('src config not exists')
     }
     const srcLocal = instance.$src.src
-    const fileStatMap = await this.getSrcLocalFileStatMap(instance, options)
+    const filesStatsContent = await this.getSrcLocalFilesStatsContent(instance, options)
 
-    if (!fileStatMap || !srcLocal) {
+    if (!filesStatsContent?.length || !srcLocal) {
       throw new Error('there is no src files to zip')
     }
 
     // symbolicLink not support cache
-    if (Object.values(fileStatMap).find(({ stats }) => stats?.isSymbolicLink())) {
+    if (filesStatsContent.find(({ stats }) => stats?.isSymbolicLink())) {
       force = true
       previousMap = {}
     }
 
     const { zipBuffer, totalBytes, hasChanges } = await this.zipSrcLocalChanges(
-      fileStatMap,
+      filesStatsContent,
       previousMap,
       srcLocal,
       instance,
@@ -328,7 +328,7 @@ export class InstanceService {
 
   @reportStatus(RUN_STATUS.compressSrc)
   async zipSrcLocalChanges(
-    fileStatMap: Record<string, FileEntryContent>,
+    filesStatStatContent: FileStatsContent[],
     previousMap: Record<string, string>,
     srcLocal: string,
     _instance: SlsInstance,
@@ -338,9 +338,8 @@ export class InstanceService {
     const zip = new JSZip()
     let totalBytes = 0
     const zipFiles = []
-    const fileStatEntries = Object.entries(fileStatMap)
-    for (const [file, { content, stats }] of fileStatEntries) {
-      const filename = path.relative(srcLocal, file)
+    for (const { content, stats, path: filePath } of filesStatStatContent) {
+      const filename = path.relative(srcLocal, filePath)
       const fileHash = md5sum(content)
       if (!previousMap[filename] || previousMap[filename] !== fileHash) {
         zip.file(filename, content, {
@@ -375,7 +374,7 @@ export class InstanceService {
   }
 
   @reportStatus(RUN_STATUS.readSrc)
-  async getSrcLocalFileStatMap(instance: SlsInstance, options: RunOptions) {
+  async getSrcLocalFilesStatsContent(instance: SlsInstance, options: RunOptions) {
     const normalSrc = instance.$src
     if (!normalSrc || !normalSrc.src) return null
 
@@ -394,19 +393,18 @@ export class InstanceService {
     }
     globs.push(...includeFiles)
 
-    const fileStats = await fg(globs, {
+    const files = await fg(globs, {
       ignore: excludeFiles,
       dot: true,
-      stats: true,
       onlyFiles: options.followSymbolicLinks,
       followSymbolicLinks: options.followSymbolicLinks,
     })
 
-    if (!fileStats.length) return null
+    if (!files.length) return []
 
-    const fileStatMap = await getFileStatMap(fileStats)
+    const fileStatContents = await getFilesStatsContent(files)
 
-    return fileStatMap
+    return fileStatContents
   }
 
   async processDeploySrc(instance: SlsInstance, options: RunOptions) {
@@ -514,13 +512,13 @@ export class InstanceService {
       resolveVar: 'all',
     })
     const srcLocal = instance.$src?.src
-    const fileStatMap = await this.getSrcLocalFileStatMap(instance, options)
+    const filesStatsContent = await this.getSrcLocalFilesStatsContent(instance, options)
 
-    if (!fileStatMap || !srcLocal) {
+    if (!filesStatsContent?.length || !srcLocal) {
       throw new Error('there is no src files to zip')
     }
     const { zipBuffer } = await this.zipSrcLocalChanges(
-      fileStatMap,
+      filesStatsContent,
       {},
       srcLocal,
       instance,
