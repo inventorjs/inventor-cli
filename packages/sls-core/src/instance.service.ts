@@ -14,6 +14,7 @@ import type {
   SlsConfig,
   OriginInstance,
   PartialRunOptions,
+  MultiInstance,
 } from './types/index.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -86,7 +87,7 @@ export class InstanceService {
       const filePath = path.join(instancePath, filename)
       if (!(await isFile(filePath))) continue
       const content = await fs.readFile(filePath, 'utf8')
-      let instance: SlsInstance | null = null
+      let instance: SlsInstance | MultiInstance | null = null
       if (filename.endsWith('yml') || filename.endsWith('yaml')) {
         try {
           instance = yaml.load(content) as SlsInstance
@@ -127,12 +128,43 @@ export class InstanceService {
     return true
   }
 
+  isMultiInstance(instance: MultiInstance) {
+    if (instance.app && instance.stage && instance.instances) {
+      return true
+    }
+    return false
+  }
+
+  resolveMultiInstance(multiInstance: MultiInstance, options: RunOptions) {
+    const instances = Object.entries(multiInstance.instances).map(
+      ([name, instance]) => {
+        const resolvedInstance = this.resolveVariables(
+          {
+            ...instance,
+            name,
+            app: multiInstance.app,
+            stage: multiInstance.stage,
+            org: multiInstance.org,
+            $path: multiInstance.$path,
+          },
+          options,
+        )
+        return resolvedInstance
+      },
+    )
+    return instances
+  }
+
   @reportStatus(RUN_STATUS.resolve)
   async resolve(action: RunAction, options: RunOptions) {
-    const instance = await this.resolveFile(this.config.slsPath)
+    const ins = await this.resolveFile(this.config.slsPath)
+    const multiInstance = ins as MultiInstance
+    const instance = ins as SlsInstance
 
     if (instance) {
-      if (!this.isValid(instance)) {
+      if (this.isMultiInstance(multiInstance)) {
+        return this.resolveMultiInstance(multiInstance, options)
+      } else if (!this.isValid(instance)) {
         throw new Error('current dir is not a valid serverless instance')
       }
       const resolvedInstance = this.resolveVariables(instance, options)
@@ -147,7 +179,7 @@ export class InstanceService {
     let baseInfo: SlsInstanceBaseInfo | null = null
     for (const dir of dirs) {
       const instancePath = path.resolve(this.config.slsPath, dir)
-      const instance = await this.resolveFile(instancePath)
+      const instance = (await this.resolveFile(instancePath)) as SlsInstance
       if (instance && !this.isValid(instance)) {
         throw new Error(`${dir} is not a valid serverless instance`)
       }
@@ -264,7 +296,10 @@ export class InstanceService {
       throw new Error('src config not exists')
     }
     const srcLocal = instance.$src.src
-    const filesStatsContent = await this.getSrcLocalFilesStatsContent(instance, options)
+    const filesStatsContent = await this.getSrcLocalFilesStatsContent(
+      instance,
+      options,
+    )
 
     if (!filesStatsContent?.length || !srcLocal) {
       throw new Error('there is no src files to zip')
@@ -374,7 +409,10 @@ export class InstanceService {
   }
 
   @reportStatus(RUN_STATUS.readSrc)
-  async getSrcLocalFilesStatsContent(instance: SlsInstance, options: RunOptions) {
+  async getSrcLocalFilesStatsContent(
+    instance: SlsInstance,
+    options: RunOptions,
+  ) {
     const normalSrc = instance.$src
     if (!normalSrc || !normalSrc.src) return null
 
@@ -512,7 +550,10 @@ export class InstanceService {
       resolveVar: 'all',
     })
     const srcLocal = instance.$src?.src
-    const filesStatsContent = await this.getSrcLocalFilesStatsContent(instance, options)
+    const filesStatsContent = await this.getSrcLocalFilesStatsContent(
+      instance,
+      options,
+    )
 
     if (!filesStatsContent?.length || !srcLocal) {
       throw new Error('there is no src files to zip')

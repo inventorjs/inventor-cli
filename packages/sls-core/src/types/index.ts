@@ -1,4 +1,5 @@
 export interface SlsInstanceBaseInfo {
+  org?: string
   app: string
   stage: string
 }
@@ -10,11 +11,11 @@ export interface OriginInstance extends SlsInstanceBaseInfo {
     src?: SlsInstanceSrc
     [k: string]: unknown
   }
+  $path: string
 }
 
 export interface SlsInstance extends OriginInstance {
   $deps: string[]
-  $path: string
   $src:
     | SlsInstanceSrcLocal
     | {
@@ -22,6 +23,11 @@ export interface SlsInstance extends OriginInstance {
         srcOriginal?: SlsInstanceSrcCos
       }
     | null
+}
+
+export interface MultiInstance extends SlsInstanceBaseInfo {
+  instances: Record<string, SlsInstance>
+  $path: string
 }
 
 export interface TransInstance extends Pick<SlsInstance, 'inputs'> {

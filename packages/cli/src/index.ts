@@ -129,7 +129,7 @@ async function registerPlugin({ packageName, pluginName }: PluginItem) {
 
     if (action.options?.length > 0) {
       action.options.forEach((option: ActionOption) =>
-        actionCmd.option(option.flags, option.description, option.defaultValue as string),
+        actionCmd.option(option.flags, option.description, option.defaultValue),
       )
     }
 
@@ -207,7 +207,7 @@ process.on('uncaughtException', (err) => {
 
 process.on('unhandledRejection', (reason) => {
   log.raw('')
-  reason && log.error(reason)
+  reason && log.error(`uncaughtException: ${reason}\n${(reason as Error)?.stack ?? ''}`)
   log.raw('')
   process.exit(1)
 })
