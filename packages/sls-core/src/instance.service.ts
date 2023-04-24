@@ -326,7 +326,7 @@ export class InstanceService {
     return { src: null }
   }
 
-  @reportStatus(RUN_STATUS.compressSrc)
+  @reportStatus(RUN_STATUS.zipSrc)
   async zipSrcLocalChanges(
     filesStatStatContent: FileStatsContent[],
     previousMap: Record<string, string>,

@@ -84,7 +84,7 @@ export function getOptions(options: string[] = []) {
     {
       name: 'targets',
       flags: '-t, --targets [targets...]',
-      description: '指定要部署的组件配置目录名称',
+      description: '指定要部署组件配置目录, 默认全部',
     },
     {
       name: 'base',
@@ -138,7 +138,7 @@ export function getOptions(options: string[] = []) {
       description: '只更新应用配置',
     },
     {
-      name: 'updateSrc',
+      name: 'updateCode',
       flags: '--update-code',
       description: '只更新源代码文件',
     },

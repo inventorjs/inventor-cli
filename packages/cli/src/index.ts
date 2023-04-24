@@ -129,7 +129,7 @@ async function registerPlugin({ packageName, pluginName }: PluginItem) {
 
     if (action.options?.length > 0) {
       action.options.forEach((option: ActionOption) =>
-        actionCmd.option(option.flags, option.description, option.defaultValue),
+        actionCmd.option(option.flags, option.description, option.defaultValue as string),
       )
     }
 

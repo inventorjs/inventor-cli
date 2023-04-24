@@ -404,7 +404,7 @@ export abstract class Plugin {
 export interface ActionOption {
   flags: string
   description: string
-  defaultValue?: string | boolean | string[]
+  defaultValue?: unknown
 }
 
 export interface ActionParams {

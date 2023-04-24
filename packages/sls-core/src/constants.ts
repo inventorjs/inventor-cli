@@ -4,7 +4,7 @@ export const RUN_STATUS = {
   resolve: { status: 'resolve', statusText: '解析配置文件' },
   processSrc: { status: 'processSrc', statusText: '处理src文件夹' },
   readSrc: { status: 'readSrc', statusText: '读取src文件夹内容' },
-  compressSrc: { status: 'compressSrc', statusText: '压缩src变更文件' },
+  zipSrc: { status: 'zipSrc', statusText: '压缩src变更文件' },
   uploadSrc: { status: 'uploadSrc', statusText: '上传src压缩包' },
   updateCode: { status: 'updateCode', statusText: '更新函数代码' },
 }

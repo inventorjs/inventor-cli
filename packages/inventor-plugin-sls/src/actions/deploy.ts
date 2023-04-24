@@ -28,7 +28,7 @@ export default class DeployAction extends Action {
   options = getOptions([
     'force',
     'updateConfig',
-    'updateSrc',
+    'updateCode',
     'followSymbolicLinks',
   ])
 
