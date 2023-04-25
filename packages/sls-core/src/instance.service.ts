@@ -15,6 +15,7 @@ import type {
   OriginInstance,
   PartialRunOptions,
   MultiInstance,
+  TransInstance,
 } from './types/index.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -38,6 +39,10 @@ import {
 } from './util.js'
 import { RUN_STATUS, COMPONENT_SCF, COMPONENT_MULTI_SCF } from './constants.js'
 
+export type ListInstanceParams = Partial<
+  Pick<SlsInstance, 'org' | 'app' | 'name' | 'component'>
+>
+
 export class InstanceService {
   private defaultRunOptions: RunOptions = {
     force: false,
@@ -48,6 +53,7 @@ export class InstanceService {
     resolveVar: 'env',
     reportStatus: async () => {},
     targets: [],
+    inputs: {},
     deployType: 'all',
     devServer: {
       logsInterval: 1000,
@@ -111,76 +117,67 @@ export class InstanceService {
     return null
   }
 
-  isValid(instance?: SlsInstance) {
+  isInstance(instance?: SlsInstance) {
     if (
-      !instance ||
-      !instance.app ||
-      typeof instance.app !== 'string' ||
-      !instance.stage ||
-      typeof instance.stage !== 'string' ||
-      !instance.name ||
-      typeof instance.name !== 'string' ||
-      !instance.component ||
-      typeof instance.component !== 'string'
+      instance &&
+      typeof instance.app === 'string' &&
+      typeof instance.stage === 'string' &&
+      typeof instance.name === 'string' &&
+      typeof instance.component === 'string'
     ) {
-      return false
-    }
-    return true
-  }
-
-  isMultiInstance(instance: MultiInstance) {
-    if (instance.app && instance.stage && instance.instances) {
       return true
     }
     return false
   }
 
-  resolveMultiInstance(multiInstance: MultiInstance, options: RunOptions) {
-    const instances = Object.entries(multiInstance.instances).map(
+  isMultiInstance(instance?: MultiInstance) {
+    if (
+      instance &&
+      typeof instance.app === 'string' &&
+      typeof instance.stage === 'string' &&
+      isObject(instance.instances)
+    ) {
+      return true
+    }
+    return false
+  }
+
+  resolveMultiInstance(exInstance: MultiInstance, options: RunOptions) {
+    let instances = Object.entries(exInstance.instances).map(
       ([name, instance]) => {
         const resolvedInstance = this.resolveVariables(
           {
             ...instance,
             name,
-            app: multiInstance.app,
-            stage: multiInstance.stage,
-            org: multiInstance.org,
-            $path: multiInstance.$path,
+            app: exInstance.app,
+            stage: exInstance.stage,
+            org: exInstance.org,
+            $path: exInstance.$path,
           },
           options,
         )
         return resolvedInstance
       },
     )
+    if (options.targets.length > 0) {
+      instances = instances.filter((instance) =>
+        options.targets.includes(instance.name),
+      )
+    }
     return instances
   }
 
-  @reportStatus(RUN_STATUS.resolve)
-  async resolve(action: RunAction, options: RunOptions) {
-    const ins = await this.resolveFile(this.config.slsPath)
-    const multiInstance = ins as MultiInstance
-    const instance = ins as SlsInstance
-
-    if (instance) {
-      if (this.isMultiInstance(multiInstance)) {
-        return this.resolveMultiInstance(multiInstance, options)
-      } else if (!this.isValid(instance)) {
-        throw new Error('current dir is not a valid serverless instance')
-      }
-      const resolvedInstance = this.resolveVariables(instance, options)
-      return [resolvedInstance]
-    }
-
+  async resolveDirInstance(options: RunOptions) {
+    let instances: SlsInstance[] = []
     let dirs = await fs.readdir(this.config.slsPath)
     if (options.targets.length > 0) {
       dirs = dirs.filter((dir) => options.targets.includes(dir))
     }
-    let instances = []
     let baseInfo: SlsInstanceBaseInfo | null = null
     for (const dir of dirs) {
       const instancePath = path.resolve(this.config.slsPath, dir)
       const instance = (await this.resolveFile(instancePath)) as SlsInstance
-      if (instance && !this.isValid(instance)) {
+      if (instance && !this.isInstance(instance)) {
         throw new Error(`${dir} is not a valid serverless instance`)
       }
       if (instance) {
@@ -196,6 +193,29 @@ export class InstanceService {
         instances.push(resolvedInstance)
       }
     }
+    return instances
+  }
+
+  resolveSingleInstance(instance: SlsInstance, options: RunOptions) {
+    const resolvedInstance = this.resolveVariables(instance, options)
+    return [resolvedInstance]
+  }
+
+  @reportStatus(RUN_STATUS.resolve)
+  async resolve(action: RunAction, options: RunOptions) {
+    const ins = await this.resolveFile(this.config.slsPath)
+    const multiInstance = ins as MultiInstance
+    const instance = ins as SlsInstance
+    let instances: SlsInstance[] = []
+
+    if (this.isInstance(instance)) {
+      instances = this.resolveSingleInstance(instance, options)
+    } else if (this.isMultiInstance(multiInstance)) {
+      instances = this.resolveMultiInstance(multiInstance, options)
+    } else {
+      instances = await this.resolveDirInstance(options)
+    }
+
     if (instances.length > 0) {
       instances = this.topologicalSort(instances, action)
     }
@@ -207,7 +227,7 @@ export class InstanceService {
 
   resolveVariables(instance: OriginInstance, options: RunOptions) {
     const envRegex = /\$\{(env:)?([\w:\s.-]+)\}/g
-    const outputRegex = /\$\{output:([\w:\s.-]+)\}/g
+    const outputRegex = /\$\{output:([\w:\s.${}-]+)\}/g
     let resolvedInstance = instance as SlsInstance
     traverse(instance).forEach(function (value) {
       let updateValue = value
@@ -226,6 +246,7 @@ export class InstanceService {
           updateValue = updateValue.replace(v, resolvedValue)
         }
       })
+
       if (outputRegex.exec(updateValue)) {
         const depName = updateValue.split(':').at(-1)?.split('.')[0]
         if (depName && !resolvedInstance.$deps?.includes?.(depName)) {
@@ -239,6 +260,9 @@ export class InstanceService {
     })
     if (options.stage) {
       resolvedInstance.stage = options.stage
+    }
+    if (Object.keys(options.inputs).length > 0) {
+      Object.assign(resolvedInstance.inputs, options.inputs)
     }
     resolvedInstance.$src = this.getNormalSrc(resolvedInstance)
     return resolvedInstance
@@ -278,7 +302,9 @@ export class InstanceService {
   }
 
   async processSrcFiles(instance: SlsInstance, options: RunOptions) {
-    const { Response } = await this.apiService.getCacheFileUrls(instance)
+    const { Response } = await this.apiService.getCacheFileUrls(
+      await this.transInstance(instance),
+    )
     const { changesUploadUrl, previousMapDownloadUrl, srcDownloadUrl } =
       Response
     let previousMap: Record<string, string> = {}
@@ -292,16 +318,17 @@ export class InstanceService {
         //
       }
     }
-    if (!instance.$src) {
+    const srcLocal = instance.$src?.src
+    if (!srcLocal) {
       throw new Error('src config not exists')
     }
-    const srcLocal = instance.$src.src
+
     const filesStatsContent = await this.getSrcLocalFilesStatsContent(
       instance,
       options,
     )
 
-    if (!filesStatsContent?.length || !srcLocal) {
+    if (!filesStatsContent?.length) {
       throw new Error('there is no src files to zip')
     }
 
@@ -425,7 +452,7 @@ export class InstanceService {
     let globs = [`${srcPath}/**/*`]
     if (instance.component === COMPONENT_MULTI_SCF) {
       const multiScfInstance = instance as MultiScfInstance
-      globs = Object.values(multiScfInstance.function).map(
+      globs = Object.values(multiScfInstance.inputs.functions).map(
         (functionConfig) => `${path.join(srcPath, functionConfig.src)}/**/*`,
       )
     }
@@ -478,7 +505,9 @@ export class InstanceService {
     const startTime = Date.now()
     do {
       try {
-        const { Response } = await this.apiService.getInstance(instance)
+        const { Response } = await this.apiService.getInstance(
+          await this.transInstance(instance),
+        )
         const { instanceStatus } = Response.instance as ResultInstance
         if (!pollInterval || !pollTimeout) {
           return Response.instance as ResultInstance
@@ -529,7 +558,7 @@ export class InstanceService {
     }
     try {
       await this.apiService.runComponent({
-        instance: runInstance,
+        instance: await this.transInstance(runInstance),
         method: action,
         options: {
           force,
@@ -550,14 +579,19 @@ export class InstanceService {
       resolveVar: 'all',
     })
     const srcLocal = instance.$src?.src
+    if (!srcLocal) {
+      throw new Error('src config not exists')
+    }
+
     const filesStatsContent = await this.getSrcLocalFilesStatsContent(
       instance,
       options,
     )
 
-    if (!filesStatsContent?.length || !srcLocal) {
+    if (!filesStatsContent?.length) {
       throw new Error('there is no src files to zip')
     }
+
     const { zipBuffer } = await this.zipSrcLocalChanges(
       filesStatsContent,
       {},
@@ -614,5 +648,73 @@ export class InstanceService {
         options.devServer.logWriter(JSON.parse(item.LogJson)),
       )
     })
+  }
+
+  async transInstance(instance: SlsInstance) {
+    const transInstance = Object.entries(instance).reduce<TransInstance>(
+      (result, pair) => {
+        const [key, val] = pair
+        if (key === 'org') {
+          return {
+            ...result,
+            orgName: val,
+          }
+        }
+        if (key === 'app') {
+          return {
+            ...result,
+            appName: val,
+          }
+        }
+        if (key === 'stage') {
+          return {
+            ...result,
+            stageName: val,
+          }
+        }
+        if (key === 'name') {
+          return {
+            ...result,
+            instanceName: val,
+          }
+        }
+        if (key === 'component') {
+          const [componentName, componentVersion = ''] = String(val).split('@')
+          return {
+            ...result,
+            componentName,
+            componentVersion,
+          }
+        }
+        if (['inputs'].includes(key)) {
+          return { ...result, [key]: val }
+        }
+        return result
+      },
+      {
+        orgName: '',
+        appName: '',
+        stageName: '',
+        componentName: '',
+        instanceName: '',
+        inputs: {},
+      },
+    )
+    if (!transInstance.orgName) {
+      transInstance.appName = await this.apiService.getAppId()
+    }
+
+    return transInstance
+  }
+
+  async list(params: ListInstanceParams) {
+    const { org, app, name, component } = params
+    const result = await this.apiService.listInstances({
+      orgName: org,
+      appName: app,
+      instanceName: name,
+      componentName: component,
+    })
+    return result.Response?.instances
   }
 }

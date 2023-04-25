@@ -13,5 +13,7 @@ export const REPORT_START = 'start'
 export const REPORT_END = 'end'
 
 export const COMPONENT_SCF = 'scf'
-export const COMPONENT_MULTI_SCF = 'multi_scf'
+export const COMPONENT_CLS = 'cls'
+export const COMPONENT_LAYER = 'layer'
+export const COMPONENT_MULTI_SCF = 'multi-scf'
 export const COMPONENT_APIGATEWAY = 'apigateway'

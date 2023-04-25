@@ -64,9 +64,14 @@ export interface ScfResultInstance extends ResultInstance {
 }
 
 export interface MultiScfInstance extends SlsInstance {
-  function: Record<string, {
-    src: string
-  }>
+  inputs: {
+    functions: Record<
+      string,
+      {
+        src: string
+      }
+    >
+  }
 }
 
 export type RunAction = 'deploy' | 'remove'
@@ -86,12 +91,14 @@ export interface RunOptions {
     logsPeriod: number
     logWriter: (log: Record<string, unknown>) => void
     updateDebounceTime: number
-  },
+  }
   targets: string[]
+  inputs: Record<string, string>
   stage?: string
 }
 
-export interface PartialRunOptions extends Partial<Omit<RunOptions, 'devServer'>> {
+export interface PartialRunOptions
+  extends Partial<Omit<RunOptions, 'devServer'>> {
   devServer?: Partial<RunOptions['devServer']>
 }
 

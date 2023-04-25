@@ -11,17 +11,14 @@ import type {
 } from './types/index.js'
 
 import chokidar from 'chokidar'
-import { ApiService, type ListInstancesParams } from './api.service.js'
 import { Observable, concatMap, debounceTime } from 'rxjs'
-import { COMPONENT_SCF } from './constants.js'
-import { InstanceService } from './instance.service.js'
+import { COMPONENT_MULTI_SCF, COMPONENT_SCF } from './constants.js'
+import { InstanceService, type ListInstanceParams } from './instance.service.js'
 
 export class SlsService {
-  private apiService: ApiService
   private instanceService: InstanceService
 
   constructor(config: SlsConfig) {
-    this.apiService = new ApiService(config)
     this.instanceService = new InstanceService(config)
   }
 
@@ -30,9 +27,10 @@ export class SlsService {
       'deploy',
       options,
     )
-    const scfInstances = resolvedInstances?.filter?.(
-      (instance) => instance.component === COMPONENT_SCF,
+    const scfInstances = resolvedInstances?.filter?.((instance) =>
+      [COMPONENT_SCF, COMPONENT_MULTI_SCF].includes(instance.component),
     )
+    console.log(resolvedInstances, COMPONENT_SCF, COMPONENT_MULTI_SCF, scfInstances, '11')
     if (!scfInstances?.length) {
       throw new Error('there is no scf instance to update')
     }
@@ -41,14 +39,19 @@ export class SlsService {
 
   private async run(action: RunAction, options: PartialRunOptions = {}) {
     const runOptions = this.instanceService.getRunOptions(options)
-    let resolvedInstances = await this.instanceService.resolve(action, runOptions)
+    let resolvedInstances = await this.instanceService.resolve(
+      action,
+      runOptions,
+    )
     if (!resolvedInstances?.length) {
       throw new Error(`there is no serverless instance to ${action}`)
     }
 
     const runResults: Array<ResultInstance | ResultInstanceError> = []
     for (const instance of resolvedInstances) {
-      runResults.push(await this.instanceService.run(action, instance, runOptions))
+      runResults.push(
+        await this.instanceService.run(action, instance, runOptions),
+      )
     }
     return runResults
   }
@@ -90,8 +93,8 @@ export class SlsService {
     return infoList
   }
 
-  async list(params: ListInstancesParams = {}) {
-    const result = await this.apiService.listInstances(params)
+  async list(params: ListInstanceParams = {}) {
+    const result = await this.instanceService.list(params)
     return result.Response?.instances
   }
 
@@ -99,10 +102,7 @@ export class SlsService {
     const runOptions = this.instanceService.getRunOptions(options)
     const scfInstances = await this.getScfInstances(runOptions)
     for (const instance of scfInstances) {
-      const result = await this.instanceService.poll(
-        instance,
-        runOptions,
-      )
+      const result = await this.instanceService.poll(instance, runOptions)
       const instanceError = result as ResultInstanceError
       const resultInstance = result as ResultInstance
       if (instanceError.$error) {

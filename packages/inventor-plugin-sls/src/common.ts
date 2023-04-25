@@ -26,6 +26,7 @@ export interface BaseOptions {
 
 export interface Options extends BaseOptions {
   force?: boolean
+  inputs?: string[]
   logsPeriod?: string
   logsInterval?: string
   logsQuery?: string
@@ -85,6 +86,11 @@ export function getOptions(options: string[] = []) {
       name: 'targets',
       flags: '-t, --targets [targets...]',
       description: '指定要部署组件配置目录, 默认全部',
+    },
+    {
+      name: 'inputs',
+      flags: '-i, --inputs [inputs...]',
+      description: '修改组件实例 inputs 参数',
     },
     {
       name: 'base',

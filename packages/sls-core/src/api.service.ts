@@ -4,7 +4,7 @@
 import type { UpdateFunctionCodeRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/scf/v20180416/scf_models.js'
 import type { SearchLogRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/cls/v20201016/cls_models.js'
 
-import type { SlsInstance, TransInstance, SlsConfig } from './types/index.js'
+import type { SlsInstance, SlsConfig, TransInstance } from './types/index.js'
 import { cam, scf, cls } from 'tencentcloud-sdk-nodejs'
 import ServerlessUtils from '@serverless/utils-china'
 import { v4 as uuid } from 'uuid'
@@ -22,7 +22,7 @@ export interface GetCacheFileUrlsParams {
 }
 
 export interface RunComponentParams {
-  instance: SlsInstance
+  instance: TransInstance 
   method: 'deploy' | 'remove'
   options: {
     cacheOutdated?: boolean // 缓存是否过期：增量部署
@@ -36,7 +36,7 @@ export interface SlsSdkResponse {
 }
 
 export type ListInstancesParams = Partial<
-  Partial<Pick<SlsInstance, 'app' | 'stage' | 'name' | 'component'>>
+  Partial<Pick<TransInstance, 'orgName' | 'appName' | 'stageName' | 'instanceName' | 'componentName'>>
 >
 
 export class ApiService {
@@ -127,58 +127,8 @@ export class ApiService {
     }
   }
 
-  private async processSlsInstance(instance: SlsInstance) {
-    const transInstance = Object.entries(instance).reduce<TransInstance>(
-      (result, pair) => {
-        const [key, val] = pair
-        if (key === 'app') {
-          return {
-            ...result,
-            appName: val,
-          }
-        }
-        if (key === 'stage') {
-          return {
-            ...result,
-            stageName: val,
-          }
-        }
-        if (key === 'name') {
-          return {
-            ...result,
-            instanceName: val,
-          }
-        }
-        if (key === 'component') {
-          const [componentName, componentVersion = ''] = String(val).split('@')
-          return {
-            ...result,
-            componentName,
-            componentVersion,
-          }
-        }
-        if (['inputs'].includes(key)) {
-          return { ...result, [key]: val }
-        }
-        return result
-      },
-      {
-        orgName: 'sunkeysunorg',//await this.getAppId(),
-        appName: '',
-        stageName: '',
-        componentName: '',
-        instanceName: '',
-        inputs: {},
-      },
-    )
-
-    return transInstance
-  }
-
-  async getCacheFileUrls(instance: SlsInstance) {
-    const { appName, stageName, instanceName } = await this.processSlsInstance(
-      instance,
-    )
+  async getCacheFileUrls(instance: TransInstance) {
+    const { appName, stageName, instanceName } = instance
     const slsClient = await this.getSlsClient()
     const response = await this.call(
       () =>
@@ -198,7 +148,7 @@ export class ApiService {
     const response = await this.call(
       async () =>
         slsClient.runComponent({
-          instance: await this.processSlsInstance(instance),
+          instance,
           method,
           options,
         }),
@@ -207,21 +157,22 @@ export class ApiService {
     return this.processSlsResponse(response)
   }
 
-  async getInstance(instance: SlsInstance) {
+  async getInstance(instance: TransInstance) {
     const slsClient = await this.getSlsClient()
     const response = await this.call(
       async () =>
-        slsClient.getInstance(await this.processSlsInstance(instance)),
+        slsClient.getInstance(instance),
       'sls:getInstance',
     )
     return this.processSlsResponse(response)
   }
 
   async listInstances({
-    app,
-    stage,
-    name,
-    component,
+    orgName,
+    appName,
+    stageName,
+    instanceName,
+    componentName,
   }: ListInstancesParams = {}) {
     const slsClient = await this.getSlsClient()
     const appId = await this.getAppId()
@@ -238,17 +189,17 @@ export class ApiService {
     const instances = Response?.instances?.filter?.(
       (instance: TransInstance) => {
         let isTrue = true
-        if (app) {
-          isTrue &&= instance.appName === app
+        if (appName) {
+          isTrue &&= instance.appName === appName
         }
-        if (stage) {
-          isTrue &&= instance.stageName === stage
+        if (stageName) {
+          isTrue &&= instance.stageName === stageName
         }
-        if (name) {
-          isTrue &&= instance.instanceName === name
+        if (instanceName) {
+          isTrue &&= instance.instanceName === instanceName
         }
-        if (component) {
-          isTrue &&= instance.componentName === component
+        if (componentName) {
+          isTrue &&= instance.componentName === componentName
         }
         return isTrue
       },
