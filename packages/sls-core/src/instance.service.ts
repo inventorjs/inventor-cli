@@ -61,7 +61,7 @@ export class InstanceService {
       logsQuery: '*',
       logWriter: (log: Record<string, unknown>) =>
         console.log(JSON.stringify(log)),
-      updateDebounceTime: 1000,
+      updateDebounceTime: 100,
     },
   }
   private supportFilenames = [
@@ -467,9 +467,9 @@ export class InstanceService {
 
     if (!files.length) return []
 
-    const fileStatContents = await getFilesStatsContent(files)
+    const filesStatContents = await getFilesStatsContent(files)
 
-    return fileStatContents
+    return filesStatContents
   }
 
   async processDeploySrc(instance: SlsInstance, options: RunOptions) {
@@ -547,7 +547,8 @@ export class InstanceService {
         options.deployType === 'code' &&
         instance.component === COMPONENT_SCF
       ) {
-        return await this.updateFunctionCode(instance, options)
+        await this.updateFunctionCode(instance, options)
+        return this.poll(instance, options)
       } else {
         ;({
           instance: runInstance,
@@ -574,10 +575,6 @@ export class InstanceService {
 
   @reportStatus(RUN_STATUS.updateCode)
   async updateFunctionCode(instance: SlsInstance, options: RunOptions) {
-    const scfInstance = this.resolveVariables(instance, {
-      ...options,
-      resolveVar: 'all',
-    })
     const srcLocal = instance.$src?.src
     if (!srcLocal) {
       throw new Error('src config not exists')
@@ -600,15 +597,14 @@ export class InstanceService {
       options,
     )
 
-    await this.apiService.updateFunctionCode(
+    return await this.apiService.updateFunctionCode(
       {
-        Namespace: (scfInstance.inputs.namespace ?? 'default') as string,
-        FunctionName: scfInstance.inputs.name as string,
+        Namespace: instance.inputs.namespace as string,
+        FunctionName: instance.inputs.name as string,
         ZipFile: zipBuffer.toString('base64'),
       },
       this.getRegion(instance),
     )
-    return this.poll(instance, options)
   }
 
   async pollFunctionLogs(instance: SlsInstance, options: RunOptions) {
@@ -619,7 +615,7 @@ export class InstanceService {
     if (!instanceResult) {
       return
     }
-    const topicId = instanceResult.state.function.ClsTopicId
+    const topicId = instanceResult.inputs.cls.topicId
     let tailMd5 = ''
 
     interval(options.devServer.logsInterval).subscribe(async () => {

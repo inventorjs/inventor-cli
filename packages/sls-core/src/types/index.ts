@@ -56,9 +56,11 @@ export interface ResultInstanceError {
 }
 
 export interface ScfResultInstance extends ResultInstance {
-  state: {
-    function: {
-      ClsTopicId: string
+  inputs: {
+    name: string
+    cls: {
+      logsetId: string
+      topicId: string
     }
   }
 }

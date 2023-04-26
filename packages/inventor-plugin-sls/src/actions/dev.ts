@@ -18,7 +18,7 @@ export type DevOptions = BaseOptions &
   >
 
 export default class DevAction extends Action {
-  description = '启动远程开发服务'
+  description = '启动云函数远程开发服务'
   options = getOptions([
     'logsPeriod',
     'logsInterval',

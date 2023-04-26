@@ -11,8 +11,8 @@ import type {
 } from './types/index.js'
 
 import chokidar from 'chokidar'
-import { Observable, concatMap, debounceTime } from 'rxjs'
-import { COMPONENT_MULTI_SCF, COMPONENT_SCF } from './constants.js'
+import { Observable, debounceTime, switchMap } from 'rxjs'
+import { COMPONENT_SCF } from './constants.js'
 import { InstanceService, type ListInstanceParams } from './instance.service.js'
 
 export class SlsService {
@@ -28,12 +28,8 @@ export class SlsService {
       options,
     )
     const scfInstances = resolvedInstances?.filter?.((instance) =>
-      [COMPONENT_SCF, COMPONENT_MULTI_SCF].includes(instance.component),
+      [COMPONENT_SCF].includes(instance.component),
     )
-    console.log(resolvedInstances, COMPONENT_SCF, COMPONENT_MULTI_SCF, scfInstances, '11')
-    if (!scfInstances?.length) {
-      throw new Error('there is no scf instance to update')
-    }
     return scfInstances
   }
 
@@ -101,39 +97,51 @@ export class SlsService {
   async dev(options: PartialRunOptions = {}) {
     const runOptions = this.instanceService.getRunOptions(options)
     const scfInstances = await this.getScfInstances(runOptions)
+
+    if (!scfInstances?.length) {
+      throw new Error('there is no scf instance to update')
+    }
+
     for (const instance of scfInstances) {
-      const result = await this.instanceService.poll(instance, runOptions)
-      const instanceError = result as ResultInstanceError
-      const resultInstance = result as ResultInstance
-      if (instanceError.$error) {
-        throw instanceError.$error
-      }
-      if (resultInstance?.instanceStatus === 'inactive') {
-        throw new Error('instance not exists, please run "deploy" first')
-      }
       const src = instance.$src?.src
       if (!src) continue
       const watcher = chokidar.watch(src)
-      const watch$ = new Observable<{ event: string; file: string }>(
-        (observer) => {
-          watcher.on('all', async (event, file) => {
-            observer.next({ event, file })
-          })
-        },
-      )
+      const watch$ = new Observable<ResultInstance>((observer) => {
+        watcher.on('all', async (event, file) => {
+          observer.next()
+        })
+      })
       watch$
-        .pipe(debounceTime(runOptions.devServer.updateDebounceTime))
         .pipe(
-          concatMap(
+          debounceTime(runOptions.devServer.updateDebounceTime),
+          switchMap(
             () =>
-              new Observable((observer) => {
+              new Observable<ResultInstance>((observer) => {
                 this.instanceService
-                  .updateFunctionCode(instance, runOptions)
-                  .then(() => observer.complete())
+                  .poll(instance, runOptions)
+                  .then((result) => {
+                    const instanceError = result as ResultInstanceError
+                    const resultInstance = result as ResultInstance
+                    if (instanceError.$error) {
+                      throw instanceError.$error
+                    }
+                    if (resultInstance?.instanceStatus === 'inactive') {
+                      throw new Error(
+                        'instance not exists, please run "deploy" first',
+                      )
+                    }
+                    observer.next(resultInstance)
+                  })
               }),
           ),
         )
-        .subscribe()
+        .subscribe((resultInstance) => {
+          const { name, namespace } = resultInstance.inputs
+          this.instanceService.updateFunctionCode(
+            { ...instance, inputs: { ...instance.inputs, name, namespace } },
+            runOptions,
+          )
+        })
       this.instanceService.pollFunctionLogs(instance, runOptions)
     }
     return new Promise(() => {})
