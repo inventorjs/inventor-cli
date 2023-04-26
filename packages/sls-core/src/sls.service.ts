@@ -14,6 +14,7 @@ import chokidar from 'chokidar'
 import { Observable, debounceTime, switchMap } from 'rxjs'
 import { COMPONENT_SCF } from './constants.js'
 import { InstanceService, type ListInstanceParams } from './instance.service.js'
+import { runHooks } from './decorators.js'
 
 export class SlsService {
   private instanceService: InstanceService
@@ -33,7 +34,7 @@ export class SlsService {
     return scfInstances
   }
 
-  private async run(action: RunAction, options: PartialRunOptions = {}) {
+  private async resolve(action: RunAction, options: PartialRunOptions) {
     const runOptions = this.instanceService.getRunOptions(options)
     let resolvedInstances = await this.instanceService.resolve(
       action,
@@ -42,7 +43,12 @@ export class SlsService {
     if (!resolvedInstances?.length) {
       throw new Error(`there is no serverless instance to ${action}`)
     }
+    return { instances: resolvedInstances, options: runOptions }
+  }
 
+  private async run(action: RunAction, options: PartialRunOptions = {}) {
+    const { instances: resolvedInstances, options: runOptions } =
+      await this.resolve(action, options)
     const runResults: Array<ResultInstance | ResultInstanceError> = []
     for (const instance of resolvedInstances) {
       runResults.push(
@@ -52,24 +58,20 @@ export class SlsService {
     return runResults
   }
 
+  @runHooks('deploy')
   async deploy(options: PartialRunOptions = {}) {
     return this.run('deploy', options)
   }
 
+  @runHooks('remove')
   async remove(options: PartialRunOptions = {}) {
     return this.run('remove', options)
   }
 
+  @runHooks('info')
   async info(options: PartialRunOptions = {}) {
-    const runOptions = this.instanceService.getRunOptions(options)
-    const resolvedInstances = await this.instanceService.resolve(
-      'deploy',
-      runOptions,
-    )
-    if (!resolvedInstances.length) {
-      throw new Error('there is no serverless instance to show')
-    }
-
+    const { instances: resolvedInstances, options: runOptions } =
+      await this.resolve('deploy', options)
     const infoOptions = {
       ...runOptions,
       pollInterval: 0,
@@ -89,14 +91,19 @@ export class SlsService {
     return infoList
   }
 
+  @runHooks('list')
   async list(params: ListInstanceParams = {}) {
     const result = await this.instanceService.list(params)
     return result.Response?.instances
   }
 
+  @runHooks('dev')
   async dev(options: PartialRunOptions = {}) {
-    const runOptions = this.instanceService.getRunOptions(options)
-    const scfInstances = await this.getScfInstances(runOptions)
+    const { instances: resolvedInstances, options: runOptions } =
+      await this.resolve('deploy', options)
+    const scfInstances = resolvedInstances.filter((instance) =>
+      [COMPONENT_SCF].includes(instance.name),
+    )
 
     if (!scfInstances?.length) {
       throw new Error('there is no scf instance to update')
@@ -147,10 +154,17 @@ export class SlsService {
     return new Promise(() => {})
   }
 
+  @runHooks('logs')
   async logs(options: PartialRunOptions = {}) {
-    const runOptions = this.instanceService.getRunOptions(options)
-    const scfInstances = await this.getScfInstances(runOptions)
+    const { instances: resolvedInstances, options: runOptions } =
+      await this.resolve('deploy', options)
+    const scfInstances = resolvedInstances.filter((instance) =>
+      [COMPONENT_SCF].includes(instance.name),
+    )
 
+    if (!scfInstances?.length) {
+      throw new Error('there is no scf instance to logs')
+    }
     for (const instance of scfInstances) {
       this.instanceService.pollFunctionLogs(instance, runOptions)
     }

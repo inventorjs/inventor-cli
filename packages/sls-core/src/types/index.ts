@@ -28,6 +28,7 @@ export interface SlsInstance extends OriginInstance {
 export interface MultiInstance extends SlsInstanceBaseInfo {
   instances: Record<string, SlsInstance>
   $path: string
+  plugins?: string[]
 }
 
 export interface TransInstance extends Pick<SlsInstance, 'inputs'> {

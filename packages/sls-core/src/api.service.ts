@@ -4,7 +4,7 @@
 import type { UpdateFunctionCodeRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/scf/v20180416/scf_models.js'
 import type { SearchLogRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/cls/v20201016/cls_models.js'
 
-import type { SlsInstance, SlsConfig, TransInstance } from './types/index.js'
+import type { SlsConfig, TransInstance } from './types/index.js'
 import { cam, scf, cls } from 'tencentcloud-sdk-nodejs'
 import ServerlessUtils from '@serverless/utils-china'
 import { v4 as uuid } from 'uuid'

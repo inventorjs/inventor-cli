@@ -142,17 +142,17 @@ export class InstanceService {
     return false
   }
 
-  resolveMultiInstance(exInstance: MultiInstance, options: RunOptions) {
-    let instances = Object.entries(exInstance.instances).map(
+  resolveMultiInstance(multiInstance: MultiInstance, options: RunOptions) {
+    let instances = Object.entries(multiInstance.instances).map(
       ([name, instance]) => {
         const resolvedInstance = this.resolveVariables(
           {
             ...instance,
             name,
-            app: exInstance.app,
-            stage: exInstance.stage,
-            org: exInstance.org,
-            $path: exInstance.$path,
+            app: multiInstance.app,
+            stage: multiInstance.stage,
+            org: multiInstance.org,
+            $path: multiInstance.$path,
           },
           options,
         )
@@ -165,6 +165,17 @@ export class InstanceService {
       )
     }
     return instances
+  }
+
+  async resolvePlugins(multiInstance: MultiInstance, options: RunOptions) {
+    let plugins: Array<new() => {}> = []
+    if (multiInstance.plugins) {
+      for (const plugin of multiInstance.plugins) {
+        const { default: Plugin } = await import(plugin)
+        plugins.push(new Plugin())
+      }
+    }
+    return plugins
   }
 
   async resolveDirInstance(options: RunOptions) {
