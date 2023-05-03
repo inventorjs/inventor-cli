@@ -16,6 +16,7 @@ import type {
   PartialRunOptions,
   MultiInstance,
   TransInstance,
+  ScfLogRecord,
 } from './types/index.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -56,10 +57,11 @@ export class InstanceService {
     inputs: {},
     deployType: 'all',
     devServer: {
-      logsInterval: 1000,
+      logsInterval: 500,
       logsPeriod: 60 * 1000,
       logsQuery: '*',
-      logWriter: (log: Record<string, unknown>) =>
+      logsClean: false,
+      logsWriter: (log: Record<string, unknown>) =>
         console.log(JSON.stringify(log)),
       updateDebounceTime: 100,
     },
@@ -79,13 +81,6 @@ export class InstanceService {
 
   private getRegion(instance: SlsInstance) {
     return (instance.inputs.region ?? 'ap-guangzhou') as string
-  }
-
-  private getResultError(instance: SlsInstance, error: Error) {
-    return {
-      $instance: instance,
-      $error: error,
-    }
   }
 
   async resolveFile(instancePath: string) {
@@ -167,16 +162,16 @@ export class InstanceService {
     return instances
   }
 
-  async resolvePlugins(multiInstance: MultiInstance, options: RunOptions) {
-    let plugins: Array<new() => {}> = []
-    if (multiInstance.plugins) {
-      for (const plugin of multiInstance.plugins) {
-        const { default: Plugin } = await import(plugin)
-        plugins.push(new Plugin())
-      }
-    }
-    return plugins
-  }
+  // async resolvePlugins(multiInstance: MultiInstance, options: RunOptions) {
+  //   let plugins: Array<new () => {}> = []
+  //   if (multiInstance.plugins) {
+  //     for (const plugin of multiInstance.plugins) {
+  //       const { default: Plugin } = await import(plugin)
+  //       plugins.push(new Plugin())
+  //     }
+  //   }
+  //   return plugins
+  // }
 
   async resolveDirInstance(options: RunOptions) {
     let instances: SlsInstance[] = []
@@ -312,6 +307,7 @@ export class InstanceService {
     return sortedInstances
   }
 
+  @reportStatus(RUN_STATUS.updateCode)
   async processSrcFiles(instance: SlsInstance, options: RunOptions) {
     const { Response } = await this.apiService.getCacheFileUrls(
       await this.transInstance(instance),
@@ -369,7 +365,6 @@ export class InstanceService {
     return { srcDownloadUrl, totalBytes, cacheOutdated: hasChanges, force }
   }
 
-  @reportStatus(RUN_STATUS.uploadSrc)
   async uploadSrcFiles(
     uploadUrl: string,
     buffer: Buffer,
@@ -399,7 +394,6 @@ export class InstanceService {
     return { src: null }
   }
 
-  @reportStatus(RUN_STATUS.zipSrc)
   async zipSrcLocalChanges(
     filesStatStatContent: FileStatsContent[],
     previousMap: Record<string, string>,
@@ -446,7 +440,6 @@ export class InstanceService {
     }
   }
 
-  @reportStatus(RUN_STATUS.readSrc)
   async getSrcLocalFilesStatsContent(
     instance: SlsInstance,
     options: RunOptions,
@@ -515,21 +508,17 @@ export class InstanceService {
 
     const startTime = Date.now()
     do {
-      try {
-        const { Response } = await this.apiService.getInstance(
-          await this.transInstance(instance),
-        )
-        const { instanceStatus } = Response.instance as ResultInstance
-        if (!pollInterval || !pollTimeout) {
-          return Response.instance as ResultInstance
-        }
-        if (instanceStatus === 'deploying' || instanceStatus === 'removing') {
-          await sleep(pollInterval)
-        } else {
-          return Response.instance as ResultInstance
-        }
-      } catch (err) {
-        return this.getResultError(instance, err as Error)
+      const { Response } = await this.apiService.getInstance(
+        await this.transInstance(instance),
+      )
+      const { instanceStatus } = Response.instance as ResultInstance
+      if (!pollInterval || !pollTimeout) {
+        return Response.instance as ResultInstance
+      }
+      if (instanceStatus.endsWith('ing')) {
+        await sleep(pollInterval)
+      } else {
+        return Response.instance as ResultInstance
       }
     } while (Date.now() - startTime < pollTimeout)
     throw new Error(`poll instance result timeout over ${options.pollTimeout}s`)
@@ -558,8 +547,7 @@ export class InstanceService {
         options.deployType === 'code' &&
         instance.component === COMPONENT_SCF
       ) {
-        await this.updateFunctionCode(instance, options)
-        return this.poll(instance, options)
+        return this.updateFunctionCode(instance, options)
       } else {
         ;({
           instance: runInstance,
@@ -568,20 +556,14 @@ export class InstanceService {
         } = await this.processDeploySrc(instance, options))
       }
     }
-    try {
-      await this.apiService.runComponent({
-        instance: await this.transInstance(runInstance),
-        method: action,
-        options: {
-          force,
-          cacheOutdated,
-        },
-      })
-      const pollResult = await this.poll(instance, options)
-      return pollResult
-    } catch (error) {
-      return this.getResultError(instance, error as Error)
-    }
+    return this.apiService.runComponent({
+      instance: await this.transInstance(runInstance),
+      method: action,
+      options: {
+        force,
+        cacheOutdated,
+      },
+    })
   }
 
   @reportStatus(RUN_STATUS.updateCode)
@@ -618,14 +600,41 @@ export class InstanceService {
     )
   }
 
+  cleanLogs(logsObj: ScfLogRecord | null) {
+    if (!logsObj || !isObject(logsObj)) {
+      return null
+    }
+    if (
+      logsObj.SCF_Type === 'Platform' &&
+      !logsObj.SCF_Message.startsWith('ERROR RequestId:')
+    ) {
+      return null
+    }
+
+    const resultObj = Object.keys(logsObj).reduce((result, logKey) => {
+      if (
+        logKey.startsWith('SCF_') &&
+        ![
+          'SCF_FunctionName',
+          'SCF_RequestId',
+          'SCF_StatusCode',
+          'SCF_Message',
+        ].includes(logKey)
+      ) {
+        return result
+      }
+      return { ...result, [logKey]: logsObj[logKey] }
+    }, {})
+
+    return resultObj
+  }
+
   async pollFunctionLogs(instance: SlsInstance, options: RunOptions) {
     const instanceResult = (await this.poll(
       instance,
       options,
     )) as ScfResultInstance
-    if (!instanceResult) {
-      return
-    }
+
     const topicId = instanceResult.inputs.cls.topicId
     let tailMd5 = ''
 
@@ -651,9 +660,20 @@ export class InstanceService {
         results = results.slice(md5Index + 1)
       }
       tailMd5 = results?.at(-1)?.$md5 ?? tailMd5
-      results?.forEach((item) =>
-        options.devServer.logWriter(JSON.parse(item.LogJson)),
-      )
+      results?.forEach((item) => {
+        let logsObj: ScfLogRecord | null = null
+        try {
+          logsObj = JSON.parse(item.LogJson)
+        } catch (err) {
+          //
+        }
+        const cleanLogs = options.devServer.logsClean
+          ? this.cleanLogs(logsObj)
+          : logsObj
+        if (!cleanLogs) return
+
+        options.devServer.logsWriter(cleanLogs)
+      })
     })
   }
 

@@ -7,12 +7,7 @@ import {
   type ResultInstance,
   type ResultInstanceError,
 } from '@inventorjs/sls-core'
-import { env, log } from '@inventorjs/cli-core'
-
-interface Ora {
-  text: string
-  prefixText: string
-}
+import { env, log, type Loading } from '@inventorjs/cli-core'
 
 export interface BaseOptions {
   stage?: string
@@ -30,9 +25,14 @@ export interface Options extends BaseOptions {
   logsPeriod?: string
   logsInterval?: string
   logsQuery?: string
+  logsClean?: boolean
   updateConfig?: boolean
   updateCode?: boolean
   followSymbolicLinks?: boolean
+  name?: string
+  org?: string
+  app?: string
+  component?: string
 }
 
 const defaultBase = '.serverless'
@@ -81,6 +81,26 @@ export function getOptions(options: string[] = []) {
       name: 'stage',
       flags: '-s, --stage [stage]',
       description: '执行环境名称，默认使用配置环境',
+    },
+    {
+      name: 'org',
+      flags: '-o, --org [org]',
+      description: '团队名称, 默认为账号AppId',
+    },
+    {
+      name: 'name',
+      flags: '-n, --name [name]',
+      description: '实例名称',
+    },
+    {
+      name: 'app',
+      flags: '-a, --app [app]',
+      description: '应用名称',
+    },
+    {
+      name: 'component',
+      flags: '-c, --component [component]',
+      description: '组件名称',
     },
     {
       name: 'targets',
@@ -134,6 +154,11 @@ export function getOptions(options: string[] = []) {
       defaultValue: '*',
     },
     {
+      name: 'logsClean',
+      flags: '--logs-clean',
+      description: '实时日志精简',
+    },
+    {
       name: 'followSymbolicLinks',
       flags: '--follow-symbolic-links',
       description: '解析软链接为实际文件',
@@ -170,7 +195,7 @@ export function getOptions(options: string[] = []) {
 }
 
 export async function reportStatus(
-  loading: Ora,
+  loading: Loading,
   statusData: ReportStatus,
   action: string,
 ) {
@@ -197,10 +222,10 @@ export async function reportStatus(
     await util.sleep(1000)
   }
   if (action === 'dev') {
-    loading.text = '远程开发监听中'
+    loading.text = '云函数远程开发监听中'
   }
   if (action === 'logs') {
-    loading.text = '远程日志监听中'
+    loading.text = '云函数远程日志监听中'
   }
 }
 

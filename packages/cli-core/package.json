@@ -35,7 +35,8 @@
     "inquirer": "^9.1.4",
     "ora": "^6.1.2",
     "prettyjson": "^1.2.5",
-    "semver": "^7.3.8"
+    "semver": "^7.3.8",
+    "table": "^6.8.1"
   },
   "devDependencies": {
     "@types/dedent": "^0.7.0",

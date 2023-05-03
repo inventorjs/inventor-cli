@@ -2,12 +2,13 @@
  * sls service
  */
 import type {
-  RunOptions,
   RunAction,
   ResultInstance,
+  SlsInstance,
   SlsConfig,
   PartialRunOptions,
   ResultInstanceError,
+  ScfResultInstance,
 } from './types/index.js'
 
 import chokidar from 'chokidar'
@@ -23,15 +24,11 @@ export class SlsService {
     this.instanceService = new InstanceService(config)
   }
 
-  private async getScfInstances(options: RunOptions) {
-    const resolvedInstances = await this.instanceService.resolve(
-      'deploy',
-      options,
-    )
-    const scfInstances = resolvedInstances?.filter?.((instance) =>
-      [COMPONENT_SCF].includes(instance.component),
-    )
-    return scfInstances
+  private getResultError(instance: SlsInstance, error: Error) {
+    return {
+      $instance: instance,
+      $error: error,
+    }
   }
 
   private async resolve(action: RunAction, options: PartialRunOptions) {
@@ -51,9 +48,14 @@ export class SlsService {
       await this.resolve(action, options)
     const runResults: Array<ResultInstance | ResultInstanceError> = []
     for (const instance of resolvedInstances) {
-      runResults.push(
-        await this.instanceService.run(action, instance, runOptions),
-      )
+      await this.instanceService.run(action, instance, runOptions)
+      let result
+      try {
+        result = await this.instanceService.poll(instance, runOptions)
+      } catch (err) {
+        result = this.getResultError(instance, err as Error)
+      }
+      runResults.push(result)
     }
     return runResults
   }
@@ -93,8 +95,7 @@ export class SlsService {
 
   @runHooks('list')
   async list(params: ListInstanceParams = {}) {
-    const result = await this.instanceService.list(params)
-    return result.Response?.instances
+    return await this.instanceService.list(params)
   }
 
   @runHooks('dev')
@@ -102,7 +103,7 @@ export class SlsService {
     const { instances: resolvedInstances, options: runOptions } =
       await this.resolve('deploy', options)
     const scfInstances = resolvedInstances.filter((instance) =>
-      [COMPONENT_SCF].includes(instance.name),
+      [COMPONENT_SCF].includes(instance.component),
     )
 
     if (!scfInstances?.length) {
@@ -113,11 +114,14 @@ export class SlsService {
       const src = instance.$src?.src
       if (!src) continue
       const watcher = chokidar.watch(src)
-      const watch$ = new Observable<ResultInstance>((observer) => {
-        watcher.on('all', async (event, file) => {
-          observer.next()
-        })
-      })
+      const watch$ = new Observable<{ event: string; file: string }>(
+        (observer) => {
+          watcher.on('all', async (event, file) => {
+            observer.next({ event, file })
+          })
+        },
+      )
+      let startPollFunctionLogs = false
       watch$
         .pipe(
           debounceTime(runOptions.devServer.updateDebounceTime),
@@ -127,11 +131,7 @@ export class SlsService {
                 this.instanceService
                   .poll(instance, runOptions)
                   .then((result) => {
-                    const instanceError = result as ResultInstanceError
-                    const resultInstance = result as ResultInstance
-                    if (instanceError.$error) {
-                      throw instanceError.$error
-                    }
+                    const resultInstance = result as ScfResultInstance
                     if (resultInstance?.instanceStatus === 'inactive') {
                       throw new Error(
                         'instance not exists, please run "deploy" first',
@@ -148,8 +148,11 @@ export class SlsService {
             { ...instance, inputs: { ...instance.inputs, name, namespace } },
             runOptions,
           )
+          if (!startPollFunctionLogs) {
+            this.instanceService.pollFunctionLogs(instance, runOptions)
+            startPollFunctionLogs = true
+          }
         })
-      this.instanceService.pollFunctionLogs(instance, runOptions)
     }
     return new Promise(() => {})
   }

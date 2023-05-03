@@ -14,7 +14,11 @@ import {
 export type DevOptions = BaseOptions &
   Pick<
     Options,
-    'logsPeriod' | 'logsInterval' | 'logsQuery' | 'followSymbolicLinks'
+    | 'logsPeriod'
+    | 'logsInterval'
+    | 'logsQuery'
+    | 'logsClean'
+    | 'followSymbolicLinks'
   >
 
 export default class DevAction extends Action {
@@ -23,6 +27,7 @@ export default class DevAction extends Action {
     'logsPeriod',
     'logsInterval',
     'logsQuery',
+    'logsClean',
     'followSymbolicLinks',
   ])
 
@@ -32,6 +37,7 @@ export default class DevAction extends Action {
       logsPeriod,
       logsInterval,
       logsQuery,
+      logsClean,
       pollTimeout,
       pollInterval,
       ...slsOptions
@@ -45,6 +51,7 @@ export default class DevAction extends Action {
         devServer: {
           logsInterval: +logsInterval,
           logsPeriod: +logsPeriod,
+          logsClean,
           logsQuery,
         },
         reportStatus: (statusData) => reportStatus(loading, statusData, 'dev'),

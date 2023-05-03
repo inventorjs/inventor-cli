@@ -175,12 +175,12 @@ export class ApiService {
     componentName,
   }: ListInstancesParams = {}) {
     const slsClient = await this.getSlsClient()
-    const appId = await this.getAppId()
+    const org = orgName ?? await this.getAppId()
     const response = await this.call(
       () =>
         slsClient.listInstances({
-          orgName: appId,
-          orgUid: appId,
+          orgName: org,
+          orgUid: org,
         }),
       'sls:listInstances',
     )

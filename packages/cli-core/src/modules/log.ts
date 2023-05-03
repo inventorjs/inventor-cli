@@ -7,6 +7,7 @@ import chalk from 'chalk'
 import boxen from 'boxen'
 import dedent from 'dedent'
 import figlet from 'figlet'
+import { table as renderTable } from 'table'
 import prettyjson, { type RendererOptions } from 'prettyjson'
 import ansiEscapes from 'ansi-escapes'
 import { isTTY } from './env.js'
@@ -133,4 +134,8 @@ export function raw(msg: unknown, options?: Options) {
 
 export function prettyJson(data: unknown, options?: RendererOptions) {
   log(prettyjson.render(data, options, 2))
+}
+
+export function table(...args: Parameters<typeof renderTable>) {
+  log(renderTable(...args))
 }
