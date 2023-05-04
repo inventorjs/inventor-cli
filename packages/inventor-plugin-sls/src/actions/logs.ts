@@ -8,6 +8,7 @@ import {
   reportStatus,
   getSls,
   type Options,
+  processOptions,
 } from '../common.js'
 
 const options = [
@@ -27,28 +28,12 @@ export default class LogsAction extends Action {
   description = '拉取云函数运行日志'
   options = getOptions(options as unknown as string[])
 
-  async run(_: string[], options: Required<LogsOptions>) {
-    const {
-      base,
-      pollTimeout,
-      pollInterval,
-      logsPeriod,
-      logsInterval,
-      logsQuery,
-      logsClean,
-    } = options
+  async run(_: string[], options: LogsOptions) {
+    const { base } = options
     const sls = getSls(base)
     this.loadingTask((loading) =>
       sls.logs({
-        ...options,
-        pollTimeout: Number(pollTimeout),
-        pollInterval: Number(pollInterval),
-        devServer: {
-          logsInterval: +logsInterval,
-          logsPeriod: +logsPeriod,
-          logsQuery,
-          logsClean,
-        },
+        ...processOptions(options),
         reportStatus: (statusData) => reportStatus(loading, statusData, 'logs'),
       }),
     )

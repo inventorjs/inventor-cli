@@ -120,6 +120,7 @@ export abstract class Plugin {
       const existsFiles = await fs.getExistsTemplateFiles(
         templateDir,
         destinationDir,
+        options,
       )
       if (existsFiles.length > 0) {
         const isOverwrites = await this.confirmOverwrites(existsFiles)

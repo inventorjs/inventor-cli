@@ -1,8 +1,8 @@
-<% if (org) { %>
-org: <%- org %>
+<% if (orgName) { %>
+org: <%- orgName %>
 <% } %>
-app: <%- app %>
-stage: <%- stage %>
+app: <%- appName %>
+stage: <%- stageName %>
 
 common:
   region: &region ap-guangzhou
@@ -10,13 +10,14 @@ common:
 
 instances:
   scf-ins:
+    component: scf
     inputs:
       region: *region
       runtime: *runtime
       namespace: default
       type: web
       memorySize: 1024
-      src: ../src
+      src: ../dist
       cls:
         logsetId: ${output:${stage}:${app}:cls-ins.logsetId}
         topicId: ${output:${stage}:${app}:cls-ins.topicId}
@@ -38,6 +39,7 @@ instances:
                     isIntegratedResponse: true
                     functionQualifier: $DEFAULT
   layer-ins:
+    component: layer
     inputs:
       src: ../node_modules
       runtimes:

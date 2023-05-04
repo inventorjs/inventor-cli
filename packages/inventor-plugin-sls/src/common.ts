@@ -320,3 +320,45 @@ export function processInputs(inputs?: string[]) {
   }
   return realInputs
 }
+
+export function processOptions(options: Options) {
+  const {
+    inputs,
+    updateConfig,
+    updateCode,
+    pollTimeout,
+    pollInterval,
+    logsPeriod,
+    logsInterval,
+    logsQuery,
+    logsClean,
+    ...restOptions
+  } = options
+  let realOptions = restOptions
+
+  if (inputs) {
+    Object.assign(realOptions, { inputs: processInputs })
+  }
+  if (updateCode || updateConfig) {
+    Object.assign(realOptions, {
+      deployType: updateCode ? 'code' : updateConfig ? 'config' : 'all',
+    })
+  }
+  if (pollInterval) {
+    Object.assign(realOptions, { pollInterval: + pollInterval })
+  }
+  if (pollTimeout) {
+    Object.assign(realOptions, { pollTimeout: + pollTimeout })
+  }
+
+  if (logsPeriod || logsInterval || logsQuery || logsClean) {
+    Object.assign(realOptions, { devServer: {
+      logsInterval: +logsInterval!,
+      logsPeriod: +logsPeriod!,
+      logsClean,
+      logsQuery,
+    }})
+  }
+    
+  return realOptions
+}

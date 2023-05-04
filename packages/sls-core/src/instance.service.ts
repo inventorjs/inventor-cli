@@ -714,7 +714,7 @@ export class InstanceService {
       },
     )
     if (!transInstance.orgName) {
-      transInstance.appName = await this.apiService.getAppId()
+      transInstance.orgName = await this.apiService.getAppId()
     }
 
     return transInstance

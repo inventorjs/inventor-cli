@@ -10,7 +10,8 @@ import {
   reportStatus,
   getSls,
   outputResults,
-  type Options, 
+  type Options,
+  processOptions, 
 } from '../common.js'
 
 const options = ['base', 'stage', 'targets', 'pollTimeout', 'pollInterval'] as const
@@ -21,13 +22,11 @@ export default class InfoAction extends Action {
   options = getOptions(options as unknown as string[])
 
   async run(_: string[], options: InfoOptions) {
-    const { base, pollTimeout, pollInterval } = options
+    const { base } = options
     const sls = getSls(base)
     const results = (await this.loadingTask((loading) =>
       sls.info({
-        ...options,
-        pollTimeout: Number(pollTimeout),
-        pollInterval: Number(pollInterval),
+        ...processOptions(options),
         reportStatus: (statusData) => reportStatus(loading, statusData, 'info'),
       }),
     )) as ResultInstance[]

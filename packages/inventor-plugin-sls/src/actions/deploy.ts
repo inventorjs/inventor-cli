@@ -11,7 +11,7 @@ import {
   reportStatus,
   getSls,
   outputResults,
-  processInputs,
+  processOptions,
 } from '../common.js'
 
 const options = [
@@ -36,24 +36,12 @@ export default class DeployAction extends Action {
   options = getOptions(options as unknown as string[])
 
   async run(_: string[], options: DeployOptions) {
-    const {
-      base,
-      inputs,
-      updateConfig,
-      updateCode,
-      pollTimeout,
-      pollInterval,
-      ...slsOptions
-    } = options
+    const { base } = options
     const sls = getSls(base)
 
     const results = (await this.loadingTask((loading) =>
       sls.deploy({
-        ...slsOptions,
-        inputs: processInputs(inputs),
-        pollTimeout: Number(pollTimeout),
-        pollInterval: Number(pollInterval),
-        deployType: updateCode ? 'code' : updateConfig ? 'config' : 'all',
+        ...processOptions(options),
         reportStatus: (statusData) =>
           reportStatus(loading, statusData, 'deploy'),
       }),
