@@ -39,6 +39,7 @@ import {
   type FileStatsContent,
 } from './util.js'
 import { RUN_STATUS, COMPONENT_SCF, COMPONENT_MULTI_SCF } from './constants.js'
+import { CircularError, NoSrcConfigError, NoSrcFilesError } from './errors.js'
 
 export type ListInstanceParams = Partial<
   Pick<SlsInstance, 'org' | 'app' | 'name' | 'component'>
@@ -52,7 +53,7 @@ export class InstanceService {
     pollInterval: 200,
     followSymbolicLinks: false,
     resolveVar: 'env',
-    reportStatus: async () => {},
+    reportStatus: async () => { },
     targets: [],
     inputs: {},
     deployType: 'all',
@@ -102,7 +103,7 @@ export class InstanceService {
           return null
         }
       } else {
-        ;({ default: instance } = await import(filePath))
+        ; ({ default: instance } = await import(filePath))
       }
       if (instance) {
         instance.$path = path.dirname(filePath)
@@ -162,17 +163,6 @@ export class InstanceService {
     return instances
   }
 
-  // async resolvePlugins(multiInstance: MultiInstance, options: RunOptions) {
-  //   let plugins: Array<new () => {}> = []
-  //   if (multiInstance.plugins) {
-  //     for (const plugin of multiInstance.plugins) {
-  //       const { default: Plugin } = await import(plugin)
-  //       plugins.push(new Plugin())
-  //     }
-  //   }
-  //   return plugins
-  // }
-
   async resolveDirInstance(options: RunOptions) {
     let instances: SlsInstance[] = []
     let dirs = await fs.readdir(this.config.slsPath)
@@ -183,21 +173,19 @@ export class InstanceService {
     for (const dir of dirs) {
       const instancePath = path.resolve(this.config.slsPath, dir)
       const instance = (await this.resolveFile(instancePath)) as SlsInstance
-      if (instance && !this.isInstance(instance)) {
-        throw new Error(`${dir} is not a valid serverless instance`)
+      if (!instance || !this.isInstance(instance)) {
+        continue
       }
-      if (instance) {
-        const resolvedInstance = this.resolveVariables(instance, options)
-        const { app, stage } = resolvedInstance
-        if (!baseInfo) {
-          baseInfo = { app, stage }
-        }
-        const { app: cApp, stage: cStage } = baseInfo
-        if (cApp !== app || cStage !== stage) {
-          throw new Error(`serverless instance's "app" "stage" must equal`)
-        }
-        instances.push(resolvedInstance)
+      const resolvedInstance = this.resolveVariables(instance, options)
+      const { app, stage, org } = resolvedInstance
+      if (!baseInfo) {
+        baseInfo = { app, stage, org }
       }
+      const { app: cApp, stage: cStage, org: cOrg } = baseInfo
+      if (cApp !== app || cStage !== stage || cOrg !== org) {
+        throw new Error(`serverless 应用的 "org" "app" 和 "stage" 配置必须一致`)
+      }
+      instances.push(resolvedInstance)
     }
     return instances
   }
@@ -285,9 +273,7 @@ export class InstanceService {
     })
 
     if (graph.hasCycle()) {
-      throw new Error(
-        'instance has circular dependencies, please check ${output:...} config',
-      )
+      throw new CircularError()
     }
 
     let sortedList = graph.topologicalSort()
@@ -327,7 +313,7 @@ export class InstanceService {
     }
     const srcLocal = instance.$src?.src
     if (!srcLocal) {
-      throw new Error('src config not exists')
+      throw new NoSrcConfigError()
     }
 
     const filesStatsContent = await this.getSrcLocalFilesStatsContent(
@@ -336,7 +322,7 @@ export class InstanceService {
     )
 
     if (!filesStatsContent?.length) {
-      throw new Error('there is no src files to zip')
+      throw new NoSrcFilesError()
     }
 
     // symbolicLink not support cache
@@ -354,9 +340,9 @@ export class InstanceService {
     )
     if (options.maxDeploySize && totalBytes > options.maxDeploySize) {
       throw new Error(
-        `src files size exceed ${filesize(
+        `源代码文件总体积超过 ${filesize(
           options.maxDeploySize,
-        )} limit, can't deploy`,
+        )} 最大限制, 无法完成部署`,
       )
     }
 
@@ -521,7 +507,7 @@ export class InstanceService {
         return Response.instance as ResultInstance
       }
     } while (Date.now() - startTime < pollTimeout)
-    throw new Error(`poll instance result timeout over ${options.pollTimeout}s`)
+    throw new Error(`拉取实例状态超时 ${options.pollTimeout}毫秒`)
   }
 
   getRunOptions(options: PartialRunOptions) {
@@ -549,7 +535,7 @@ export class InstanceService {
       ) {
         return this.updateFunctionCode(instance, options)
       } else {
-        ;({
+        ; ({
           instance: runInstance,
           cacheOutdated,
           force,
@@ -570,7 +556,7 @@ export class InstanceService {
   async updateFunctionCode(instance: SlsInstance, options: RunOptions) {
     const srcLocal = instance.$src?.src
     if (!srcLocal) {
-      throw new Error('src config not exists')
+      throw new NoSrcConfigError()
     }
 
     const filesStatsContent = await this.getSrcLocalFilesStatsContent(
@@ -579,7 +565,7 @@ export class InstanceService {
     )
 
     if (!filesStatsContent?.length) {
-      throw new Error('there is no src files to zip')
+      throw new NoSrcFilesError()
     }
 
     const { zipBuffer } = await this.zipSrcLocalChanges(

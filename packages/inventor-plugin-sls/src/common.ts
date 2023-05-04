@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { config as configEnv } from 'dotenv'
+import { config as loadEnv } from 'dotenv'
 import {
   SlsService,
   util,
@@ -9,17 +9,12 @@ import {
 } from '@inventorjs/sls-core'
 import { env, log, type Loading } from '@inventorjs/cli-core'
 
-export interface BaseOptions {
+export interface Options {
   stage?: string
-  targets?: string[]
-  base?: string
   json?: boolean
   verbose?: boolean
-  pollTimeout?: string
-  pollInterval?: string
-}
-
-export interface Options extends BaseOptions {
+  base?: string
+  targets?: string[]
   force?: boolean
   inputs?: string[]
   logsPeriod?: string
@@ -29,6 +24,8 @@ export interface Options extends BaseOptions {
   updateConfig?: boolean
   updateCode?: boolean
   followSymbolicLinks?: boolean
+  pollTimeout?: string
+  pollInterval?: string
   name?: string
   org?: string
   app?: string
@@ -37,9 +34,16 @@ export interface Options extends BaseOptions {
 
 const defaultBase = '.serverless'
 
-export function getSls(basePath = defaultBase) {
+export function getSls(basePath = defaultBase, anonymous = false) {
+  if (anonymous) {
+    return new SlsService({
+      secretId: '',
+      secretKey: '',
+      slsPath: '',
+    })
+  }
   const slsPath = path.resolve(process.cwd(), basePath as string)
-  configEnv({
+  loadEnv({
     path: path.resolve(env.pwd(), '.env'),
   })
   const {
@@ -49,7 +53,7 @@ export function getSls(basePath = defaultBase) {
     SERVERLESS_TENCENT_NET_TYPE,
   } = process.env
 
-  if (!TENCENT_SECRET_ID && !TENCENT_SECRET_KEY) {
+  if (!TENCENT_SECRET_ID || !TENCENT_SECRET_KEY) {
     throw new Error(
       '"TENCENT_SECRET_ID" "TENCENT_SECRET_KEY" variables is required in .env file!',
     )
@@ -67,15 +71,6 @@ export function getSls(basePath = defaultBase) {
 }
 
 export function getOptions(options: string[] = []) {
-  const baseOptions = [
-    'stage',
-    'targets',
-    'base',
-    'json',
-    'verbose',
-    'pollTimeout',
-    'pollInterval',
-  ]
   const allOptions = [
     {
       name: 'stage',
@@ -184,7 +179,7 @@ export function getOptions(options: string[] = []) {
       description: '输出详细实例信息',
     },
   ]
-  const includeOptions = baseOptions.concat(options)
+  const includeOptions = options
   const realOptions = allOptions
     .filter((option) => includeOptions.includes(option.name))
     .map((option) => {
@@ -208,9 +203,8 @@ export async function reportStatus(
     color = 'green'
   }
   if (instance) {
-    prefixText = `${instance.app} > ${instance.stage} > ${
-      instance.name
-    }(${log.color[color](action)})`
+    prefixText = `${instance.app} > ${instance.stage} > ${instance.name
+      }(${log.color[color](action)})`
   }
   let text = statusText
   if (point === 'end') {
@@ -265,7 +259,7 @@ function getOutput(instance: ResultInstance | ResultInstanceError) {
 
 export function outputResults(
   results: Array<ResultInstance | ResultInstanceError>,
-  options: BaseOptions = {},
+  options: Options = {},
 ) {
   if (options.json) {
     if (options.verbose) {
@@ -308,4 +302,21 @@ export function outputResults(
       )}, ${log.color.red(`error: ${errorCount}`)} ]${'='.repeat(30)}`,
     )
   }
+}
+
+export function processInputs(inputs?: string[]) {
+  let realInputs: Record<string, string> = {}
+  if (inputs && inputs?.length > 0) {
+    realInputs = inputs.reduce<Record<string, string>>(
+      (result, inputItem) => {
+        const [key, val] = inputItem.split('=')
+        return {
+          ...result,
+          [key]: val,
+        }
+      },
+      {},
+    )
+  }
+  return realInputs
 }

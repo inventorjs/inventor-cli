@@ -15,13 +15,17 @@ import chokidar from 'chokidar'
 import { Observable, debounceTime, switchMap } from 'rxjs'
 import { COMPONENT_SCF } from './constants.js'
 import { InstanceService, type ListInstanceParams } from './instance.service.js'
+import { ApiService } from './api.service.js'
 import { runHooks } from './decorators.js'
+import { NoInstanceError } from './errors.js'
 
 export class SlsService {
   private instanceService: InstanceService
+  private apiService: ApiService
 
   constructor(config: SlsConfig) {
     this.instanceService = new InstanceService(config)
+    this.apiService = new ApiService(config)
   }
 
   private getResultError(instance: SlsInstance, error: Error) {
@@ -38,7 +42,7 @@ export class SlsService {
       runOptions,
     )
     if (!resolvedInstances?.length) {
-      throw new Error(`there is no serverless instance to ${action}`)
+      throw new NoInstanceError()
     }
     return { instances: resolvedInstances, options: runOptions }
   }
@@ -107,7 +111,7 @@ export class SlsService {
     )
 
     if (!scfInstances?.length) {
-      throw new Error('there is no scf instance to update')
+      throw new NoInstanceError('云函数')
     }
 
     for (const instance of scfInstances) {
@@ -134,7 +138,7 @@ export class SlsService {
                     const resultInstance = result as ScfResultInstance
                     if (resultInstance?.instanceStatus === 'inactive') {
                       throw new Error(
-                        'instance not exists, please run "deploy" first',
+                        '云函数实例不存在，请先执行 "deploy" 进行部署',
                       )
                     }
                     observer.next(resultInstance)
@@ -166,11 +170,15 @@ export class SlsService {
     )
 
     if (!scfInstances?.length) {
-      throw new Error('there is no scf instance to logs')
+      throw new NoInstanceError('云函数')
     }
     for (const instance of scfInstances) {
       this.instanceService.pollFunctionLogs(instance, runOptions)
     }
     return new Promise(() => {})
+  }
+
+  async login() {
+    return this.apiService.login()
   }
 }

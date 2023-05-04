@@ -1,5 +1,8 @@
-app: sls-app
-stage: dev
+<% if (org) { %>
+org: <%- org %>
+<% } %>
+app: <%- app %>
+stage: <%- stage %>
 
 common:
   region: &region ap-guangzhou
@@ -13,8 +16,7 @@ instances:
       namespace: default
       type: web
       memorySize: 1024
-      src:
-        src: ../src
+      src: ../src
       cls:
         logsetId: ${output:${stage}:${app}:cls-ins.logsetId}
         topicId: ${output:${stage}:${app}:cls-ins.topicId}

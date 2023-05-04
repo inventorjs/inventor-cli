@@ -13,7 +13,7 @@ const ScfClient = scf.v20180416.Client
 const ClsClient = cls.v20201016.Client
 const CamClient = cam.v20190116.Client
 
-const { Serverless } = ServerlessUtils
+const { Serverless, Login } = ServerlessUtils
 
 export interface GetCacheFileUrlsParams {
   appName: string
@@ -76,6 +76,10 @@ export class ApiService {
         traceId: uuid(),
       },
     })
+  }
+
+  private getLoginClient() {
+    return new Login()
   }
 
   private getCloudSdkConfig(sdkType: string, region = '') {
@@ -219,6 +223,13 @@ export class ApiService {
     return this.call(
       () => this.getClsClient(region).SearchLog(params),
       'cls:SearchLog',
+    )
+  }
+
+  async login() {
+    return this.call(
+      () => this.getLoginClient().login(),
+      '@serverless:login'
     )
   }
 }

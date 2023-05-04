@@ -8,28 +8,29 @@ import {
   reportStatus,
   getSls,
   type Options,
-  BaseOptions,
+  processInputs,
 } from '../common.js'
 
-export type DevOptions = BaseOptions &
-  Pick<
-    Options,
-    | 'logsPeriod'
-    | 'logsInterval'
-    | 'logsQuery'
-    | 'logsClean'
-    | 'followSymbolicLinks'
-  >
+const options = [
+  'base',
+  'targets',
+  'stage',
+  'inputs',
+  'pollTimeout',
+  'pollInterval',
+  'logsPeriod',
+  'logsInterval',
+  'logsQuery',
+  'logsClean',
+  'followSymbolicLinks',
+  'json',
+  'verbose',
+] as const
+export type DevOptions = Pick<Options, typeof options[number]>
 
 export default class DevAction extends Action {
   description = '启动云函数远程开发服务'
-  options = getOptions([
-    'logsPeriod',
-    'logsInterval',
-    'logsQuery',
-    'logsClean',
-    'followSymbolicLinks',
-  ])
+  options = getOptions(options as unknown as string[])
 
   async run(_: string[], options: Required<DevOptions>) {
     const {
@@ -40,12 +41,14 @@ export default class DevAction extends Action {
       logsClean,
       pollTimeout,
       pollInterval,
+      inputs,
       ...slsOptions
     } = options
     const sls = getSls(base)
     this.loadingTask((loading) =>
       sls.dev({
         ...slsOptions,
+        inputs: processInputs(inputs),
         pollTimeout: Number(pollTimeout),
         pollInterval: Number(pollInterval),
         devServer: {
