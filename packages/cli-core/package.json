@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/cli-core",
-  "version": "5.1.17",
+  "version": "5.1.19",
   "description": "inventor-cli core",
   "main": "dist/index.js",
   "author": "sunkeysun",
@@ -25,6 +25,7 @@
     "chalk": "^5.2.0",
     "commander": "^9.5.0",
     "cosmiconfig": "7.0.1",
+    "dayjs": "^1.11.7",
     "dedent": "^0.7.0",
     "ejs": "^3.1.8",
     "execa": "^6.1.0",
@@ -35,7 +36,8 @@
     "inquirer": "^9.1.4",
     "ora": "^6.1.2",
     "prettyjson": "^1.2.5",
-    "semver": "^7.3.8"
+    "semver": "^7.3.8",
+    "table": "^6.8.1"
   },
   "devDependencies": {
     "@types/dedent": "^0.7.0",

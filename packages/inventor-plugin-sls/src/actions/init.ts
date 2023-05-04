@@ -6,16 +6,32 @@ import { Action } from '@inventorjs/cli-core'
 
 export default class InitAction extends Action {
   description = '通过模版初始化 serverless 项目'
+  options = [
+    {
+      name: 'config',
+      flags: '--config',
+      description: '只初始化 serverless 配置',
+    },
+  ]
 
-  async run() {
+  async run(_: string[], options: { config: boolean }) {
     const anwsers = await this.prompt([
       {
-        name: 'name',
+        name: 'tplName',
         type: 'list',
         message: '请选择应用模版类型',
         choices: [
-          { value: 'default', name: 'default[scf + layer + apigateway + cls]' },
+          { value: 'nodejs-koa', name: '基础 nodejs koa 应用(云函数+层+网关+日志)' },
         ],
+      },
+      {
+        name: 'orgName',
+        type: 'input',
+        message: '请输入团队名称(默认为 账号AppId)',
+        validate: (value) =>
+          value && !this.regex.slsOrgName.test(value)
+            ? `请输入合法的 serverless 团队名称(${this.regex.slsOrgName})`
+            : true,
       },
       {
         name: 'appName',
@@ -38,13 +54,16 @@ export default class InitAction extends Action {
       },
     ])
 
-    const { name, appName, stageName } = anwsers
+    const { tplName, orgName, appName, stageName } = anwsers
+    const { config } = options
 
-    await this.renderTemplate(name, '.', {
+    await this.renderTemplate(tplName, '.', {
       data: {
+        orgName,
         appName,
         stageName,
       },
+      includes: ['.serverless/serverless.yml']
     })
     this.logInitCmd({
       cmd: 'inventor sls deploy'

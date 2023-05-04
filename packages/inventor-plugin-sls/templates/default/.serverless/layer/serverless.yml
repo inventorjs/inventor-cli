@@ -1,9 +1,0 @@
-app: <%- appName %>
-stage: <%- stageName %>
-name: layer-ins
-component: layer
-
-inputs:
-  src: ../../node_modules
-  runtimes:
-    - Nodejs16.13

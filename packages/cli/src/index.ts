@@ -207,7 +207,7 @@ process.on('uncaughtException', (err) => {
 
 process.on('unhandledRejection', (reason) => {
   log.raw('')
-  reason && log.error(`uncaughtException: ${reason}\n${(reason as Error)?.stack ?? ''}`)
+  reason && log.error(`unhandledRejection: ${(reason as Error)?.stack ?? reason}`)
   log.raw('')
   process.exit(1)
 })

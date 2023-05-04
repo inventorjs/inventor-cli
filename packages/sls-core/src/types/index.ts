@@ -91,7 +91,8 @@ export interface RunOptions {
     logsInterval: number
     logsQuery: string
     logsPeriod: number
-    logWriter: (log: Record<string, unknown>) => void
+    logsWriter: (log: Record<string, unknown>) => void
+    logsClean: boolean
     updateDebounceTime: number
   }
   targets: string[]
@@ -132,4 +133,21 @@ export interface SlsConfig {
   secretKey: string
   token?: string
   netType?: string
+}
+
+export interface ScfLogRecord {
+  SCF_FunctionName: string
+  SCF_Namespace: string
+  SCF_StartTime: string
+  SCF_RequestId: string
+  SCF_Duration: string
+  SCF_Alias: string
+  SCF_LogTime: string
+  SCF_RetryNum: string
+  SCF_MemUsage: string
+  SCF_Level: string
+  SCF_Message: string
+  SCF_Type: 'Platform' | 'Custom'
+  SCF_StatusCode: string
+  [k: string]: string
 }

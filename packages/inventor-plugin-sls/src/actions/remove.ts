@@ -3,22 +3,22 @@
  * @author: sunkeysun
  */
 import type { ResultInstance } from '@inventorjs/sls-core'
-
 import { Action } from '@inventorjs/cli-core'
-import { getOptions, reportStatus, getSls, type BaseOptions, outputResults } from '../common.js'
+import { type Options, getOptions, reportStatus, getSls, outputResults, processOptions } from '../common.js'
+
+const options = ['base', 'stage', 'targets', 'pollTimeout', 'pollInterval'] as const
+type RemoveOptions = Pick<Options, typeof options[number]>
 
 export default class DeployAction extends Action {
   description = '删除云端应用'
   options = getOptions()
 
-  async run(_: string[], options: BaseOptions) {
-    const { base, pollTimeout, pollInterval } = options
+  async run(_: string[], options: RemoveOptions) {
+    const { base } = options
     const sls = getSls(base)
     const results = await this.loadingTask((loading) =>
       sls.remove({
-        ...options,
-        pollTimeout: Number(pollTimeout),
-        pollInterval: Number(pollInterval),
+        ...processOptions(options),
         reportStatus: (statusData) =>
           reportStatus(loading, statusData, 'remove'),
       }),

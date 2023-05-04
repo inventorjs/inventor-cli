@@ -16,6 +16,7 @@ import type {
   PartialRunOptions,
   MultiInstance,
   TransInstance,
+  ScfLogRecord,
 } from './types/index.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -38,6 +39,7 @@ import {
   type FileStatsContent,
 } from './util.js'
 import { RUN_STATUS, COMPONENT_SCF, COMPONENT_MULTI_SCF } from './constants.js'
+import { CircularError, NoSrcConfigError, NoSrcFilesError } from './errors.js'
 
 export type ListInstanceParams = Partial<
   Pick<SlsInstance, 'org' | 'app' | 'name' | 'component'>
@@ -51,15 +53,16 @@ export class InstanceService {
     pollInterval: 200,
     followSymbolicLinks: false,
     resolveVar: 'env',
-    reportStatus: async () => {},
+    reportStatus: async () => { },
     targets: [],
     inputs: {},
     deployType: 'all',
     devServer: {
-      logsInterval: 1000,
+      logsInterval: 500,
       logsPeriod: 60 * 1000,
       logsQuery: '*',
-      logWriter: (log: Record<string, unknown>) =>
+      logsClean: false,
+      logsWriter: (log: Record<string, unknown>) =>
         console.log(JSON.stringify(log)),
       updateDebounceTime: 100,
     },
@@ -81,13 +84,6 @@ export class InstanceService {
     return (instance.inputs.region ?? 'ap-guangzhou') as string
   }
 
-  private getResultError(instance: SlsInstance, error: Error) {
-    return {
-      $instance: instance,
-      $error: error,
-    }
-  }
-
   async resolveFile(instancePath: string) {
     for (const filename of this.supportFilenames) {
       const filePath = path.join(instancePath, filename)
@@ -107,7 +103,7 @@ export class InstanceService {
           return null
         }
       } else {
-        ;({ default: instance } = await import(filePath))
+        ; ({ default: instance } = await import(filePath))
       }
       if (instance) {
         instance.$path = path.dirname(filePath)
@@ -142,17 +138,17 @@ export class InstanceService {
     return false
   }
 
-  resolveMultiInstance(exInstance: MultiInstance, options: RunOptions) {
-    let instances = Object.entries(exInstance.instances).map(
+  resolveMultiInstance(multiInstance: MultiInstance, options: RunOptions) {
+    let instances = Object.entries(multiInstance.instances).map(
       ([name, instance]) => {
         const resolvedInstance = this.resolveVariables(
           {
             ...instance,
             name,
-            app: exInstance.app,
-            stage: exInstance.stage,
-            org: exInstance.org,
-            $path: exInstance.$path,
+            app: multiInstance.app,
+            stage: multiInstance.stage,
+            org: multiInstance.org,
+            $path: multiInstance.$path,
           },
           options,
         )
@@ -177,21 +173,19 @@ export class InstanceService {
     for (const dir of dirs) {
       const instancePath = path.resolve(this.config.slsPath, dir)
       const instance = (await this.resolveFile(instancePath)) as SlsInstance
-      if (instance && !this.isInstance(instance)) {
-        throw new Error(`${dir} is not a valid serverless instance`)
+      if (!instance || !this.isInstance(instance)) {
+        continue
       }
-      if (instance) {
-        const resolvedInstance = this.resolveVariables(instance, options)
-        const { app, stage } = resolvedInstance
-        if (!baseInfo) {
-          baseInfo = { app, stage }
-        }
-        const { app: cApp, stage: cStage } = baseInfo
-        if (cApp !== app || cStage !== stage) {
-          throw new Error(`serverless instance's "app" "stage" must equal`)
-        }
-        instances.push(resolvedInstance)
+      const resolvedInstance = this.resolveVariables(instance, options)
+      const { app, stage, org } = resolvedInstance
+      if (!baseInfo) {
+        baseInfo = { app, stage, org }
       }
+      const { app: cApp, stage: cStage, org: cOrg } = baseInfo
+      if (cApp !== app || cStage !== stage || cOrg !== org) {
+        throw new Error(`serverless 应用的 "org" "app" 和 "stage" 配置必须一致`)
+      }
+      instances.push(resolvedInstance)
     }
     return instances
   }
@@ -279,9 +273,7 @@ export class InstanceService {
     })
 
     if (graph.hasCycle()) {
-      throw new Error(
-        'instance has circular dependencies, please check ${output:...} config',
-      )
+      throw new CircularError()
     }
 
     let sortedList = graph.topologicalSort()
@@ -301,6 +293,7 @@ export class InstanceService {
     return sortedInstances
   }
 
+  @reportStatus(RUN_STATUS.updateCode)
   async processSrcFiles(instance: SlsInstance, options: RunOptions) {
     const { Response } = await this.apiService.getCacheFileUrls(
       await this.transInstance(instance),
@@ -320,7 +313,7 @@ export class InstanceService {
     }
     const srcLocal = instance.$src?.src
     if (!srcLocal) {
-      throw new Error('src config not exists')
+      throw new NoSrcConfigError()
     }
 
     const filesStatsContent = await this.getSrcLocalFilesStatsContent(
@@ -329,7 +322,7 @@ export class InstanceService {
     )
 
     if (!filesStatsContent?.length) {
-      throw new Error('there is no src files to zip')
+      throw new NoSrcFilesError()
     }
 
     // symbolicLink not support cache
@@ -347,9 +340,9 @@ export class InstanceService {
     )
     if (options.maxDeploySize && totalBytes > options.maxDeploySize) {
       throw new Error(
-        `src files size exceed ${filesize(
+        `源代码文件总体积超过 ${filesize(
           options.maxDeploySize,
-        )} limit, can't deploy`,
+        )} 最大限制, 无法完成部署`,
       )
     }
 
@@ -358,7 +351,6 @@ export class InstanceService {
     return { srcDownloadUrl, totalBytes, cacheOutdated: hasChanges, force }
   }
 
-  @reportStatus(RUN_STATUS.uploadSrc)
   async uploadSrcFiles(
     uploadUrl: string,
     buffer: Buffer,
@@ -388,7 +380,6 @@ export class InstanceService {
     return { src: null }
   }
 
-  @reportStatus(RUN_STATUS.zipSrc)
   async zipSrcLocalChanges(
     filesStatStatContent: FileStatsContent[],
     previousMap: Record<string, string>,
@@ -435,7 +426,6 @@ export class InstanceService {
     }
   }
 
-  @reportStatus(RUN_STATUS.readSrc)
   async getSrcLocalFilesStatsContent(
     instance: SlsInstance,
     options: RunOptions,
@@ -504,24 +494,20 @@ export class InstanceService {
 
     const startTime = Date.now()
     do {
-      try {
-        const { Response } = await this.apiService.getInstance(
-          await this.transInstance(instance),
-        )
-        const { instanceStatus } = Response.instance as ResultInstance
-        if (!pollInterval || !pollTimeout) {
-          return Response.instance as ResultInstance
-        }
-        if (instanceStatus === 'deploying' || instanceStatus === 'removing') {
-          await sleep(pollInterval)
-        } else {
-          return Response.instance as ResultInstance
-        }
-      } catch (err) {
-        return this.getResultError(instance, err as Error)
+      const { Response } = await this.apiService.getInstance(
+        await this.transInstance(instance),
+      )
+      const { instanceStatus } = Response.instance as ResultInstance
+      if (!pollInterval || !pollTimeout) {
+        return Response.instance as ResultInstance
+      }
+      if (instanceStatus.endsWith('ing')) {
+        await sleep(pollInterval)
+      } else {
+        return Response.instance as ResultInstance
       }
     } while (Date.now() - startTime < pollTimeout)
-    throw new Error(`poll instance result timeout over ${options.pollTimeout}s`)
+    throw new Error(`拉取实例状态超时 ${options.pollTimeout}毫秒`)
   }
 
   getRunOptions(options: PartialRunOptions) {
@@ -547,37 +533,30 @@ export class InstanceService {
         options.deployType === 'code' &&
         instance.component === COMPONENT_SCF
       ) {
-        await this.updateFunctionCode(instance, options)
-        return this.poll(instance, options)
+        return this.updateFunctionCode(instance, options)
       } else {
-        ;({
+        ; ({
           instance: runInstance,
           cacheOutdated,
           force,
         } = await this.processDeploySrc(instance, options))
       }
     }
-    try {
-      await this.apiService.runComponent({
-        instance: await this.transInstance(runInstance),
-        method: action,
-        options: {
-          force,
-          cacheOutdated,
-        },
-      })
-      const pollResult = await this.poll(instance, options)
-      return pollResult
-    } catch (error) {
-      return this.getResultError(instance, error as Error)
-    }
+    return this.apiService.runComponent({
+      instance: await this.transInstance(runInstance),
+      method: action,
+      options: {
+        force,
+        cacheOutdated,
+      },
+    })
   }
 
   @reportStatus(RUN_STATUS.updateCode)
   async updateFunctionCode(instance: SlsInstance, options: RunOptions) {
     const srcLocal = instance.$src?.src
     if (!srcLocal) {
-      throw new Error('src config not exists')
+      throw new NoSrcConfigError()
     }
 
     const filesStatsContent = await this.getSrcLocalFilesStatsContent(
@@ -586,7 +565,7 @@ export class InstanceService {
     )
 
     if (!filesStatsContent?.length) {
-      throw new Error('there is no src files to zip')
+      throw new NoSrcFilesError()
     }
 
     const { zipBuffer } = await this.zipSrcLocalChanges(
@@ -607,14 +586,41 @@ export class InstanceService {
     )
   }
 
+  cleanLogs(logsObj: ScfLogRecord | null) {
+    if (!logsObj || !isObject(logsObj)) {
+      return null
+    }
+    if (
+      logsObj.SCF_Type === 'Platform' &&
+      !logsObj.SCF_Message.startsWith('ERROR RequestId:')
+    ) {
+      return null
+    }
+
+    const resultObj = Object.keys(logsObj).reduce((result, logKey) => {
+      if (
+        logKey.startsWith('SCF_') &&
+        ![
+          'SCF_FunctionName',
+          'SCF_RequestId',
+          'SCF_StatusCode',
+          'SCF_Message',
+        ].includes(logKey)
+      ) {
+        return result
+      }
+      return { ...result, [logKey]: logsObj[logKey] }
+    }, {})
+
+    return resultObj
+  }
+
   async pollFunctionLogs(instance: SlsInstance, options: RunOptions) {
     const instanceResult = (await this.poll(
       instance,
       options,
     )) as ScfResultInstance
-    if (!instanceResult) {
-      return
-    }
+
     const topicId = instanceResult.inputs.cls.topicId
     let tailMd5 = ''
 
@@ -640,9 +646,20 @@ export class InstanceService {
         results = results.slice(md5Index + 1)
       }
       tailMd5 = results?.at(-1)?.$md5 ?? tailMd5
-      results?.forEach((item) =>
-        options.devServer.logWriter(JSON.parse(item.LogJson)),
-      )
+      results?.forEach((item) => {
+        let logsObj: ScfLogRecord | null = null
+        try {
+          logsObj = JSON.parse(item.LogJson)
+        } catch (err) {
+          //
+        }
+        const cleanLogs = options.devServer.logsClean
+          ? this.cleanLogs(logsObj)
+          : logsObj
+        if (!cleanLogs) return
+
+        options.devServer.logsWriter(cleanLogs)
+      })
     })
   }
 
@@ -697,7 +714,7 @@ export class InstanceService {
       },
     )
     if (!transInstance.orgName) {
-      transInstance.appName = await this.apiService.getAppId()
+      transInstance.orgName = await this.apiService.getAppId()
     }
 
     return transInstance

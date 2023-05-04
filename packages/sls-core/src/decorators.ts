@@ -54,3 +54,14 @@ export function reportStatus(statusData: {
     }
   }
 }
+
+export function runHooks(hookName: string) {
+  return function (...args: unknown[]) {
+    const descriptor = args.at(-1) as PropertyDescriptor
+    const originMehtod = descriptor.value
+    descriptor.value = async function (...args: unknown[]) {
+      const result = await originMehtod.call(this, ...args)
+      return result
+    }
+  }
+}

@@ -4,7 +4,7 @@
 import type { UpdateFunctionCodeRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/scf/v20180416/scf_models.js'
 import type { SearchLogRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/cls/v20201016/cls_models.js'
 
-import type { SlsInstance, SlsConfig, TransInstance } from './types/index.js'
+import type { SlsConfig, TransInstance } from './types/index.js'
 import { cam, scf, cls } from 'tencentcloud-sdk-nodejs'
 import ServerlessUtils from '@serverless/utils-china'
 import { v4 as uuid } from 'uuid'
@@ -13,7 +13,7 @@ const ScfClient = scf.v20180416.Client
 const ClsClient = cls.v20201016.Client
 const CamClient = cam.v20190116.Client
 
-const { Serverless } = ServerlessUtils
+const { Serverless, Login } = ServerlessUtils
 
 export interface GetCacheFileUrlsParams {
   appName: string
@@ -76,6 +76,10 @@ export class ApiService {
         traceId: uuid(),
       },
     })
+  }
+
+  private getLoginClient() {
+    return new Login()
   }
 
   private getCloudSdkConfig(sdkType: string, region = '') {
@@ -175,12 +179,12 @@ export class ApiService {
     componentName,
   }: ListInstancesParams = {}) {
     const slsClient = await this.getSlsClient()
-    const appId = await this.getAppId()
+    const org = orgName ?? await this.getAppId()
     const response = await this.call(
       () =>
         slsClient.listInstances({
-          orgName: appId,
-          orgUid: appId,
+          orgName: org,
+          orgUid: org,
         }),
       'sls:listInstances',
     )
@@ -219,6 +223,13 @@ export class ApiService {
     return this.call(
       () => this.getClsClient(region).SearchLog(params),
       'cls:SearchLog',
+    )
+  }
+
+  async login() {
+    return this.call(
+      () => this.getLoginClient().login(),
+      '@serverless:login'
     )
   }
 }

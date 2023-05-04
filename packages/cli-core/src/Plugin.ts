@@ -6,7 +6,7 @@ import type { RenderOptions } from './modules/fs.js'
 import type { LoadFrom } from './modules/rc.js'
 import path from 'node:path'
 import inquirer from 'inquirer'
-import { oraPromise } from 'ora'
+import { oraPromise, type Ora } from 'ora'
 import * as fs from './modules/fs.js'
 import * as env from './modules/env.js'
 import * as log from './modules/log.js'
@@ -16,6 +16,8 @@ import * as cmd from './modules/cmd.js'
 import * as rc from './modules/rc.js'
 import * as util from './modules/util.js'
 import * as regex from './modules/regex.js'
+
+export type Loading = Ora
 
 export abstract class Plugin {
   description = 'Plugin description is not defined!'
@@ -118,6 +120,7 @@ export abstract class Plugin {
       const existsFiles = await fs.getExistsTemplateFiles(
         templateDir,
         destinationDir,
+        options,
       )
       if (existsFiles.length > 0) {
         const isOverwrites = await this.confirmOverwrites(existsFiles)
@@ -175,16 +178,7 @@ export abstract class Plugin {
   }
 
   async loadingTask(...args: Parameters<typeof oraPromise>) {
-    let message = args[1]
-    if (!message) {
-      message = 'Loading'
-    }
-    if (typeof message === 'string' && !message.includes('...')) {
-      args.splice(1, 1, `${message}...`)
-      return oraPromise(...args)
-    } else if (typeof message === 'object') {
-      return oraPromise(...args)
-    }
+    return oraPromise(...args)
   }
 
   async seriesTask(tasks: Promise<unknown>[]) {
