@@ -23,10 +23,16 @@ export async function getAllFiles(dirPath: string, options: Pick<RenderOptions, 
   const { includes = [], excludes = [] } = options
   const allFiles = await fg(`${dirPath}/**/*`, { dot: true })
   if (includes.length) {
-    const realIncludes = includes.map((filePath) => path.resolve(dirPath, filePath))
+    const realIncludes: string[] = []
+    for (const include of includes) {
+      realIncludes.push(...(await fg(path.resolve(dirPath, include), { dot: true })))
+    }
     return allFiles.filter((file) => realIncludes.includes(file))
   } else if (excludes.length) {
-    const realExcludes = excludes.map((filePath) => path.resolve(dirPath, filePath))
+    const realExcludes: string[] = []
+    for (const exclude of excludes) {
+      realExcludes.push(...(await fg(path.resolve(dirPath, exclude), { dot: true})))
+    }
     return allFiles.filter((file) => !realExcludes.includes(file))
   }
   return allFiles

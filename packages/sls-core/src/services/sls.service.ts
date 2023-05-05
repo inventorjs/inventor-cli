@@ -38,19 +38,19 @@ export class SlsService {
     }
   }
 
-  private async resolve(action: RunAction, options: PartialRunOptions) {
+  private async resolve(options: PartialRunOptions, action: RunAction = 'deploy') {
     const runOptions = this.instanceService.getRunOptions(options)
-    let { hooks, instances } = await this.templateService.resolve(
+    let { instances, ...rest } = await this.templateService.resolve(
       action,
       runOptions,
     )
     if (!instances?.length) {
       throw new NoInstanceError()
     }
-    return { instances, hooks, options: runOptions }
+    return { instances, ...rest, options: runOptions }
   }
 
-  private async runHooks<T = unknown>(runner: () => Promise<T>, hookName: string, options: RunOptions, hooks?: Record<string, string>) {
+  private async runHooks<T = unknown>(runner: () => Promise<T>, hookName: string, options: unknown, hooks?: Record<string, string>) {
     if (!hooks || !Object.keys(hooks).length) return runner()
 
     let beforeHooks: Array<(d: unknown) => Promise<unknown>> = []
@@ -80,7 +80,7 @@ export class SlsService {
 
   private async run(action: RunAction, options: PartialRunOptions = {}) {
     const { hooks, instances, options: runOptions } =
-      await this.resolve(action, options)
+      await this.resolve(options, action)
     return this.runHooks<Array<ResultInstance | ResultInstanceError>>(async () => {
       const runResults: Array<ResultInstance | ResultInstanceError> = []
       for (const instance of instances) {
@@ -108,7 +108,7 @@ export class SlsService {
 
   async info(options: PartialRunOptions = {}) {
     const { hooks, instances, options: runOptions } =
-      await this.resolve('deploy', options)
+      await this.resolve(options)
     const infoOptions = {
       ...runOptions,
       pollInterval: 0,
@@ -131,7 +131,7 @@ export class SlsService {
 
   async dev(options: PartialRunOptions = {}) {
     const { hooks, instances, options: runOptions } =
-      await this.resolve('deploy', options)
+      await this.resolve(options)
     const scfInstances = instances.filter((instance) =>
       [COMPONENT_SCF].includes(instance.component),
     )
@@ -191,7 +191,7 @@ export class SlsService {
 
   async logs(options: PartialRunOptions = {}) {
     const { hooks, instances, options: runOptions } =
-      await this.resolve('deploy', options)
+      await this.resolve(options)
     const scfInstances = instances.filter((instance) =>
       [COMPONENT_SCF].includes(instance.component),
     )
@@ -207,11 +207,42 @@ export class SlsService {
     }, 'logs', runOptions, hooks)
   }
 
-  async list(params: ListInstanceParams = {}) {
-    return this.instanceService.list(params)
+  async list(options: ListInstanceParams = {}) {
+    let hooks, app, org, stage
+    try {
+      ({ hooks, app, org, stage } = await this.resolve(options))
+    } catch (err) {
+      // empty
+    }
+
+    let realOptions = { ...options }
+    if (org && !options.org) {
+      Object.assign(realOptions, { org })
+    }
+    if (app && !options.apps) {
+      Object.assign(realOptions, { apps: [app] })
+    }
+    if (stage && !options.stages) {
+      Object.assign(realOptions, { stages: [stage] })
+    }
+    if (hooks) {
+      return this.runHooks(() => this.instanceService.list(realOptions), 'list', options, hooks)
+    }
+
+    return this.instanceService.list(realOptions)
   }
 
   async login() {
+    let hooks
+    try {
+      ({ hooks } = await this.resolve({}))
+    } catch (err) {
+      // empty
+    }
+    if (hooks) {
+      return this.runHooks(() => this.apiService.login(), 'login', {}, hooks)
+    }
+
     return this.apiService.login()
   }
 

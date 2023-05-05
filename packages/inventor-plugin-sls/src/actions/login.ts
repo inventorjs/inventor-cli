@@ -6,7 +6,7 @@ import { Action } from '@inventorjs/cli-core'
 import { SlsService } from '@inventorjs/sls-core'
 import { type Options, getOptions, getSls } from '../common.js'
 
-const options = ['secretId', 'secretKey', 'token'] as const
+const options = ['base', 'secretId', 'secretKey', 'token'] as const
 
 type LoginOptions = Pick<Options, typeof options[number]>
 export default class LoginAction extends Action {
@@ -15,15 +15,15 @@ export default class LoginAction extends Action {
 
   async run(_: string[], options: Required<LoginOptions>) {
     let expired
-    let { secretId, secretKey, token } = options
+    let { base, secretId, secretKey, token } = options
     if (secretId && secretKey) {
       const sls = new SlsService({
         ...options,
-        slsPath: '',
+        slsPath: base,
       })
       await sls.checkLogin()
     } else {
-      const sls = getSls('.serverless', true)
+      const sls = getSls(base)
       const result = await sls.login()
       secretId = result.secret_id
       secretKey = result.secret_key

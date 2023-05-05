@@ -93,7 +93,7 @@ export interface RunOptions {
     logsQuery: string
     logsPeriod: number
     logsWriter: (log: Record<string, unknown>) => void
-    logsClean: boolean
+    logsVerbose: boolean
     updateDebounceTime: number
   }
   targets: string[]

@@ -53,7 +53,7 @@ export class InstanceService {
       logsInterval: 500,
       logsPeriod: 60 * 1000,
       logsQuery: '*',
-      logsClean: false,
+      logsVerbose: false,
       logsWriter: (log: Record<string, unknown>) =>
         console.log(JSON.stringify(log)),
       updateDebounceTime: 100,
@@ -404,12 +404,12 @@ export class InstanceService {
         } catch (err) {
           //
         }
-        const cleanLogs = options.devServer.logsClean
-          ? this.cleanLogs(logsObj)
-          : logsObj
-        if (!cleanLogs) return
+        const logs = options.devServer.logsVerbose
+          ? logsObj
+          : this.cleanLogs(logsObj)
+        if (!logs) return
 
-        options.devServer.logsWriter(cleanLogs)
+        options.devServer.logsWriter(logs)
       })
     })
   }

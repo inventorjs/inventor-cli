@@ -20,7 +20,7 @@ export interface Options {
   logsPeriod?: string
   logsInterval?: string
   logsQuery?: string
-  logsClean?: boolean
+  logsVerbose?: boolean
   updateConfig?: boolean
   updateCode?: boolean
   followSymbolicLinks?: boolean
@@ -38,14 +38,7 @@ export interface Options {
 
 const defaultBase = '.serverless'
 
-export function getSls(basePath = defaultBase, anonymous = false) {
-  if (anonymous) {
-    return new SlsService({
-      secretId: '',
-      secretKey: '',
-      slsPath: '',
-    })
-  }
+export function getSls(basePath = defaultBase) {
   const slsPath = path.resolve(process.cwd(), basePath as string)
   loadEnv({
     path: path.resolve(env.pwd(), '.env'),
@@ -56,12 +49,6 @@ export function getSls(basePath = defaultBase, anonymous = false) {
     TENCENT_TOKEN = '',
     SERVERLESS_TENCENT_NET_TYPE,
   } = process.env
-
-  if (!TENCENT_SECRET_ID || !TENCENT_SECRET_KEY) {
-    throw new Error(
-      '"TENCENT_SECRET_ID" "TENCENT_SECRET_KEY" variables is required in .env file!',
-    )
-  }
 
   const sls = new SlsService({
     secretId: TENCENT_SECRET_ID,
@@ -159,8 +146,8 @@ export function getOptions(options: string[] = []) {
     },
     {
       name: 'logsClean',
-      flags: '--logs-clean',
-      description: '实时日志精简',
+      flags: '--logs-verbose',
+      description: '实时详细日志',
     },
     {
       name: 'followSymbolicLinks',
@@ -356,7 +343,7 @@ export function processOptions(options: Options) {
     logsPeriod,
     logsInterval,
     logsQuery,
-    logsClean,
+    logsVerbose,
     ...restOptions
   } = options
   let realOptions = restOptions
@@ -376,11 +363,11 @@ export function processOptions(options: Options) {
     Object.assign(realOptions, { pollTimeout: + pollTimeout })
   }
 
-  if (logsPeriod || logsInterval || logsQuery || logsClean) {
+  if (logsPeriod || logsInterval || logsQuery || logsVerbose) {
     Object.assign(realOptions, { devServer: {
       logsInterval: +logsInterval!,
       logsPeriod: +logsPeriod!,
-      logsClean,
+      logsVerbose,
       logsQuery,
     }})
   }
