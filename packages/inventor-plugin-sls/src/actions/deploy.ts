@@ -26,7 +26,7 @@ const options = [
   'pollTimeout',
   'pollInterval',
   'json',
-  'verbose',
+  'detail',
 ] as const
 
 type DeployOptions = Pick<Options, typeof options[number]>

@@ -35,9 +35,13 @@ export interface SlsSdkResponse {
   Body: string
 }
 
-export type ListInstancesParams = Partial<
-  Partial<Pick<TransInstance, 'orgName' | 'appName' | 'stageName' | 'instanceName' | 'componentName'>>
->
+export interface ListInstancesParams {
+  orgName?: string
+  appNames?: string[]
+  stageNames?: string[]
+  instanceNames?: string[]
+  componentNames?: string[]
+}
 
 export class ApiService {
   private appId: string = ''
@@ -173,10 +177,10 @@ export class ApiService {
 
   async listInstances({
     orgName,
-    appName,
-    stageName,
-    instanceName,
-    componentName,
+    appNames,
+    stageNames,
+    instanceNames,
+    componentNames,
   }: ListInstancesParams = {}) {
     const slsClient = await this.getSlsClient()
     const org = orgName ?? await this.getAppId()
@@ -193,17 +197,17 @@ export class ApiService {
     const instances = Response?.instances?.filter?.(
       (instance: TransInstance) => {
         let isTrue = true
-        if (appName) {
-          isTrue &&= instance.appName === appName
+        if (appNames) {
+          isTrue &&= appNames.includes(instance.appName)
         }
-        if (stageName) {
-          isTrue &&= instance.stageName === stageName
+        if (stageNames) {
+          isTrue &&= stageNames.includes(instance.stageName)
         }
-        if (instanceName) {
-          isTrue &&= instance.instanceName === instanceName
+        if (instanceNames) {
+          isTrue &&= instanceNames.includes(instance.instanceName)
         }
-        if (componentName) {
-          isTrue &&= instance.componentName === componentName
+        if (componentNames) {
+          isTrue &&= componentNames.includes(instance.componentName)
         }
         return isTrue
       },

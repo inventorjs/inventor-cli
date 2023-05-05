@@ -12,7 +12,7 @@ import { env, log, type Loading } from '@inventorjs/cli-core'
 export interface Options {
   stage?: string
   json?: boolean
-  verbose?: boolean
+  detail?: boolean
   base?: string
   targets?: string[]
   force?: boolean
@@ -26,10 +26,11 @@ export interface Options {
   followSymbolicLinks?: boolean
   pollTimeout?: string
   pollInterval?: string
-  name?: string
   org?: string
-  app?: string
-  component?: string
+  names?: string[]
+  apps?: string[]
+  stages?: string[]
+  components?: string[]
 }
 
 const defaultBase = '.serverless'
@@ -84,17 +85,22 @@ export function getOptions(options: string[] = []) {
     },
     {
       name: 'name',
-      flags: '-n, --name [name]',
+      flags: '-n, --names [name...]',
       description: '实例名称',
     },
     {
-      name: 'app',
-      flags: '-a, --app [app]',
+      name: 'apps',
+      flags: '-a, --apps [app...]',
       description: '应用名称',
     },
     {
-      name: 'component',
-      flags: '-c, --component [component]',
+      name: 'stages',
+      flags: '-s, --stages [stages...]',
+      description: '环境名称',
+    },
+    {
+      name: 'components',
+      flags: '-c, --components [component...]',
       description: '组件名称',
     },
     {
@@ -174,8 +180,8 @@ export function getOptions(options: string[] = []) {
       description: '以 JSON 格式输出结果',
     },
     {
-      name: 'verbose',
-      flags: '--verbose',
+      name: 'detail',
+      flags: '--detail',
       description: '输出详细实例信息',
     },
   ]
@@ -242,6 +248,7 @@ function getOutput(instance: ResultInstance | ResultInstanceError) {
     stageName: resultInstance.stageName,
     instanceName: resultInstance.instanceName,
     instanceStatus: log.color[statusColor](resultInstance.instanceStatus),
+    updatedAt: resultInstance.updatedAt,
   }
   if (['active', 'error'].includes(resultInstance.instanceStatus)) {
     Object.assign(output, {
@@ -262,7 +269,7 @@ export function outputResults(
   options: Options = {},
 ) {
   if (options.json) {
-    if (options.verbose) {
+    if (options.detail) {
       log.clear()
       log.raw(JSON.stringify(results))
     } else {
@@ -276,7 +283,7 @@ export function outputResults(
         logFun = log.error
       }
       logFun('='.repeat(60) + `[${index + 1}/${results.length}]`)
-      if (options.verbose) {
+      if (options.detail) {
         log.prettyJson(instance)
       } else {
         log.prettyJson(getOutput(instance))

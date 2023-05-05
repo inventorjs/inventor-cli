@@ -42,8 +42,8 @@ import { RUN_STATUS, COMPONENT_SCF, COMPONENT_MULTI_SCF } from './constants.js'
 import { CircularError, NoSrcConfigError, NoSrcFilesError } from './errors.js'
 
 export type ListInstanceParams = Partial<
-  Pick<SlsInstance, 'org' | 'app' | 'name' | 'component'>
->
+  Pick<SlsInstance, 'org' | 'stage'>
+> & { apps?: string[]; names?: string[]; components?: string[]; stages?: string[] }
 
 export class InstanceService {
   private defaultRunOptions: RunOptions = {
@@ -721,12 +721,13 @@ export class InstanceService {
   }
 
   async list(params: ListInstanceParams) {
-    const { org, app, name, component } = params
+    const { org, stages, apps, names, components } = params
     const result = await this.apiService.listInstances({
       orgName: org,
-      appName: app,
-      instanceName: name,
-      componentName: component,
+      stageNames: stages,
+      appNames: apps,
+      instanceNames: names,
+      componentNames: components,
     })
     return result.Response?.instances
   }

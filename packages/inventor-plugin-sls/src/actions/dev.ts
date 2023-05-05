@@ -23,8 +23,6 @@ const options = [
   'logsQuery',
   'logsClean',
   'followSymbolicLinks',
-  'json',
-  'verbose',
 ] as const
 export type DevOptions = Pick<Options, typeof options[number]>
 

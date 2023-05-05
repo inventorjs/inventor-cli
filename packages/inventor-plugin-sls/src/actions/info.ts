@@ -6,15 +6,15 @@ import type { ResultInstance } from '@inventorjs/sls-core'
 
 import { Action } from '@inventorjs/cli-core'
 import {
+  type Options,
   getOptions,
   reportStatus,
   getSls,
   outputResults,
-  type Options,
-  processOptions, 
+  processOptions,
 } from '../common.js'
 
-const options = ['base', 'stage', 'targets', 'pollTimeout', 'pollInterval'] as const
+const options = ['base', 'stage', 'targets', 'pollTimeout', 'pollInterval', 'json', 'detail'] as const
 type InfoOptions = Pick<Options, typeof options[number]>
 
 export default class InfoAction extends Action {

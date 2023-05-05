@@ -7,10 +7,11 @@ import { Action } from '@inventorjs/cli-core'
 import {
   getOptions,
   getSls,
+  outputResults,
   type Options,
 } from '../common.js'
 
-const options = ['base', 'org', 'app', 'name', 'stage', 'component', 'json'] as const
+const options = ['base', 'org', 'apps', 'names', 'stages', 'components', 'json', 'detail'] as const
 export type ListOptions = Pick<Options, typeof options[number]>
 
 export default class ListAction extends Action {
@@ -18,7 +19,7 @@ export default class ListAction extends Action {
   options = getOptions(options as unknown as string[])
 
   async run(_: string[], options: ListOptions) {
-    const { base, json } = options
+    const { base, detail } = options
     const sls = getSls(base)
     const list = await this.loadingTask(
       sls.list(options),
@@ -28,9 +29,8 @@ export default class ListAction extends Action {
       this.log.warn('当前没有符合条件的实例')
       return
     }
-    if (json) {
-      this.log.raw(JSON.stringify(list))
-      return
+    if (detail) {
+      return outputResults(list, options)
     }
     const maxLength = 20
     const headers = [

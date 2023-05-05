@@ -44,6 +44,18 @@ instances:
       src: ../node_modules
       runtimes:
         - *runtime
+  apigateway-ins:
+    component: apigateway
+    inputs:
+      environment: test
+      netTypes:
+        - OUTER
+        - INNER
+      endpoints:
+        - path: /
+          method: GET
+          serviceType: MOCK
+          serviceMockReturnMessage: 'mock response content' 
   cls-ins:
     component: cls
     inputs:
@@ -54,15 +66,3 @@ instances:
         fullText:
           caseSensitive: true
           tokenizer: "@&()='\",;:<>[]{}/ \n\t\r"
-  apigateway-ins:
-    component: apigateway
-    inputs:
-      environment: prepub
-      netTypes:
-        - OUTER
-        - INNER
-      endpoints:
-        - path: /
-          method: GET
-          serviceType: MOCK
-          serviceMockReturnMessage: 'mock response content' 

@@ -45,6 +45,10 @@ function isCorePlugin(packageName: string) {
   return corePlugins.find((pkgName) => packageName === pkgName)
 }
 
+function isVerbose() {
+  return cli.args.includes('--verbose')
+}
+
 async function loadActions(plugin: CorePlugin) {
   const actionFiles = (await readdir(plugin.actionPath)).filter((file) =>
     file.endsWith('.js'),
@@ -198,16 +202,18 @@ async function run() {
   cli.parse(process.argv)
 }
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', (error) => {
+  const errMsg = isVerbose() ? (error as Error)?.stack ?? error : error
   log.raw('')
-  err && log.error(`uncaughtException: ${err}\n${err?.stack ?? ''}`)
+  log.error(`uncaughtException: ${errMsg}`)
   log.raw('')
   process.exit(1)
 })
 
 process.on('unhandledRejection', (reason) => {
+  const errMsg = isVerbose() ? (reason as Error)?.stack ?? reason : reason
   log.raw('')
-  reason && log.error(`unhandledRejection: ${(reason as Error)?.stack ?? reason}`)
+  log.error(`unhandledRejection: ${errMsg}`)
   log.raw('')
   process.exit(1)
 })
