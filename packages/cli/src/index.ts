@@ -34,6 +34,7 @@ const cli = new Command(BIN)
   .usage('[command] [action]')
   .addHelpCommand(false)
   .showHelpAfterError(true)
+  .option('-v, --verbose', 'output verbose message')
 
 const corePlugins: PluginConfigItem[] = [
   '@inventorjs/inventor-plugin-plugin',
@@ -46,7 +47,8 @@ function isCorePlugin(packageName: string) {
 }
 
 function isVerbose() {
-  return cli.args.includes('--verbose')
+  const globalOptions = cli.optsWithGlobals()
+  return globalOptions.verbose
 }
 
 async function loadActions(plugin: CorePlugin) {
