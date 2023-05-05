@@ -154,8 +154,9 @@ export class TemplateService {
     let instances: SlsInstance[] = []
 
     let hooks: Record<string, string> | undefined
+    let rest
     if (this.isMultiInstance(multiInstance)) {
-      ({ instances, hooks } = this.resolveMultiInstance(multiInstance, options))
+      ({ instances, hooks, ...rest } = this.resolveMultiInstance(multiInstance, options))
     } else if (this.isInstance(instance)) {
       instances = this.resolveSingleInstance(instance, options)
     } else {
@@ -169,7 +170,7 @@ export class TemplateService {
       instances = instances.filter((instance) => instance.$src?.src)
     }
     const { org, app, stage, name } = instances[0]
-    return { org, app, stage, name, instances, hooks }
+    return { org, app, stage, name, instances, hooks } 
   }
 
   resolveVariables(instance: OriginInstance, options: RunOptions) {

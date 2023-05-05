@@ -9,6 +9,7 @@ import type {
   PartialRunOptions,
   ResultInstanceError,
   ScfResultInstance,
+  SlsTemplate,
 } from '../types/index.js'
 
 import { createRequire } from 'node:module'
@@ -49,14 +50,18 @@ export class SlsService {
     if (!instances?.length) {
       throw new NoInstanceError()
     }
-    return { instances, ...rest, options: runOptions }
+    return { template: { instances, ...rest }, options: runOptions }
   }
 
-  private async runHooks<T = unknown>(runner: () => Promise<T>, hookName: string, options: unknown, hooks?: Record<string, string>) {
+  private async runHooks<T = unknown>(
+    runner: () => Promise<T>,
+    { hookName, options, template, hooks }:
+      { hookName: string, options: unknown, template?: SlsTemplate, hooks?: Record<string, string> }
+  ) {
     if (!hooks || !Object.keys(hooks).length) return runner()
 
-    let beforeHooks: Array<(n: string, d: unknown) => Promise<unknown>> = []
-    let afterHooks: Array<(n: string, d: unknown) => Promise<unknown>> = []
+    let beforeHooks: Array<(n: string, o: unknown, t: unknown) => Promise<unknown>> = []
+    let afterHooks: Array<(n: string, o: unknown, t: unknown) => Promise<unknown>> = []
     for (const [hook, handler] of Object.entries(hooks)) {
       const [period, name] = hook.split(':')
       if (!['before', 'after'].includes(period) || !name) continue
@@ -74,18 +79,18 @@ export class SlsService {
       }
     }
     for (const fun of beforeHooks) {
-      await fun(hookName, options)
+      await fun(hookName, options, template)
     }
     const result = await runner()
     for (const fun of afterHooks) {
-      await fun(hookName, options)
+      await fun(hookName, options, template)
     }
     return result
   }
 
   private async run(action: RunAction, options: PartialRunOptions = {}) {
-    const { hooks, instances, options: runOptions } =
-      await this.resolve(options, action)
+    const { template, options: runOptions } = await this.resolve(options, action)
+    const { hooks, instances } = template
     return this.runHooks<Array<ResultInstance | ResultInstanceError>>(async () => {
       const runResults: Array<ResultInstance | ResultInstanceError> = []
       for (const instance of instances) {
@@ -100,7 +105,7 @@ export class SlsService {
       }
       return runResults
 
-    }, action, runOptions, hooks)
+    }, { hookName: action, options: runOptions, template, hooks })
   }
 
   async deploy(options: PartialRunOptions = {}) {
@@ -112,8 +117,8 @@ export class SlsService {
   }
 
   async info(options: PartialRunOptions = {}) {
-    const { hooks, instances, options: runOptions } =
-      await this.resolve(options)
+    const { template, options: runOptions } = await this.resolve(options)
+    const { hooks, instances } = template
     const infoOptions = {
       ...runOptions,
       pollInterval: 0,
@@ -131,12 +136,12 @@ export class SlsService {
       ) as Array<ResultInstance | Error>
 
       return infoList
-    }, 'info', runOptions, hooks)
+    }, { hookName: 'info', options: runOptions, template, hooks })
   }
 
   async dev(options: PartialRunOptions = {}) {
-    const { hooks, instances, options: runOptions } =
-      await this.resolve(options)
+    const { template, options: runOptions } = await this.resolve(options)
+    const { hooks, instances } = template
     const scfInstances = instances.filter((instance) =>
       [COMPONENT_SCF].includes(instance.component),
     )
@@ -191,12 +196,12 @@ export class SlsService {
           })
       }
       return new Promise(() => { })
-    }, 'dev', runOptions, hooks)
+    }, { hookName: 'dev', options: runOptions, template, hooks })
   }
 
   async logs(options: PartialRunOptions = {}) {
-    const { hooks, instances, options: runOptions } =
-      await this.resolve(options)
+    const { template, options: runOptions } = await this.resolve(options)
+    const { hooks, instances } = template
     const scfInstances = instances.filter((instance) =>
       [COMPONENT_SCF].includes(instance.component),
     )
@@ -209,16 +214,19 @@ export class SlsService {
         this.instanceService.pollFunctionLogs(instance, runOptions)
       }
       return new Promise(() => { })
-    }, 'logs', runOptions, hooks)
+    }, { hookName: 'logs', options: runOptions, template, hooks })
   }
 
   async list(options: ListInstanceParams = {}) {
-    let hooks, app, org, stage
+    let template: SlsTemplate | undefined
+    let runOptions
     try {
-      ({ hooks, app, org, stage } = await this.resolve(options))
+      ({ template, options: runOptions } = await this.resolve(options))
     } catch (err) {
       // empty
     }
+
+    const { org, app, stage, hooks } = template ?? {}
 
     let realOptions = { ...options }
     if (org && !options.org) {
@@ -231,21 +239,23 @@ export class SlsService {
       Object.assign(realOptions, { stages: [stage] })
     }
     if (hooks) {
-      return this.runHooks(() => this.instanceService.list(realOptions), 'list', options, hooks)
+      return this.runHooks(() => this.instanceService.list(realOptions), { hookName: 'list', options: runOptions, template, hooks: hooks as Record<string, string> })
     }
 
     return this.instanceService.list(realOptions)
   }
 
   async login() {
-    let hooks
+    let template: SlsTemplate | undefined
+    let runOptions
     try {
-      ({ hooks } = await this.resolve({}))
+      ({ template, options: runOptions } = await this.resolve({}))
     } catch (err) {
       // empty
     }
+    const { hooks } = template ?? {}
     if (hooks) {
-      return this.runHooks(() => this.apiService.login(), 'login', {}, hooks)
+      return this.runHooks(() => this.apiService.login(), { hookName: 'login', options: runOptions, template, hooks: hooks as Record<string, string> })
     }
 
     return this.apiService.login()

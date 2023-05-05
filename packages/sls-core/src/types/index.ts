@@ -152,3 +152,8 @@ export interface ScfLogRecord {
   SCF_StatusCode: string
   [k: string]: string
 }
+
+export interface SlsTemplate extends SlsInstanceBaseInfo {
+  instances: SlsInstance[]
+  hooks?: Record<string, string>
+}
