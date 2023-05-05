@@ -9,9 +9,10 @@ import type {
   PartialRunOptions,
   ResultInstanceError,
   ScfResultInstance,
-  RunOptions,
 } from '../types/index.js'
 
+import { createRequire } from 'node:module'
+import path from 'node:path'
 import chokidar from 'chokidar'
 import { Observable, debounceTime, switchMap } from 'rxjs'
 import { COMPONENT_SCF } from '../constants.js'
@@ -20,15 +21,16 @@ import { ApiService } from './api.service.js'
 import { TemplateService } from './template.service.js'
 import { NoInstanceError } from '../errors.js'
 
+const require = createRequire(import.meta.url)
 export class SlsService {
   private instanceService: InstanceService
   private apiService: ApiService
   private templateService: TemplateService
 
-  constructor(config: SlsConfig) {
-    this.instanceService = new InstanceService(config)
-    this.apiService = new ApiService(config)
-    this.templateService = new TemplateService(config)
+  constructor(private readonly config: SlsConfig) {
+    this.instanceService = new InstanceService(this.config)
+    this.apiService = new ApiService(this.config)
+    this.templateService = new TemplateService(this.config)
   }
 
   private getResultError(instance: SlsInstance, error: Error) {
@@ -53,14 +55,17 @@ export class SlsService {
   private async runHooks<T = unknown>(runner: () => Promise<T>, hookName: string, options: unknown, hooks?: Record<string, string>) {
     if (!hooks || !Object.keys(hooks).length) return runner()
 
-    let beforeHooks: Array<(d: unknown) => Promise<unknown>> = []
-    let afterHooks: Array<(d: unknown) => Promise<unknown>> = []
+    let beforeHooks: Array<(n: string, d: unknown) => Promise<unknown>> = []
+    let afterHooks: Array<(n: string, d: unknown) => Promise<unknown>> = []
     for (const [hook, handler] of Object.entries(hooks)) {
       const [period, name] = hook.split(':')
       if (!['before', 'after'].includes(period) || !name) continue
       const [pkgName, funName] = handler.split('.')
       if (!pkgName || !funName) continue
-      const { [funName]: fun } = await import(pkgName)
+      let packagePath = /^\.?\.?\//.test(pkgName)
+        ? path.resolve(this.config.slsPath, 'serverless.yml', pkgName)
+        : path.resolve(process.cwd(), 'node_modules', pkgName)
+      const { [funName]: fun } = require(packagePath)
       if (period === 'before' && (name === 'all' || name === hookName)) {
         beforeHooks.push(fun)
       }
@@ -69,11 +74,11 @@ export class SlsService {
       }
     }
     for (const fun of beforeHooks) {
-      await fun(options)
+      await fun(hookName, options)
     }
     const result = await runner()
     for (const fun of afterHooks) {
-      await fun(options)
+      await fun(hookName, options)
     }
     return result
   }
