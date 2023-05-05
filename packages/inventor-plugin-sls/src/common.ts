@@ -12,7 +12,7 @@ import { env, log, type Loading } from '@inventorjs/cli-core'
 export interface Options {
   stage?: string
   json?: boolean
-  verbose?: boolean
+  detail?: boolean
   base?: string
   targets?: string[]
   force?: boolean
@@ -20,28 +20,25 @@ export interface Options {
   logsPeriod?: string
   logsInterval?: string
   logsQuery?: string
-  logsClean?: boolean
+  logsVerbose?: boolean
   updateConfig?: boolean
   updateCode?: boolean
   followSymbolicLinks?: boolean
   pollTimeout?: string
   pollInterval?: string
-  name?: string
   org?: string
-  app?: string
-  component?: string
+  names?: string[]
+  apps?: string[]
+  stages?: string[]
+  components?: string[]
+  secretId?: string
+  secretKey?: string
+  token?: string
 }
 
 const defaultBase = '.serverless'
 
-export function getSls(basePath = defaultBase, anonymous = false) {
-  if (anonymous) {
-    return new SlsService({
-      secretId: '',
-      secretKey: '',
-      slsPath: '',
-    })
-  }
+export function getSls(basePath = defaultBase) {
   const slsPath = path.resolve(process.cwd(), basePath as string)
   loadEnv({
     path: path.resolve(env.pwd(), '.env'),
@@ -52,12 +49,6 @@ export function getSls(basePath = defaultBase, anonymous = false) {
     TENCENT_TOKEN = '',
     SERVERLESS_TENCENT_NET_TYPE,
   } = process.env
-
-  if (!TENCENT_SECRET_ID || !TENCENT_SECRET_KEY) {
-    throw new Error(
-      '"TENCENT_SECRET_ID" "TENCENT_SECRET_KEY" variables is required in .env file!',
-    )
-  }
 
   const sls = new SlsService({
     secretId: TENCENT_SECRET_ID,
@@ -84,17 +75,22 @@ export function getOptions(options: string[] = []) {
     },
     {
       name: 'name',
-      flags: '-n, --name [name]',
+      flags: '-n, --names [name...]',
       description: '实例名称',
     },
     {
-      name: 'app',
-      flags: '-a, --app [app]',
+      name: 'apps',
+      flags: '-a, --apps [app...]',
       description: '应用名称',
     },
     {
-      name: 'component',
-      flags: '-c, --component [component]',
+      name: 'stages',
+      flags: '-s, --stages [stages...]',
+      description: '环境名称',
+    },
+    {
+      name: 'components',
+      flags: '-c, --components [component...]',
       description: '组件名称',
     },
     {
@@ -150,8 +146,8 @@ export function getOptions(options: string[] = []) {
     },
     {
       name: 'logsClean',
-      flags: '--logs-clean',
-      description: '实时日志精简',
+      flags: '--logs-verbose',
+      description: '实时详细日志',
     },
     {
       name: 'followSymbolicLinks',
@@ -174,9 +170,24 @@ export function getOptions(options: string[] = []) {
       description: '以 JSON 格式输出结果',
     },
     {
-      name: 'verbose',
-      flags: '--verbose',
+      name: 'detail',
+      flags: '--detail',
       description: '输出详细实例信息',
+    },
+    {
+      name: 'secretId',
+      flags: '--secret-id [secretId]',
+      description: 'API SecretID',
+    },
+    {
+      name: 'secretKey',
+      flags: '--secret-key [secretKey]',
+      description: 'API SecretKey',
+    },
+    {
+      name: 'token',
+      flags: '--token [token]',
+      description: '临时密钥 token',
     },
   ]
   const includeOptions = options
@@ -242,6 +253,7 @@ function getOutput(instance: ResultInstance | ResultInstanceError) {
     stageName: resultInstance.stageName,
     instanceName: resultInstance.instanceName,
     instanceStatus: log.color[statusColor](resultInstance.instanceStatus),
+    updatedAt: resultInstance.updatedAt,
   }
   if (['active', 'error'].includes(resultInstance.instanceStatus)) {
     Object.assign(output, {
@@ -262,7 +274,7 @@ export function outputResults(
   options: Options = {},
 ) {
   if (options.json) {
-    if (options.verbose) {
+    if (options.detail) {
       log.clear()
       log.raw(JSON.stringify(results))
     } else {
@@ -276,7 +288,7 @@ export function outputResults(
         logFun = log.error
       }
       logFun('='.repeat(60) + `[${index + 1}/${results.length}]`)
-      if (options.verbose) {
+      if (options.detail) {
         log.prettyJson(instance)
       } else {
         log.prettyJson(getOutput(instance))
@@ -331,7 +343,7 @@ export function processOptions(options: Options) {
     logsPeriod,
     logsInterval,
     logsQuery,
-    logsClean,
+    logsVerbose,
     ...restOptions
   } = options
   let realOptions = restOptions
@@ -351,11 +363,11 @@ export function processOptions(options: Options) {
     Object.assign(realOptions, { pollTimeout: + pollTimeout })
   }
 
-  if (logsPeriod || logsInterval || logsQuery || logsClean) {
+  if (logsPeriod || logsInterval || logsQuery || logsVerbose) {
     Object.assign(realOptions, { devServer: {
       logsInterval: +logsInterval!,
       logsPeriod: +logsPeriod!,
-      logsClean,
+      logsVerbose,
       logsQuery,
     }})
   }

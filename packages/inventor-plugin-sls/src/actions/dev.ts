@@ -21,10 +21,8 @@ const options = [
   'logsPeriod',
   'logsInterval',
   'logsQuery',
-  'logsClean',
+  'logsVerbose',
   'followSymbolicLinks',
-  'json',
-  'verbose',
 ] as const
 export type DevOptions = Pick<Options, typeof options[number]>
 

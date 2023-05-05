@@ -27,6 +27,7 @@ export interface SlsInstance extends OriginInstance {
 
 export interface MultiInstance extends SlsInstanceBaseInfo {
   instances: Record<string, SlsInstance>
+  hooks?: Record<string, string>
   $path: string
 }
 
@@ -92,7 +93,7 @@ export interface RunOptions {
     logsQuery: string
     logsPeriod: number
     logsWriter: (log: Record<string, unknown>) => void
-    logsClean: boolean
+    logsVerbose: boolean
     updateDebounceTime: number
   }
   targets: string[]

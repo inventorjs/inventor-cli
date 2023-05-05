@@ -20,7 +20,7 @@ const options = [
   'logsPeriod',
   'logsInterval',
   'logsQuery',
-  'logsClean',
+  'logsVerbose',
 ] as const
 type LogsOptions = Pick<Options, typeof options[number]>
 

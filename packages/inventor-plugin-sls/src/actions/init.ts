@@ -2,6 +2,7 @@
  * action 入口
  * @author: sunkeysun
  */
+import path from 'node:path'
 import { Action } from '@inventorjs/cli-core'
 
 export default class InitAction extends Action {
@@ -22,6 +23,7 @@ export default class InitAction extends Action {
         message: '请选择应用模版类型',
         choices: [
           { value: 'nodejs-koa', name: '基础 nodejs koa 应用(云函数+层+网关+日志)' },
+          { value: 'nodejs-nest', name: '基础 nodejs nest 应用(云函数+层+网关+日志)' },
         ],
       },
       {
@@ -56,17 +58,28 @@ export default class InitAction extends Action {
 
     const { tplName, orgName, appName, stageName } = anwsers
     const { config } = options
+    const dirName = config ? '.' : appName
 
-    await this.renderTemplate(tplName, '.', {
+    await this.renderTemplate(tplName, dirName, {
       data: {
         orgName,
         appName,
         stageName,
+        helloworld: 'Hello, Inventorjs!',
       },
-      includes: ['.serverless/serverless.yml']
+      includes: config ? ['.serverless/**/*'] : undefined
     })
+
+    if (!config) {
+      const cwd = path.resolve(this.pwd, dirName)
+      await this.runTaskContext(async () => {
+        await this.install()
+      }, { cwd })
+    }
+
     this.logInitCmd({
-      cmd: 'inventor sls deploy'
+      dirName,
+      cmd: 'pnpm dev\ninventor sls login\ninventor sls deploy\ninventor sls dev'
     })
   }
 }

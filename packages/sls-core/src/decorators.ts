@@ -1,8 +1,8 @@
 /**
  * decorators
  */
-import { REPORT_END, REPORT_START } from './constants.js'
 import type { RunOptions, SlsInstance } from './types/index.js'
+import { REPORT_END, REPORT_START } from './constants.js'
 
 export function reportStatus(statusData: {
   status: string
@@ -51,17 +51,6 @@ export function reportStatus(statusData: {
       } else {
         return result
       }
-    }
-  }
-}
-
-export function runHooks(hookName: string) {
-  return function (...args: unknown[]) {
-    const descriptor = args.at(-1) as PropertyDescriptor
-    const originMehtod = descriptor.value
-    descriptor.value = async function (...args: unknown[]) {
-      const result = await originMehtod.call(this, ...args)
-      return result
     }
   }
 }

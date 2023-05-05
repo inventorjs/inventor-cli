@@ -152,7 +152,7 @@ export abstract class Plugin {
       if (await fs.exists(destinationFile)) {
         const isOverwrites = await this.confirmOverwrites([destinationFile])
         if (!isOverwrites) {
-          throw new Error('Overwrites canceled!')
+          throw new Error('文件覆盖已取消!')
         }
       }
     }
@@ -324,7 +324,7 @@ export abstract class Plugin {
   }
 
   async logInitCmd({ dirName = '.', cmd = `${this.pm.BIN} dev` } = {}) {
-    this.log.success('Init successful. Start develop to run:')
+    this.log.success('项目初始化成功, 执行以下命令开始开发:')
     this.log.raw(
       `
         cd ${dirName}
