@@ -31,6 +31,9 @@ export interface Options {
   apps?: string[]
   stages?: string[]
   components?: string[]
+  secretId?: string
+  secretKey?: string
+  token?: string
 }
 
 const defaultBase = '.serverless'
@@ -183,6 +186,21 @@ export function getOptions(options: string[] = []) {
       name: 'detail',
       flags: '--detail',
       description: '输出详细实例信息',
+    },
+    {
+      name: 'secretId',
+      flags: '--secret-id [secretId]',
+      description: 'API SecretID',
+    },
+    {
+      name: 'secretKey',
+      flags: '--secret-key [secretKey]',
+      description: 'API SecretKey',
+    },
+    {
+      name: 'token',
+      flags: '--token [token]',
+      description: '临时密钥 token',
     },
   ]
   const includeOptions = options

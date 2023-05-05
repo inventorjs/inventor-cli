@@ -11,7 +11,7 @@ type RemoveOptions = Pick<Options, typeof options[number]>
 
 export default class DeployAction extends Action {
   description = '删除云端应用'
-  options = getOptions()
+  options = getOptions(options as unknown as string[])
 
   async run(_: string[], options: RemoveOptions) {
     const { base } = options

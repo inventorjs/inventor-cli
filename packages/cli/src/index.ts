@@ -34,6 +34,9 @@ const cli = new Command(BIN)
   .usage('[command] [action]')
   .addHelpCommand(false)
   .showHelpAfterError(true)
+  .configureHelp({
+    showGlobalOptions: true,
+  })
   .option('-v, --verbose', 'output verbose message')
 
 const corePlugins: PluginConfigItem[] = [

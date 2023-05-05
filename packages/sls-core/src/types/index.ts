@@ -27,6 +27,7 @@ export interface SlsInstance extends OriginInstance {
 
 export interface MultiInstance extends SlsInstanceBaseInfo {
   instances: Record<string, SlsInstance>
+  hooks?: Record<string, string>
   $path: string
 }
 
