@@ -30,12 +30,17 @@ export function isObject(data: unknown) {
   return data && typeof data === 'object'
 }
 
+export function isEmpty(data: unknown) {
+  if (!data || !Object.keys(data).length) return true
+  return false
+}
+
 export function getStageRegion(stage = 'prod') {
   return stage === 'dev' ? 'ap-shanghai' : 'ap-guangzhou'
 }
 
-export async function getFilesStatsContent(files: string[]) {
-  const limit = pLimit(10000)
+export async function getFilesStatsContent(files: string[], parallelLimit = 10000) {
+  const limit = pLimit(parallelLimit)
   const tasks = files.map((file) =>
     limit(async () => {
       const stats = await fs.lstat(file)
@@ -65,5 +70,8 @@ export async function sleep(ms: number) {
 }
 
 export function filesize(bytes: number) {
-  return String(filesizeLib(bytes, { base: 2, standard: 'jedec' })).replace(/\s/g, '')
+  return String(filesizeLib(bytes, { base: 2, standard: 'jedec' })).replace(
+    /\s/g,
+    '',
+  )
 }

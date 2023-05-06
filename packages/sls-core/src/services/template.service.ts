@@ -18,10 +18,7 @@ import yaml from 'js-yaml'
 import traverse from 'traverse'
 import Graph from 'graph-data-structure'
 import { reportStatus } from '../decorators.js'
-import {
-  isFile,
-  isObject,
-} from '../util.js'
+import { isFile, isObject } from '../util.js'
 import { RUN_STATUS } from '../constants.js'
 import { CircularError } from '../errors.js'
 
@@ -54,7 +51,7 @@ export class TemplateService {
           return null
         }
       } else {
-        ; ({ default: instance } = await import(filePath))
+        ;({ default: instance } = await import(filePath))
       }
       if (instance) {
         instance.$path = path.dirname(filePath)
@@ -156,7 +153,10 @@ export class TemplateService {
     let hooks: Record<string, string> | undefined
     let rest
     if (this.isMultiInstance(multiInstance)) {
-      ({ instances, hooks, ...rest } = this.resolveMultiInstance(multiInstance, options))
+      ;({ instances, hooks, ...rest } = this.resolveMultiInstance(
+        multiInstance,
+        options,
+      ))
     } else if (this.isInstance(instance)) {
       instances = this.resolveSingleInstance(instance, options)
     } else {
@@ -170,7 +170,7 @@ export class TemplateService {
       instances = instances.filter((instance) => instance.$src?.src)
     }
     const { org, app, stage, name } = instances[0]
-    return { org, app, stage, name, instances, hooks } 
+    return { org, app, stage, name, instances, hooks }
   }
 
   resolveVariables(instance: OriginInstance, options: RunOptions) {
@@ -245,7 +245,7 @@ export class TemplateService {
     })
 
     return sortedInstances
-  }  
+  }
 
   private getNormalSrc(instance: SlsInstance) {
     const src = instance.inputs.src

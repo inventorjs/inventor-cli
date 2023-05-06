@@ -145,7 +145,7 @@ export function getOptions(options: string[] = []) {
       defaultValue: '*',
     },
     {
-      name: 'logsClean',
+      name: 'logsVerbose',
       flags: '--logs-verbose',
       description: '实时详细日志',
     },

@@ -3,7 +3,6 @@
  */
 import type {
   SlsInstance,
-  SlsInstanceSrcLocal,
   SlsInstanceSrcCos,
   ResultInstance,
   MultiScfInstance,
@@ -33,9 +32,12 @@ import {
 import { RUN_STATUS, COMPONENT_SCF, COMPONENT_MULTI_SCF } from '../constants.js'
 import { NoSrcConfigError, NoSrcFilesError } from '../errors.js'
 
-export type ListInstanceParams = Partial<
-  Pick<SlsInstance, 'org' | 'stage'>
-> & { apps?: string[]; names?: string[]; components?: string[]; stages?: string[] }
+export type ListInstanceParams = Partial<Pick<SlsInstance, 'org' | 'stage'>> & {
+  apps?: string[]
+  names?: string[]
+  components?: string[]
+  stages?: string[]
+}
 
 export class InstanceService {
   private defaultRunOptions: RunOptions = {
@@ -45,7 +47,7 @@ export class InstanceService {
     pollInterval: 200,
     followSymbolicLinks: false,
     resolveVar: 'env',
-    reportStatus: async () => { },
+    reportStatus: async () => {},
     targets: [],
     inputs: {},
     deployType: 'all',
@@ -286,7 +288,7 @@ export class InstanceService {
       ) {
         return this.updateFunctionCode(instance, options)
       } else {
-        ; ({
+        ;({
           instance: runInstance,
           cacheOutdated,
           force,

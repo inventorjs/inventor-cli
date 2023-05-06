@@ -17,6 +17,8 @@ instances:
       namespace: default
       type: web
       memorySize: 1024
+      timeout: 30
+      initTimeout: 5
       src:
         src: ../dist
         include:

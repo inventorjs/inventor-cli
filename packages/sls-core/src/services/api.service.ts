@@ -3,7 +3,6 @@
  */
 import type { UpdateFunctionCodeRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/scf/v20180416/scf_models.js'
 import type { SearchLogRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/cls/v20201016/cls_models.js'
-
 import type { SlsConfig, TransInstance } from '../types/index.js'
 import { cam, scf, cls } from 'tencentcloud-sdk-nodejs'
 import ServerlessUtils from '@serverless/utils-china'
@@ -22,7 +21,7 @@ export interface GetCacheFileUrlsParams {
 }
 
 export interface RunComponentParams {
-  instance: TransInstance 
+  instance: TransInstance
   method: 'deploy' | 'remove'
   options: {
     cacheOutdated?: boolean // 缓存是否过期：增量部署
@@ -58,14 +57,22 @@ export class ApiService {
     return endpoint
   }
 
-  private async call<T = SlsSdkResponse>(callFun: () => Promise<T>, apiName: string) {
+  private async call<T = SlsSdkResponse>(
+    callFun: () => Promise<T>,
+    apiName: string,
+  ) {
     try {
       return await callFun()
     } catch (err) {
-      const error = err as Error & { code: string, requestId: string }
-      let errDetail = error.code && error.requestId ? JSON.stringify({code: error.code, requestId: error.requestId }) : ''
+      const error = err as Error & { code: string; requestId: string }
+      let errDetail =
+        error.code && error.requestId
+          ? JSON.stringify({ code: error.code, requestId: error.requestId })
+          : ''
       errDetail = errDetail ? `\n${errDetail}` : ''
-      throw new Error(`[${apiName}]${error.message}${errDetail}`, { cause: error })
+      throw new Error(`[${apiName}]${error.message}${errDetail}`, {
+        cause: error,
+      })
     }
   }
 
@@ -168,8 +175,7 @@ export class ApiService {
   async getInstance(instance: TransInstance) {
     const slsClient = await this.getSlsClient()
     const response = await this.call(
-      async () =>
-        slsClient.getInstance(instance),
+      async () => slsClient.getInstance(instance),
       'sls:getInstance',
     )
     return this.processSlsResponse(response)
@@ -183,7 +189,7 @@ export class ApiService {
     componentNames,
   }: ListInstancesParams = {}) {
     const slsClient = await this.getSlsClient()
-    const org = orgName ?? await this.getAppId()
+    const org = orgName ?? (await this.getAppId())
     const response = await this.call(
       () =>
         slsClient.listInstances({
@@ -231,9 +237,6 @@ export class ApiService {
   }
 
   async login() {
-    return this.call(
-      () => this.getLoginClient().login(),
-      '@serverless:login'
-    )
+    return this.call(() => this.getLoginClient().login(), '@serverless:login')
   }
 }

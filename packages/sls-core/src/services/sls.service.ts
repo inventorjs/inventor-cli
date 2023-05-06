@@ -41,7 +41,10 @@ export class SlsService {
     }
   }
 
-  private async resolve(options: PartialRunOptions, action: RunAction = 'deploy') {
+  private async resolve(
+    options: PartialRunOptions,
+    action: RunAction = 'deploy',
+  ) {
     const runOptions = this.instanceService.getRunOptions(options)
     let { instances, ...rest } = await this.templateService.resolve(
       action,
@@ -55,13 +58,26 @@ export class SlsService {
 
   private async runHooks<T = unknown>(
     runner: () => Promise<T>,
-    { hookName, options, template, hooks }:
-      { hookName: string, options: unknown, template?: SlsTemplate, hooks?: Record<string, string> }
+    {
+      hookName,
+      options,
+      template,
+      hooks,
+    }: {
+      hookName: string
+      options: unknown
+      template?: SlsTemplate
+      hooks?: Record<string, string>
+    },
   ) {
     if (!hooks || !Object.keys(hooks).length) return runner()
 
-    let beforeHooks: Array<(n: string, o: unknown, t: unknown) => Promise<unknown>> = []
-    let afterHooks: Array<(n: string, o: unknown, t: unknown) => Promise<unknown>> = []
+    let beforeHooks: Array<
+      (n: string, o: unknown, t: unknown) => Promise<unknown>
+    > = []
+    let afterHooks: Array<
+      (n: string, o: unknown, t: unknown) => Promise<unknown>
+    > = []
     for (const [hook, handler] of Object.entries(hooks)) {
       const [period, name] = hook.split(':')
       if (!['before', 'after'].includes(period) || !name) continue
@@ -89,23 +105,28 @@ export class SlsService {
   }
 
   private async run(action: RunAction, options: PartialRunOptions = {}) {
-    const { template, options: runOptions } = await this.resolve(options, action)
+    const { template, options: runOptions } = await this.resolve(
+      options,
+      action,
+    )
     const { hooks, instances } = template
-    return this.runHooks<Array<ResultInstance | ResultInstanceError>>(async () => {
-      const runResults: Array<ResultInstance | ResultInstanceError> = []
-      for (const instance of instances) {
-        await this.instanceService.run(action, instance, runOptions)
-        let result
-        try {
-          result = await this.instanceService.poll(instance, runOptions)
-        } catch (err) {
-          result = this.getResultError(instance, err as Error)
+    return this.runHooks<Array<ResultInstance | ResultInstanceError>>(
+      async () => {
+        const runResults: Array<ResultInstance | ResultInstanceError> = []
+        for (const instance of instances) {
+          await this.instanceService.run(action, instance, runOptions)
+          let result
+          try {
+            result = await this.instanceService.poll(instance, runOptions)
+          } catch (err) {
+            result = this.getResultError(instance, err as Error)
+          }
+          runResults.push(result)
         }
-        runResults.push(result)
-      }
-      return runResults
-
-    }, { hookName: action, options: runOptions, template, hooks })
+        return runResults
+      },
+      { hookName: action, options: runOptions, template, hooks },
+    )
   }
 
   async deploy(options: PartialRunOptions = {}) {
@@ -124,19 +145,22 @@ export class SlsService {
       pollInterval: 0,
       pollTimeout: 0,
     }
-    return this.runHooks<Array<ResultInstance | Error>>(async () => {
-      const infoPromises = instances.map((instance) =>
-        this.instanceService
-          .poll(instance, infoOptions)
-          .catch((err) => this.getResultError(instance, err as Error)),
-      )
-      const resultList = await Promise.all(infoPromises)
-      const infoList = resultList.map((result) =>
-        result instanceof Error ? result : result,
-      ) as Array<ResultInstance | Error>
+    return this.runHooks<Array<ResultInstance | Error>>(
+      async () => {
+        const infoPromises = instances.map((instance) =>
+          this.instanceService
+            .poll(instance, infoOptions)
+            .catch((err) => this.getResultError(instance, err as Error)),
+        )
+        const resultList = await Promise.all(infoPromises)
+        const infoList = resultList.map((result) =>
+          result instanceof Error ? result : result,
+        ) as Array<ResultInstance | Error>
 
-      return infoList
-    }, { hookName: 'info', options: runOptions, template, hooks })
+        return infoList
+      },
+      { hookName: 'info', options: runOptions, template, hooks },
+    )
   }
 
   async dev(options: PartialRunOptions = {}) {
@@ -150,53 +174,59 @@ export class SlsService {
       throw new NoInstanceError('云函数')
     }
 
-    return this.runHooks(async () => {
-      for (const instance of scfInstances) {
-        const src = instance.$src?.src
-        if (!src) continue
-        const watcher = chokidar.watch(src)
-        const watch$ = new Observable<{ event: string; file: string }>(
-          (observer) => {
-            watcher.on('all', async (event, file) => {
-              observer.next({ event, file })
-            })
-          },
-        )
-        let startPollFunctionLogs = false
-        watch$
-          .pipe(
-            debounceTime(runOptions.devServer.updateDebounceTime),
-            switchMap(
-              () =>
-                new Observable<ResultInstance>((observer) => {
-                  this.instanceService
-                    .poll(instance, runOptions)
-                    .then((result) => {
-                      const resultInstance = result as ScfResultInstance
-                      if (resultInstance?.instanceStatus === 'inactive') {
-                        throw new Error(
-                          '云函数实例不存在，请先执行 "deploy" 进行部署',
-                        )
-                      }
-                      observer.next(resultInstance)
-                    })
-                }),
-            ),
+    return this.runHooks(
+      async () => {
+        for (const instance of scfInstances) {
+          const src = instance.$src?.src
+          if (!src) continue
+          const watcher = chokidar.watch(src)
+          const watch$ = new Observable<{ event: string; file: string }>(
+            (observer) => {
+              watcher.on('all', async (event, file) => {
+                observer.next({ event, file })
+              })
+            },
           )
-          .subscribe((resultInstance) => {
-            const { name, namespace } = resultInstance.inputs
-            this.instanceService.updateFunctionCode(
-              { ...instance, inputs: { ...instance.inputs, name, namespace } },
-              runOptions,
+          let startPollFunctionLogs = false
+          watch$
+            .pipe(
+              debounceTime(runOptions.devServer.updateDebounceTime),
+              switchMap(
+                () =>
+                  new Observable<ResultInstance>((observer) => {
+                    this.instanceService
+                      .poll(instance, runOptions)
+                      .then((result) => {
+                        const resultInstance = result as ScfResultInstance
+                        if (resultInstance?.instanceStatus === 'inactive') {
+                          throw new Error(
+                            '云函数实例不存在，请先执行 "deploy" 进行部署',
+                          )
+                        }
+                        observer.next(resultInstance)
+                      })
+                  }),
+              ),
             )
-            if (!startPollFunctionLogs) {
-              this.instanceService.pollFunctionLogs(instance, runOptions)
-              startPollFunctionLogs = true
-            }
-          })
-      }
-      return new Promise(() => { })
-    }, { hookName: 'dev', options: runOptions, template, hooks })
+            .subscribe((resultInstance) => {
+              const { name, namespace } = resultInstance.inputs
+              this.instanceService.updateFunctionCode(
+                {
+                  ...instance,
+                  inputs: { ...instance.inputs, name, namespace },
+                },
+                runOptions,
+              )
+              if (!startPollFunctionLogs) {
+                this.instanceService.pollFunctionLogs(instance, runOptions)
+                startPollFunctionLogs = true
+              }
+            })
+        }
+        return new Promise(() => {})
+      },
+      { hookName: 'dev', options: runOptions, template, hooks },
+    )
   }
 
   async logs(options: PartialRunOptions = {}) {
@@ -209,19 +239,22 @@ export class SlsService {
     if (!scfInstances?.length) {
       throw new NoInstanceError('云函数')
     }
-    return this.runHooks(() => {
-      for (const instance of scfInstances) {
-        this.instanceService.pollFunctionLogs(instance, runOptions)
-      }
-      return new Promise(() => { })
-    }, { hookName: 'logs', options: runOptions, template, hooks })
+    return this.runHooks(
+      () => {
+        for (const instance of scfInstances) {
+          this.instanceService.pollFunctionLogs(instance, runOptions)
+        }
+        return new Promise(() => {})
+      },
+      { hookName: 'logs', options: runOptions, template, hooks },
+    )
   }
 
   async list(options: ListInstanceParams = {}) {
     let template: SlsTemplate | undefined
     let runOptions
     try {
-      ({ template, options: runOptions } = await this.resolve(options))
+      ;({ template, options: runOptions } = await this.resolve(options))
     } catch (err) {
       // empty
     }
@@ -239,7 +272,12 @@ export class SlsService {
       Object.assign(realOptions, { stages: [stage] })
     }
     if (hooks) {
-      return this.runHooks(() => this.instanceService.list(realOptions), { hookName: 'list', options: runOptions, template, hooks: hooks as Record<string, string> })
+      return this.runHooks(() => this.instanceService.list(realOptions), {
+        hookName: 'list',
+        options: runOptions,
+        template,
+        hooks: hooks as Record<string, string>,
+      })
     }
 
     return this.instanceService.list(realOptions)
@@ -249,13 +287,18 @@ export class SlsService {
     let template: SlsTemplate | undefined
     let runOptions
     try {
-      ({ template, options: runOptions } = await this.resolve({}))
+      ;({ template, options: runOptions } = await this.resolve({}))
     } catch (err) {
       // empty
     }
     const { hooks } = template ?? {}
     if (hooks) {
-      return this.runHooks(() => this.apiService.login(), { hookName: 'login', options: runOptions, template, hooks: hooks as Record<string, string> })
+      return this.runHooks(() => this.apiService.login(), {
+        hookName: 'login',
+        options: runOptions,
+        template,
+        hooks: hooks as Record<string, string>,
+      })
     }
 
     return this.apiService.login()
