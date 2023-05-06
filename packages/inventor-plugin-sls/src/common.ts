@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { config as configEnv } from 'dotenv'
+import { config as loadEnv } from 'dotenv'
 import {
   SlsService,
   util,
@@ -7,39 +7,40 @@ import {
   type ResultInstance,
   type ResultInstanceError,
 } from '@inventorjs/sls-core'
-import { env, log } from '@inventorjs/cli-core'
+import { env, log, type Loading } from '@inventorjs/cli-core'
 
-interface Ora {
-  text: string
-  prefixText: string
-}
-
-export interface BaseOptions {
+export interface Options {
   stage?: string
-  targets?: string[]
-  base?: string
   json?: boolean
-  verbose?: boolean
-  pollTimeout?: string
-  pollInterval?: string
-}
-
-export interface Options extends BaseOptions {
+  detail?: boolean
+  base?: string
+  targets?: string[]
   force?: boolean
   inputs?: string[]
   logsPeriod?: string
   logsInterval?: string
   logsQuery?: string
+  logsVerbose?: boolean
   updateConfig?: boolean
   updateCode?: boolean
   followSymbolicLinks?: boolean
+  pollTimeout?: string
+  pollInterval?: string
+  org?: string
+  names?: string[]
+  apps?: string[]
+  stages?: string[]
+  components?: string[]
+  secretId?: string
+  secretKey?: string
+  token?: string
 }
 
 const defaultBase = '.serverless'
 
 export function getSls(basePath = defaultBase) {
   const slsPath = path.resolve(process.cwd(), basePath as string)
-  configEnv({
+  loadEnv({
     path: path.resolve(env.pwd(), '.env'),
   })
   const {
@@ -48,12 +49,6 @@ export function getSls(basePath = defaultBase) {
     TENCENT_TOKEN = '',
     SERVERLESS_TENCENT_NET_TYPE,
   } = process.env
-
-  if (!TENCENT_SECRET_ID && !TENCENT_SECRET_KEY) {
-    throw new Error(
-      '"TENCENT_SECRET_ID" "TENCENT_SECRET_KEY" variables is required in .env file!',
-    )
-  }
 
   const sls = new SlsService({
     secretId: TENCENT_SECRET_ID,
@@ -67,20 +62,36 @@ export function getSls(basePath = defaultBase) {
 }
 
 export function getOptions(options: string[] = []) {
-  const baseOptions = [
-    'stage',
-    'targets',
-    'base',
-    'json',
-    'verbose',
-    'pollTimeout',
-    'pollInterval',
-  ]
   const allOptions = [
     {
       name: 'stage',
       flags: '-s, --stage [stage]',
       description: '执行环境名称，默认使用配置环境',
+    },
+    {
+      name: 'org',
+      flags: '-o, --org [org]',
+      description: '团队名称, 默认为账号AppId',
+    },
+    {
+      name: 'name',
+      flags: '-n, --names [name...]',
+      description: '实例名称',
+    },
+    {
+      name: 'apps',
+      flags: '-a, --apps [app...]',
+      description: '应用名称',
+    },
+    {
+      name: 'stages',
+      flags: '-s, --stages [stages...]',
+      description: '环境名称',
+    },
+    {
+      name: 'components',
+      flags: '-c, --components [component...]',
+      description: '组件名称',
     },
     {
       name: 'targets',
@@ -134,6 +145,11 @@ export function getOptions(options: string[] = []) {
       defaultValue: '*',
     },
     {
+      name: 'logsClean',
+      flags: '--logs-verbose',
+      description: '实时详细日志',
+    },
+    {
       name: 'followSymbolicLinks',
       flags: '--follow-symbolic-links',
       description: '解析软链接为实际文件',
@@ -154,12 +170,27 @@ export function getOptions(options: string[] = []) {
       description: '以 JSON 格式输出结果',
     },
     {
-      name: 'verbose',
-      flags: '--verbose',
+      name: 'detail',
+      flags: '--detail',
       description: '输出详细实例信息',
     },
+    {
+      name: 'secretId',
+      flags: '--secret-id [secretId]',
+      description: 'API SecretID',
+    },
+    {
+      name: 'secretKey',
+      flags: '--secret-key [secretKey]',
+      description: 'API SecretKey',
+    },
+    {
+      name: 'token',
+      flags: '--token [token]',
+      description: '临时密钥 token',
+    },
   ]
-  const includeOptions = baseOptions.concat(options)
+  const includeOptions = options
   const realOptions = allOptions
     .filter((option) => includeOptions.includes(option.name))
     .map((option) => {
@@ -170,7 +201,7 @@ export function getOptions(options: string[] = []) {
 }
 
 export async function reportStatus(
-  loading: Ora,
+  loading: Loading,
   statusData: ReportStatus,
   action: string,
 ) {
@@ -183,9 +214,8 @@ export async function reportStatus(
     color = 'green'
   }
   if (instance) {
-    prefixText = `${instance.app} > ${instance.stage} > ${
-      instance.name
-    }(${log.color[color](action)})`
+    prefixText = `${instance.app} > ${instance.stage} > ${instance.name
+      }(${log.color[color](action)})`
   }
   let text = statusText
   if (point === 'end') {
@@ -197,10 +227,10 @@ export async function reportStatus(
     await util.sleep(1000)
   }
   if (action === 'dev') {
-    loading.text = '远程开发监听中'
+    loading.text = '云函数远程开发监听中'
   }
   if (action === 'logs') {
-    loading.text = '远程日志监听中'
+    loading.text = '云函数远程日志监听中'
   }
 }
 
@@ -223,6 +253,7 @@ function getOutput(instance: ResultInstance | ResultInstanceError) {
     stageName: resultInstance.stageName,
     instanceName: resultInstance.instanceName,
     instanceStatus: log.color[statusColor](resultInstance.instanceStatus),
+    updatedAt: resultInstance.updatedAt,
   }
   if (['active', 'error'].includes(resultInstance.instanceStatus)) {
     Object.assign(output, {
@@ -240,10 +271,10 @@ function getOutput(instance: ResultInstance | ResultInstanceError) {
 
 export function outputResults(
   results: Array<ResultInstance | ResultInstanceError>,
-  options: BaseOptions = {},
+  options: Options = {},
 ) {
   if (options.json) {
-    if (options.verbose) {
+    if (options.detail) {
       log.clear()
       log.raw(JSON.stringify(results))
     } else {
@@ -257,7 +288,7 @@ export function outputResults(
         logFun = log.error
       }
       logFun('='.repeat(60) + `[${index + 1}/${results.length}]`)
-      if (options.verbose) {
+      if (options.detail) {
         log.prettyJson(instance)
       } else {
         log.prettyJson(getOutput(instance))
@@ -283,4 +314,63 @@ export function outputResults(
       )}, ${log.color.red(`error: ${errorCount}`)} ]${'='.repeat(30)}`,
     )
   }
+}
+
+export function processInputs(inputs?: string[]) {
+  let realInputs: Record<string, string> = {}
+  if (inputs && inputs?.length > 0) {
+    realInputs = inputs.reduce<Record<string, string>>(
+      (result, inputItem) => {
+        const [key, val] = inputItem.split('=')
+        return {
+          ...result,
+          [key]: val,
+        }
+      },
+      {},
+    )
+  }
+  return realInputs
+}
+
+export function processOptions(options: Options) {
+  const {
+    inputs,
+    updateConfig,
+    updateCode,
+    pollTimeout,
+    pollInterval,
+    logsPeriod,
+    logsInterval,
+    logsQuery,
+    logsVerbose,
+    ...restOptions
+  } = options
+  let realOptions = restOptions
+
+  if (inputs) {
+    Object.assign(realOptions, { inputs: processInputs })
+  }
+  if (updateCode || updateConfig) {
+    Object.assign(realOptions, {
+      deployType: updateCode ? 'code' : updateConfig ? 'config' : 'all',
+    })
+  }
+  if (pollInterval) {
+    Object.assign(realOptions, { pollInterval: + pollInterval })
+  }
+  if (pollTimeout) {
+    Object.assign(realOptions, { pollTimeout: + pollTimeout })
+  }
+
+  if (logsPeriod || logsInterval || logsQuery || logsVerbose) {
+    Object.assign(realOptions, { devServer: {
+      logsInterval: +logsInterval!,
+      logsPeriod: +logsPeriod!,
+      logsVerbose,
+      logsQuery,
+    }})
+  }
+    
+  return realOptions
 }

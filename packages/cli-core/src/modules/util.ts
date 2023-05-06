@@ -3,6 +3,7 @@
  * @author: sunkeysun
  */
 import { filesize as fz } from 'filesize'
+import dayjs from 'dayjs'
 
 export function getPluginName(packageName: string) {
   if (
@@ -30,4 +31,8 @@ export function pascalCase(str: string) {
     .split(/[-_]/)
     .map((seg) => `${seg[0].toUpperCase()}${seg.substring(1)}`)
     .join('')
+}
+
+export function dateFormat(timestamp: number, format = 'YYYY-MM-DD HH:mm:ss') {
+  return dayjs(timestamp).format(format)
 }

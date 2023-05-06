@@ -1,0 +1,71 @@
+<% if (orgName) { %>
+orgName: <%- orgName %>
+<% } %>
+app: <%- appName %>
+stage: <%- stageName %>
+
+common:
+  region: &region ap-guangzhou
+  runtime: &runtime Nodejs16.13
+
+instances:
+  scf-ins:
+    component: scf
+    inputs:
+      region: *region
+      runtime: *runtime
+      namespace: default
+      type: web
+      memorySize: 1024
+      src:
+        src: ../dist
+        include:
+          - ../.serverless/scf_bootstrap
+      cls:
+        logsetId: ${output:${stage}:${app}:cls-ins.logsetId}
+        topicId: ${output:${stage}:${app}:cls-ins.topicId}
+      layers:
+        - name: ${output:${stage}:${app}:layer-ins.name}
+          version: ${output:${stage}:${app}:layer-ins.version}
+      environment:
+        variables:
+          SERVER_PORT: 9000
+      events:
+        - apigw:
+            parameters:
+              serviceId: ${output:${stage}:${app}:apigateway-ins.serviceId}
+              environment: release
+              endpoints:
+                - path: /
+                  method: ANY
+                  function:
+                    isIntegratedResponse: true
+                    functionQualifier: $DEFAULT
+  layer-ins:
+    component: layer
+    inputs:
+      src: ../node_modules
+      runtimes:
+        - *runtime
+  cls-ins:
+    component: cls
+    inputs:
+      region: *region
+      name: ${name}-${stage}-${app}
+      topic: ${name}-${stage}-${app}-topic
+      indexRule:
+        fullText:
+          caseSensitive: true
+          tokenizer: "@&()='\",;:<>[]{}/ \n\t\r"
+  apigateway-ins:
+    component: apigateway
+    inputs:
+      environment: test
+      netTypes:
+        - OUTER
+        - INNER
+      endpoints:
+        - path: /
+          method: ANY
+          serviceType: MOCK
+          serviceMockReturnMessage: 'mock response content' 

@@ -4,49 +4,38 @@
  */
 import { Action } from '@inventorjs/cli-core'
 import {
+  type Options,
   getOptions,
   reportStatus,
   getSls,
-  type Options,
-  BaseOptions,
+  processOptions,
 } from '../common.js'
 
-export type DevOptions = BaseOptions &
-  Pick<
-    Options,
-    'logsPeriod' | 'logsInterval' | 'logsQuery' | 'followSymbolicLinks'
-  >
+const options = [
+  'base',
+  'targets',
+  'stage',
+  'inputs',
+  'pollTimeout',
+  'pollInterval',
+  'logsPeriod',
+  'logsInterval',
+  'logsQuery',
+  'logsVerbose',
+  'followSymbolicLinks',
+] as const
+export type DevOptions = Pick<Options, typeof options[number]>
 
 export default class DevAction extends Action {
   description = '启动云函数远程开发服务'
-  options = getOptions([
-    'logsPeriod',
-    'logsInterval',
-    'logsQuery',
-    'followSymbolicLinks',
-  ])
+  options = getOptions(options as unknown as string[])
 
-  async run(_: string[], options: Required<DevOptions>) {
-    const {
-      base,
-      logsPeriod,
-      logsInterval,
-      logsQuery,
-      pollTimeout,
-      pollInterval,
-      ...slsOptions
-    } = options
+  async run(_: string[], options: DevOptions) {
+    const { base } = options
     const sls = getSls(base)
     this.loadingTask((loading) =>
       sls.dev({
-        ...slsOptions,
-        pollTimeout: Number(pollTimeout),
-        pollInterval: Number(pollInterval),
-        devServer: {
-          logsInterval: +logsInterval,
-          logsPeriod: +logsPeriod,
-          logsQuery,
-        },
+        ...processOptions(options),
         reportStatus: (statusData) => reportStatus(loading, statusData, 'dev'),
       }),
     )

@@ -6,61 +6,42 @@ import type { ResultInstance } from '@inventorjs/sls-core'
 
 import { Action } from '@inventorjs/cli-core'
 import {
+  type Options,
   getOptions,
   reportStatus,
   getSls,
-  type Options,
-  type BaseOptions,
   outputResults,
+  processOptions,
 } from '../common.js'
 
-type DeployOptions = BaseOptions &
-  Pick<
-    Options,
-    'force' | 'inputs' | 'updateConfig' | 'updateCode' | 'followSymbolicLinks'
-  >
+const options = [
+  'base',
+  'targets',
+  'stage',
+  'force',
+  'inputs',
+  'updateConfig',
+  'updateCode',
+  'followSymbolicLinks',
+  'pollTimeout',
+  'pollInterval',
+  'json',
+  'detail',
+] as const
+
+type DeployOptions = Pick<Options, typeof options[number]>
 
 export default class DeployAction extends Action {
   description = '部署应用到云端'
-  options = getOptions([
-    'force',
-    'inputs',
-    'updateConfig',
-    'updateCode',
-    'followSymbolicLinks',
-  ])
+  options = getOptions(options as unknown as string[])
 
   async run(_: string[], options: DeployOptions) {
-    const {
-      base,
-      inputs,
-      updateConfig,
-      updateCode,
-      pollTimeout,
-      pollInterval,
-      ...slsOptions
-    } = options
+    const { base } = options
     const sls = getSls(base)
-    let realInputs: Record<string, string> = {}
-    if (inputs && inputs?.length > 0) {
-      realInputs = inputs.reduce<Record<string, string>>(
-        (result, inputItem) => {
-          const [key, val] = inputItem.split('=')
-          return {
-            ...result,
-            [key]: val,
-          }
-        },
-        {},
-      )
-    }
+
     const results = (await this.loadingTask((loading) =>
       sls.deploy({
-        ...slsOptions,
-        inputs: realInputs,
-        pollTimeout: Number(pollTimeout),
-        pollInterval: Number(pollInterval),
-        deployType: updateCode ? 'code' : updateConfig ? 'config' : 'all',
+        ...processOptions(options),
         reportStatus: (statusData) =>
           reportStatus(loading, statusData, 'deploy'),
       }),
