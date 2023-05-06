@@ -1,5 +1,5 @@
 <% if (orgName) { %>
-orgName: <%- orgName %>
+org: <%- orgName %>
 <% } %>
 app: <%- appName %>
 stage: <%- stageName %>
@@ -71,6 +71,3 @@ instances:
           method: ANY
           serviceType: MOCK
           serviceMockReturnMessage: 'mock response content' 
-
-hooks:
-  before:info: uuid.v4

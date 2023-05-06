@@ -86,7 +86,14 @@ export class SlsService {
       let packagePath = /^\.?\.?\//.test(pkgName)
         ? path.resolve(this.config.slsPath, 'serverless.yml', pkgName)
         : path.resolve(process.cwd(), 'node_modules', pkgName)
-      const { [funName]: fun } = require(packagePath)
+      let fun
+      try {
+        ;({ [funName]: fun } = require(packagePath))
+      } catch (err) {
+        throw new Error(
+          `hook: "${hook}" handler: "${handler}" 加载失败\n目标路径: ${packagePath}\n请检查模版 hooks 配置是否正确`,
+        )
+      }
       if (period === 'before' && (name === 'all' || name === hookName)) {
         beforeHooks.push(fun)
       }

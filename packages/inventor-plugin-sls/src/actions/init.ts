@@ -60,12 +60,19 @@ export default class InitAction extends Action {
     const { config } = options
     const dirName = config ? '.' : appName
 
+    let helloworld = 'Hello, Inventorjs'
+    if (tplName === 'nodejs-koa') {
+      helloworld += '* Koa'
+    } else if (tplName === 'nodejs-nest') {
+      helloworld += '* Nest'
+    }
+
     await this.renderTemplate(tplName, dirName, {
       data: {
         orgName,
         appName,
         stageName,
-        helloworld: 'Hello, Inventorjs!',
+        helloworld,
       },
       includes: config ? ['.serverless/**/*'] : undefined
     })
