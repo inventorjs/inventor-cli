@@ -11,6 +11,7 @@ import type {
   SlsConfig,
   SlsInstanceSrcLocal,
   SlsInstanceSrcCos,
+  SlsTemplate,
 } from '../types/index.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -144,7 +145,7 @@ export class TemplateService {
   }
 
   @reportStatus(RUN_STATUS.resolve)
-  async resolve(action: RunAction, options: RunOptions) {
+  async resolve(action: RunAction, options: RunOptions): Promise<SlsTemplate> {
     const ins = await this.resolveFile(this.config.slsPath)
     const multiInstance = ins as MultiInstance
     const instance = ins as SlsInstance
@@ -170,7 +171,7 @@ export class TemplateService {
       instances = instances.filter((instance) => instance.$src?.src)
     }
     const { org, app, stage, name } = instances[0]
-    return { org, app, stage, name, instances, hooks }
+    return { org, app, stage, instances, hooks }
   }
 
   resolveVariables(instance: OriginInstance, options: RunOptions) {
