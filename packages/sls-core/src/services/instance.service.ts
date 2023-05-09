@@ -15,6 +15,7 @@ import type {
   ScfLogRecord,
 } from '../types/index.js'
 import path from 'node:path'
+import { execSync } from 'node:child_process'
 import fg from 'fast-glob'
 import JSZip from 'jszip'
 import axios from 'axios'
@@ -29,7 +30,12 @@ import {
   isObject,
   type FileStatsContent,
 } from '../util.js'
-import { RUN_STATUS, COMPONENT_SCF, COMPONENT_MULTI_SCF } from '../constants.js'
+import {
+  RUN_STATUS,
+  COMPONENT_SCF,
+  COMPONENT_MULTI_SCF,
+  COMPONENT_LAYER,
+} from '../constants.js'
 import { NoSrcConfigError, NoSrcFilesError } from '../errors.js'
 
 export type ListInstanceParams = Partial<Pick<SlsInstance, 'org' | 'stage'>> & {
@@ -285,6 +291,12 @@ export class InstanceService {
         instance.component === COMPONENT_SCF
       ) {
         return this.updateFunctionCode(instance, options)
+      } else if (instance.component === COMPONENT_LAYER) {
+        ;({
+          instance: runInstance,
+          cacheOutdated,
+          force,
+        } = await this.processLayerSrc(runInstance, options))
       } else {
         ;({
           instance: runInstance,
@@ -301,6 +313,34 @@ export class InstanceService {
         cacheOutdated,
       },
     })
+  }
+
+  async processLayerSrc(instance: SlsInstance, options: RunOptions) {
+    const tmpDeploy = `.tmp-deploy-layer-${Date.now()}`
+    if (instance.$src?.src && instance.$src.src.includes('node_modules')) {
+      try {
+        try {
+          execSync(`pnpm deploy --prod -d ${tmpDeploy}`)
+        } catch (err) {
+          const { default: { name } } = await import(`${process.cwd()}/package.json`, { assert: { type: 'json' } })
+          execSync(`pnpm -F ${name} deploy --prod -d ${tmpDeploy}`)
+        }
+        instance.$src.src = path.resolve(process.cwd(), `${tmpDeploy}/node_modules`)
+      } catch (err) {
+        // empty
+      }
+    }
+    let result
+    try {
+      result = await this.processDeploySrc(instance, options)
+    } finally {
+      try {
+        execSync(`rm -rf ${path.resolve(process.cwd(), tmpDeploy)}`)
+      } catch (err) {
+        // empty
+      }
+    }
+    return result
   }
 
   @reportStatus(RUN_STATUS.updateCode)

@@ -5,6 +5,7 @@ import type { Stats } from 'node:fs'
 
 import fs from 'node:fs/promises'
 import crypto from 'node:crypto'
+import { execSync } from 'node:child_process'
 import pLimit from 'p-limit'
 import { filesize as filesizeLib } from 'filesize'
 
