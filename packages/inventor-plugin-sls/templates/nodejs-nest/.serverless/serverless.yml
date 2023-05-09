@@ -37,6 +37,7 @@ instances:
             parameters:
               serviceId: ${output:${stage}:${app}:apigateway-ins.serviceId}
               environment: release
+              serviceTimeout: 30 
               endpoints:
                 - path: /
                   method: ANY

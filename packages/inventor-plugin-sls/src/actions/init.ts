@@ -5,6 +5,18 @@
 import path from 'node:path'
 import { Action } from '@inventorjs/cli-core'
 
+const tplList = [
+  {
+    value: 'nodejs-koa',
+    name: '基础 nodejs koa 应用(云函数+层+网关+日志)',
+    helloworld: 'Hello, Inventorjs * Koa!',
+  },
+  {
+    value: 'nodejs-nest',
+    name: '基础 nodejs nest 应用(云函数+层+网关+日志)',
+    helloworld: 'Hello, Inventorjs * Nest!',
+  },
+]
 export default class InitAction extends Action {
   description = '通过模版初始化 serverless 项目'
   options = [
@@ -21,10 +33,7 @@ export default class InitAction extends Action {
         name: 'tplName',
         type: 'list',
         message: '请选择应用模版类型',
-        choices: [
-          { value: 'nodejs-koa', name: '基础 nodejs koa 应用(云函数+层+网关+日志)' },
-          { value: 'nodejs-nest', name: '基础 nodejs nest 应用(云函数+层+网关+日志)' },
-        ],
+        choices: tplList,
       },
       {
         name: 'orgName',
@@ -60,12 +69,8 @@ export default class InitAction extends Action {
     const { config } = options
     const dirName = config ? '.' : appName
 
-    let helloworld = 'Hello, Inventorjs'
-    if (tplName === 'nodejs-koa') {
-      helloworld += '* Koa'
-    } else if (tplName === 'nodejs-nest') {
-      helloworld += '* Nest'
-    }
+    const tplItem = tplList.find((tpl) => tpl.name === tplName)
+    const helloworld = tplItem?.helloworld
 
     await this.renderTemplate(tplName, dirName, {
       data: {
@@ -74,19 +79,22 @@ export default class InitAction extends Action {
         stageName,
         helloworld,
       },
-      includes: config ? ['.serverless/**/*'] : undefined
+      includes: config ? ['.serverless/**/*'] : undefined,
     })
 
     if (!config) {
       const cwd = path.resolve(this.pwd, dirName)
-      await this.runTaskContext(async () => {
-        await this.install()
-      }, { cwd })
+      await this.runTaskContext(
+        async () => {
+          await this.install()
+        },
+        { cwd },
+      )
     }
 
     this.logInitCmd({
       dirName,
-      cmd: 'pnpm dev\ninventor sls login\ninventor sls deploy\ninventor sls dev'
+      cmd: 'pnpm dev\ninventor sls login\ninventor sls deploy\ninventor sls dev',
     })
   }
 }

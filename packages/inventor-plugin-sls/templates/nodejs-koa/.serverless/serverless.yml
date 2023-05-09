@@ -3,6 +3,7 @@ org: <%- orgName %>
 <% } %>
 app: <%- appName %>
 stage: <%- stageName %>
+framework: http
 
 common:
   region: &region ap-guangzhou
@@ -37,6 +38,7 @@ instances:
             parameters:
               serviceId: ${output:${stage}:${app}:apigateway-ins.serviceId}
               environment: release
+              serviceTimeout: 30 
               endpoints:
                 - path: /
                   method: ANY
