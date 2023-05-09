@@ -262,7 +262,7 @@ export class TemplateService {
     } else if (typeof srcLocal.src === 'string') {
       const src = path.resolve(instance.$path, srcLocal.src)
       const include = (srcLocal?.include ?? []).map((inc) => path.resolve(src, inc))
-      const exclude = (srcLocal?.exclude ?? []).map((exc) => path.relative(src, exc))
+      const exclude = (srcLocal?.exclude ?? []).map((exc) => path.resolve(src, exc))
       return { src, include, exclude }
     } else if (
       typeof srcCos.bucket === 'string' &&
