@@ -10,6 +10,7 @@ import type {
   ResultInstanceError,
   ScfResultInstance,
   SlsTemplate,
+  SlsInstanceSrcLocal,
 } from '../types/index.js'
 
 import { createRequire } from 'node:module'
@@ -184,9 +185,15 @@ export class SlsService {
     return this.runHooks(
       async () => {
         for (const instance of scfInstances) {
-          const src = instance.$src?.src
-          if (!src) continue
-          const watcher = chokidar.watch(src)
+          const normalSrc = instance.$src
+          if (!normalSrc || !normalSrc.src) continue
+          const { src, exclude = [], include = [] } = normalSrc
+          const watchFiles = [src].concat(
+            include.map((inc) => path.resolve(src, inc)),
+          )
+          const watcher = chokidar.watch(watchFiles, {
+            ignored: exclude.map((exc) => path.resolve(src, exc)),
+          })
           const watch$ = new Observable<{ event: string; file: string }>(
             (observer) => {
               watcher.on('all', async (event, file) => {

@@ -21,7 +21,7 @@ import Graph from 'graph-data-structure'
 import { reportStatus } from '../decorators.js'
 import { isFile, isObject } from '../util.js'
 import { RUN_STATUS } from '../constants.js'
-import { CircularError } from '../errors.js'
+import { CircularError, NoInstanceError } from '../errors.js'
 
 export class TemplateService {
   private supportFilenames = [
@@ -163,14 +163,16 @@ export class TemplateService {
     } else {
       instances = await this.resolveDirInstance(options)
     }
-
-    if (instances.length > 0) {
-      instances = this.topologicalSort(instances, action)
-    }
     if (options.deployType === 'code') {
       instances = instances.filter((instance) => instance.$src?.src)
     }
-    const { org, app, stage, name } = instances[0]
+
+    if (!instances.length) {
+      throw new NoInstanceError()
+    }
+    instances = this.topologicalSort(instances, action)
+
+    const { org, app, stage } = instances[0]
     return { org, app, stage, instances, hooks }
   }
 
@@ -249,7 +251,7 @@ export class TemplateService {
   }
 
   private getNormalSrc(instance: SlsInstance) {
-    const src = instance.inputs.src
+    const src = instance.inputs?.src
     if (!src) {
       return null
     }
