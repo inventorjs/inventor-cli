@@ -1,5 +1,5 @@
 /**
- * api
+ * api service
  */
 import type { UpdateFunctionCodeRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/scf/v20180416/scf_models.js'
 import type { SearchLogRequest } from 'tencentcloud-sdk-nodejs/tencentcloud/services/cls/v20201016/cls_models.js'
