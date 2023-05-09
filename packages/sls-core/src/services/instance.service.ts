@@ -187,10 +187,8 @@ export class InstanceService {
     if (!normalSrc || !normalSrc.src) return null
 
     const srcPath = normalSrc.src
-    const exclude = normalSrc?.exclude ?? []
-    const include = normalSrc?.include ?? []
-    const includeFiles = include.map((file) => path.resolve(srcPath, file))
-    const excludeFiles = exclude.map((file) => path.resolve(srcPath, file))
+    const exclude = normalSrc.exclude ?? []
+    const include = normalSrc.include ?? []
 
     let globs = [`${srcPath}/**/*`]
     if (instance.component === COMPONENT_MULTI_SCF) {
@@ -199,10 +197,10 @@ export class InstanceService {
         (functionConfig) => `${path.join(srcPath, functionConfig.src)}/**/*`,
       )
     }
-    globs.push(...includeFiles)
+    globs.push(...include)
 
     const files = await fg(globs, {
-      ignore: excludeFiles,
+      ignore: exclude,
       dot: true,
       onlyFiles: options.followSymbolicLinks,
       followSymbolicLinks: options.followSymbolicLinks,
