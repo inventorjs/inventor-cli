@@ -316,16 +316,22 @@ export class InstanceService {
   }
 
   async processLayerSrc(instance: SlsInstance, options: RunOptions) {
-    const tmpDeploy = `.tmp-deploy-layer-${Date.now()}`
-    if (instance.$src?.src && instance.$src.src.includes('node_modules')) {
+    const tmpDeploy = `/tmp/.tmp-deploy-layer-${Date.now()}`
+    if (instance.$src?.src && instance.$src.src.endsWith('node_modules')) {
       try {
         try {
           execSync(`pnpm deploy --prod -d ${tmpDeploy}`)
         } catch (err) {
-          const { default: { name } } = await import(`${process.cwd()}/package.json`, { assert: { type: 'json' } })
-          execSync(`pnpm -F ${name} deploy --prod -d ${tmpDeploy}`)
+          const {
+            default: { name },
+          } = await import(`${process.cwd()}/package.json`, {
+            assert: { type: 'json' },
+          })
+          execSync(`pnpm -F ${name} deploy --prod -d ${tmpDeploy}`, {
+            cwd: process.cwd(),
+          })
         }
-        instance.$src.src = path.resolve(process.cwd(), `${tmpDeploy}/node_modules`)
+        instance.$src.src = `${tmpDeploy}/node_modules`
       } catch (err) {
         // empty
       }
@@ -335,7 +341,7 @@ export class InstanceService {
       result = await this.processDeploySrc(instance, options)
     } finally {
       try {
-        execSync(`rm -rf ${path.resolve(process.cwd(), tmpDeploy)}`)
+        execSync(`rm -rf ${tmpDeploy}`)
       } catch (err) {
         // empty
       }
