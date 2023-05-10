@@ -104,12 +104,18 @@ export class TemplateService {
         return resolvedInstance
       },
     )
+    let filterInstances = instances
     if (options.targets.length > 0) {
-      instances = instances.filter((instance) =>
+      filterInstances = instances.filter((instance) =>
         options.targets.includes(instance.name),
       )
+      if (!filterInstances.length) {
+        filterInstances = instances.filter((instance) =>
+          options.targets.includes(instance.component),
+        )
+      }
     }
-    return { ...multiInstance, instances }
+    return { ...multiInstance, instances: filterInstances }
   }
 
   async resolveDirInstance(options: RunOptions) {

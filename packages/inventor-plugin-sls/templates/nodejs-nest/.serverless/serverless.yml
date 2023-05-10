@@ -35,7 +35,7 @@ instances:
       events:
         - apigw:
             parameters:
-              serviceId: ${output:${stage}:${app}:apigateway-ins.serviceId}
+              serviceId: ${output:${stage}:${app}:apigw-ins.serviceId}
               environment: release
               serviceTimeout: 30 
               endpoints:

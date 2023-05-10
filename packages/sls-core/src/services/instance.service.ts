@@ -14,6 +14,7 @@ import type {
   TransInstance,
   ScfLogRecord,
 } from '../types/index.js'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { execSync } from 'node:child_process'
 import fg from 'fast-glob'
@@ -37,6 +38,8 @@ import {
   COMPONENT_LAYER,
 } from '../constants.js'
 import { NoSrcConfigError, NoSrcFilesError } from '../errors.js'
+
+const require = createRequire(import.meta.url)
 
 export type ListInstanceParams = Partial<Pick<SlsInstance, 'org' | 'stage'>> & {
   apps?: string[]
@@ -322,11 +325,7 @@ export class InstanceService {
         try {
           execSync(`pnpm deploy --prod -d ${tmpDeploy}`)
         } catch (err) {
-          const {
-            default: { name },
-          } = await import(`${process.cwd()}/package.json`, {
-            assert: { type: 'json' },
-          })
+          const { name } = require(`${process.cwd()}/package.json`)
           execSync(`pnpm -F ${name} deploy --prod -d ${tmpDeploy}`, {
             cwd: process.cwd(),
           })
