@@ -60,7 +60,7 @@ instances:
         fullText:
           caseSensitive: true
           tokenizer: "@&()='\",;:<>[]{}/ \n\t\r"
-  apigateway-ins:
+  apigw-ins:
     component: apigateway
     inputs:
       environment: test
