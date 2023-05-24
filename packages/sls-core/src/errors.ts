@@ -33,3 +33,9 @@ export class CircularError extends Error {
     super('实例配置存在循环应用, 请检查 ${output:...} 配置')
   }
 }
+
+export class NoEnvVariable extends Error {
+  constructor(envName: string = '') {
+    super(`当前实例引用的环境变量 ${envName} 未定义`)
+  }
+}

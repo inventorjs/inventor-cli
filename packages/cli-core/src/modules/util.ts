@@ -4,6 +4,7 @@
  */
 import { filesize as fz } from 'filesize'
 import dayjs from 'dayjs'
+import { readFile, writeFile, exists } from './fs.js'
 
 export function getPluginName(packageName: string) {
   if (
@@ -35,4 +36,27 @@ export function pascalCase(str: string) {
 
 export function dateFormat(timestamp: number, format = 'YYYY-MM-DD HH:mm:ss') {
   return dayjs(timestamp).format(format)
+}
+
+export async function updateEnvFile(
+  filePath: string,
+  updateData: Record<string, unknown>,
+) {
+  let envData = await parseEnvFile(filePath)
+  envData = { ...envData, ...updateData }
+  const result = Object.entries(envData)
+    .map(([key, val]) => `${key}=${val}`)
+    .join('\n')
+  await writeFile(filePath, result)
+}
+
+export async function parseEnvFile(filePath: string) {
+  let envData: Record<string, unknown> = {}
+  if (await exists(filePath)) {
+    ;(await readFile(filePath, 'utf8')).split('\n').forEach((line) => {
+      const [key, val] = line.split('=')
+      envData[String(key).trim()] = String(val).trim()
+    })
+  }
+  return envData
 }

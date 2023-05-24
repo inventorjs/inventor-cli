@@ -21,7 +21,7 @@ import Graph from 'graph-data-structure'
 import { reportStatus } from '../decorators.js'
 import { isFile, isObject } from '../util.js'
 import { RUN_STATUS } from '../constants.js'
-import { CircularError, NoInstanceError } from '../errors.js'
+import { CircularError, NoEnvVariable, NoInstanceError } from '../errors.js'
 
 export class TemplateService {
   private supportFilenames = [
@@ -40,11 +40,7 @@ export class TemplateService {
       const content = await fs.readFile(filePath, 'utf8')
       let instance: SlsInstance | MultiInstance | null = null
       if (filename.endsWith('yml') || filename.endsWith('yaml')) {
-        try {
-          instance = yaml.load(content) as SlsInstance
-        } catch (err) {
-          return null
-        }
+        instance = yaml.load(content) as SlsInstance
       } else if (filename.endsWith('json')) {
         try {
           instance = JSON.parse(content)
@@ -195,10 +191,16 @@ export class TemplateService {
         valName = valName.trim()
         let resolvedValue = v
         if (envPrefix) {
+          if (typeof process.env[valName] === 'undefined') {
+            throw new NoEnvVariable(`env:${valName}`)
+          }
           resolvedValue = process.env[valName] ?? value
           updateValue = updateValue.replace(v, resolvedValue)
         } else if (options.resolveVar === 'all') {
           let resolvedValue = instance[valName as keyof OriginInstance]
+          if (isObject(resolvedValue) || typeof resolvedValue === 'undefined') {
+            throw new NoEnvVariable(valName)
+          }
           resolvedValue = !isObject(resolvedValue) ? resolvedValue : v
           updateValue = updateValue.replace(v, resolvedValue)
         }
