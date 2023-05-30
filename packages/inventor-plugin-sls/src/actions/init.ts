@@ -16,6 +16,11 @@ const tplList = [
     name: '基础 nodejs nest 应用(云函数+层+网关+日志)',
     helloworld: 'Hello, Inventorjs * Nest!',
   },
+  {
+    value: 'nodejs-next',
+    name: '基础 nodejs next 应用(云函数+层+网关+日志)',
+    helloworld: 'Hello, Inventorjs * Next!',
+  },
 ]
 export default class InitAction extends Action {
   description = '通过模版初始化 serverless 项目'
