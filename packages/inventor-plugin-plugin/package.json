@@ -1,6 +1,6 @@
 {
   "name": "@inventorjs/inventor-plugin-plugin",
-  "version": "5.1.21",
+  "version": "5.1.22",
   "description": "inventor-cli plugin manager",
   "main": "dist/index.js",
   "author": "sunkeysun",
