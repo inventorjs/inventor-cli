@@ -16,6 +16,7 @@
     "resolveJsonModule": true, // 支持解析 json 模块
     "forceConsistentCasingInFileNames": true, // 强制文件大小写敏感(避免非大小写敏感系统书写错误)
     "noImplicitThis": true, // 不确定的 this 指向，则抛出错误 (如全局函数使用 this)
-    "isolatedModules": true, // 模块隔离，能够避免将类型作为值导出，以及不正常的全局引用
+    "isolatedModules": true, // 模块隔离，能够避免将类型作为值导出，以及不正常的全局引用，推荐开启
+    "experimentalDecorators": true // 支持装饰器语法
   }  
 }
