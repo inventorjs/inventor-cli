@@ -49,5 +49,8 @@
     "ignorePatterns": [
       "**/templates/**/*"
     ]
+  },
+  "dependencies": {
+    "@inventorjs/typescript-config": "0.0.18"
   }
 }

@@ -8,6 +8,7 @@ importers:
       '@commitlint/config-conventional': ^17.0.3
       '@inventorjs/eslint-config': 0.0.17
       '@inventorjs/prettier-config': 0.0.17
+      '@inventorjs/typescript-config': 0.0.18
       '@types/node': ^18.14.1
       '@typescript-eslint/eslint-plugin': ^5.53.0
       '@typescript-eslint/parser': ^5.53.0
@@ -21,6 +22,8 @@ importers:
       prettier: ^2.8.4
       rimraf: ^3.0.2
       typescript: ^4.9.5
+    dependencies:
+      '@inventorjs/typescript-config': 0.0.18
     devDependencies:
       '@commitlint/cli': 17.0.3
       '@commitlint/config-conventional': 17.0.3
@@ -1833,6 +1836,10 @@ packages:
     dependencies:
       prettier: 2.8.4
     dev: true
+
+  /@inventorjs/typescript-config/0.0.18:
+    resolution: {integrity: sha512-CxK9Kfd/hi8I8v003KpBMnSAPteTsm4bT1J0O6dq8fXXPayEznm87Jrls3vERkKZRIapCREjFBFoXqi4UI5y7A==}
+    dev: false
 
   /@jridgewell/gen-mapping/0.1.1:
     resolution: {integrity: sha512-sQXCasFk+U8lWYEe66WxRDOE9PjVz4vSM51fTu3Hw+ClTpUSQb718772vH3pyS5pShp6lvQM7SxgIDXXXmOX7w==}

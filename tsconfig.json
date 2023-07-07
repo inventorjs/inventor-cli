@@ -1,22 +1,3 @@
 {
-  "compilerOptions": {
-    "target": "esnext", // 编译目标为最新的 js 语法，即支持 js 最新特性(es6-es11...)
-    "module": "esnext", // 编译结果为 esm 模块格式(结果为：import xx from 'xx')
-    "moduleResolution": "nodenext", // 采用 esm 模式查找模块（相对路径必须加 js 后缀）, 需 package.json type 设置为 module
-    "lib": ["esnext"], // 导入最新的 js 语法类型
-    "rootDir": "src", // 源代码文件夹(此时将 src 文件夹下的内容编译到 outDir, 不包含 src 本身)
-    "baseUrl": ".", // 相对路径的基础路径(作为 rootDir,outDir,include,exclude 等相对目录的基础路径 )
-    "outDir": "dist", // 输出文件夹
-    "declaration": true, // 生成生命文件 .d.ts
-    "esModuleInterop": true, // 对非 esm 模块做兼容(将 module.export 挂到 default )
-    "allowJs": false, // 允许 js 后缀
-    "strict": true, // 强制进行空检测(对于可能返回 undefined 场景进行保护), 强制函数类型检测, 强制 call 检测
-    "noImplicitAny": true, // 不允许隐式的 any 类型
-    "skipLibCheck": true, // 跳过 node_modules 包的类型检查
-    "resolveJsonModule": true, // 支持解析 json 模块
-    "forceConsistentCasingInFileNames": true, // 强制文件大小写敏感(避免非大小写敏感系统书写错误)
-    "noImplicitThis": true, // 不确定的 this 指向，则抛出错误 (如全局函数使用 this)
-    "isolatedModules": true, // 模块隔离，能够避免将类型作为值导出，以及不正常的全局引用，推荐开启
-    "experimentalDecorators": true // 支持装饰器语法
-  }  
+  "extends": "@inventorjs/typescript-config/tsconfig.json"
 }
