@@ -12,7 +12,7 @@
   "packageManager": "pnpm@7.13.2",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "rimraf lib && tsc"
+    "build": "rimraf dist && tsc"
   },
   "devDependencies": {
     "prettier": "^2.7.1",

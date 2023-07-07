@@ -6,5 +6,6 @@
     "rootDir": "src",
     "baseUrl": ".",
     "outDir": "dist",
-  }
+  },
+  "include": ["src/**/*"]
 }

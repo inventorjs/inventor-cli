@@ -5,7 +5,7 @@
     "lib": ["esnext"],
     "rootDir": "src",
     "baseUrl": ".",
-    "outDir": "lib",
+    "outDir": "dist",
     "declaration": true,
     "esModuleInterop": true,
     "importHelpers": true,
@@ -13,6 +13,7 @@
     "noImplicitAny": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    "isolatedModules": true,
     "moduleResolution": "nodenext"
   },
   "include": ["src/**/*"]
