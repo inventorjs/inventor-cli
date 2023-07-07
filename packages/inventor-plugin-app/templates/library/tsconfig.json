@@ -1,20 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "lib": ["esnext"],
-    "rootDir": "src",
-    "baseUrl": ".",
-    "outDir": "dist",
-    "declaration": true,
-    "esModuleInterop": true,
-    "importHelpers": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "moduleResolution": "nodenext"
-  },
+  "extends": "@inventorjs/typescript-config/tsconfig.json",
   "include": ["src/**/*"]
 }
